@@ -25,7 +25,15 @@ export function lastUsedBySite(doses: { site: string; at: string }[]): Record<st
   return last;
 }
 
-/** Least recently used site first; never-used sites come before any used one. */
-export function suggestSite(last: Record<string, Date>): string {
+/** How far back a site counts as part of someone's usual rotation. */
+const ROTATION_DAYS = 90;
+
+/**
+ * The next site to use. Once someone rotates through two or more sites, suggest the longest-rested of those
+ * rather than a spot they never use. Otherwise, least recently used first, with never-used sites before any used one.
+ */
+export function suggestSite(last: Record<string, Date>, now = new Date()): string {
+  const usual = SITES.filter(s => last[s.k] && now.getTime() - last[s.k].getTime() < ROTATION_DAYS * 864e5);
+  if (usual.length >= 2) return usual.sort((a, b) => last[a.k].getTime() - last[b.k].getTime())[0].k;
   return SITES.slice().sort((a, b) => (last[a.k]?.getTime() ?? 0) - (last[b.k]?.getTime() ?? 0))[0].k;
 }

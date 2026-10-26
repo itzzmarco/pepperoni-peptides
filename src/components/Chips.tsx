@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { LegalKey, Peptide, Tier } from '../lib/types';
 import { LEGAL, TIERS } from '../data/reference';
 
@@ -9,10 +10,10 @@ export function TierChip({ t }: { t: Tier }) {
   );
 }
 
-/** Five rungs; more filled rungs means stronger evidence. Always paired with a text label nearby. */
-export function Ladder({ t }: { t: Tier }) {
+/** Five rising bars, like signal strength: more filled bars means stronger human evidence. Always paired with a text label nearby. */
+export function Ladder({ t, size = 'sm' }: { t: Tier; size?: 'sm' | 'lg' }) {
   return (
-    <span className="ladder" data-t={t} role="img" aria-label={`Evidence tier ${t} of 5: ${TIERS[t].label}`}>
+    <span className="ladder" data-t={t} data-size={size} role="img" aria-label={`Evidence tier ${t} of 5: ${TIERS[t].label}`}>
       <i /><i /><i /><i /><i />
     </span>
   );
@@ -28,12 +29,30 @@ export function LegalChip({ k }: { k: LegalKey }) {
   );
 }
 
+/** The legal label as colored text, for label-card fields. */
+export function LegalText({ k }: { k: LegalKey }) {
+  const l = LEGAL[k];
+  if (!l) return null;
+  return <span className="legal-text" data-l={k} title={l.long}>{l.label}</span>;
+}
+
 export function WadaChip({ w }: { w?: string }) {
   if (!w) return null;
   return (
     <span className="chip wada" title="World Anti-Doping Agency status">
       WADA: {w}
     </span>
+  );
+}
+
+/** A row of labeled fields split by hairlines, like the boxes on a pharmacy label. */
+export function Fields({ items, cols, className = '' }: { items: [label: ReactNode, value: ReactNode][]; cols?: string; className?: string }) {
+  return (
+    <dl className={`fields ${className}`} style={{ gridTemplateColumns: cols ?? `repeat(${items.length}, minmax(0, 1fr))` }}>
+      {items.map(([l, v], i) => (
+        <div key={i}><dt>{l}</dt><dd>{v}</dd></div>
+      ))}
+    </dl>
   );
 }
 

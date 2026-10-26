@@ -9,6 +9,7 @@ import { FAMILIES, LEGAL, TIERS } from '../data/reference';
 import { ROUTES, SOURCES, UNITS, UNREGULATED_SOURCE } from '../data/options';
 import { Sheet } from '../components/Sheet';
 import { useToast } from '../components/Toast';
+import { CloseIcon } from '../components/Icons';
 import { regName } from '../views/LogView';
 
 const OTHER = '__other';
@@ -74,10 +75,11 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved }: { initial: Re
       <form className="stack" style={{ gap: 16 }} onSubmit={submit} noValidate>
         <div className="sheet-head">
           <div>
-            <h2>{isNew ? 'Track a peptide' : `Edit ${regName(initial)}`}</h2>
+            <span className="eyebrow">{isNew ? 'Track a peptide' : 'Edit regimen'}</span>
+            <h2>{isNew ? 'What were you prescribed?' : regName(initial)}</h2>
             <p className="small muted" style={{ marginTop: 4 }}>Enter what your prescriber told you. This app doesn't suggest doses.</p>
           </div>
-          <button type="button" className="btn quiet sm" onClick={onClose}>Close</button>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close"><CloseIcon /></button>
         </div>
         <label className="field"><span>Peptide or medication</span>
           <select id="r-compound" value={pick} onChange={e => choose(e.target.value)}>

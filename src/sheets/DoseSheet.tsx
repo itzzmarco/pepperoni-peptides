@@ -8,6 +8,7 @@ import { INJECTABLE, ROUTES, UNITS } from '../data/options';
 import { BodyMap } from '../components/BodyMap';
 import { Sheet } from '../components/Sheet';
 import { useToast } from '../components/Toast';
+import { CheckIcon, CloseIcon } from '../components/Icons';
 import { regName } from '../views/LogView';
 
 export function DoseSheet({ r, onClose }: { r: Regimen; onClose: () => void }) {
@@ -35,14 +36,17 @@ export function DoseSheet({ r, onClose }: { r: Regimen; onClose: () => void }) {
     <Sheet onClose={onClose} label={`Log ${regName(r)}`}>
       <form className="stack" style={{ gap: 16 }} onSubmit={submit} noValidate>
         <div className="sheet-head">
-          <div><h2>Log {regName(r)}</h2><p className="small muted" style={{ marginTop: 4 }}>{freqText(r)} · prescribed {fmtNum(Number(r.dose), 3)} {r.unit}</p></div>
-          <button type="button" className="btn quiet sm" onClick={onClose}>Close</button>
+          <div><span className="eyebrow">Log a dose</span><h2>{regName(r)}</h2><p className="small muted" style={{ marginTop: 4 }}>{freqText(r)} · prescribed <span className="mono">{fmtNum(Number(r.dose), 3)} {r.unit}</span></p></div>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close"><CloseIcon /></button>
         </div>
         <div className="grid-3">
           <label className="field"><span>Amount</span><input type="number" id="d-amount" step="any" min="0" value={d.amount} onChange={set('amount')} /></label>
           <label className="field"><span>Unit</span><select id="d-unit" value={d.unit} onChange={set('unit')}>{UNITS.map(u => <option key={u}>{u}</option>)}</select></label>
           <label className="field"><span>When</span><input type="datetime-local" id="d-at" value={d.at} onChange={set('at')} /></label>
         </div>
+        {!amountDiffers && !unitDiffers && amt > 0 && (
+          <p className="match-note"><CheckIcon size={16} />Matches your regimen: {fmtNum(Number(r.dose), 3)} {r.unit}, {freqText(r).toLowerCase()}</p>
+        )}
         {(amountDiffers || unitDiffers) && (
           <p className="small" style={{ color: 'var(--warn)' }}>
             {unitDiffers
@@ -57,7 +61,7 @@ export function DoseSheet({ r, onClose }: { r: Regimen; onClose: () => void }) {
         <label className="field"><span>Notes <small>(optional)</small></span><input type="text" id="d-notes" maxLength={200} placeholder="e.g. new vial, mild sting" value={d.notes} onChange={set('notes')} /></label>
         <div className="sheet-foot">
           <button type="button" className="btn ghost" onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn">Log dose</button>
+          <button type="submit" className="btn big">Save dose</button>
         </div>
       </form>
     </Sheet>

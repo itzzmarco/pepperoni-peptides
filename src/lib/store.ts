@@ -115,6 +115,10 @@ export class LedgerStore {
   addCheckin(c: Checkin) {
     this.commit({ ...this.state, checkins: [c, ...this.state.checkins].sort(byNewest) });
   }
+  /** Replaces a check-in with the same id, used when someone adds details to a one-tap check-in. */
+  updateCheckin(c: Checkin) {
+    this.commit({ ...this.state, checkins: this.state.checkins.map(x => (x.id === c.id ? c : x)).sort(byNewest) });
+  }
   deleteCheckin(id: string) {
     this.commit({ ...this.state, checkins: this.state.checkins.filter(c => c.id !== id) });
   }

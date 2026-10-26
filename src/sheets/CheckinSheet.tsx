@@ -5,24 +5,28 @@ import { newId } from '../lib/format';
 import { EFFECTS, RED_FLAGS, SCALES } from '../data/options';
 import { Sheet } from '../components/Sheet';
 import { useToast } from '../components/Toast';
+import { CloseIcon } from '../components/Icons';
 
 const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter(x => x !== v) : [...list, v]);
 
-export function CheckinSheet({ onClose }: { onClose: () => void }) {
+/** A new check-in, or with `initial` the details for one already saved (the one-tap check-in on the log). */
+export function CheckinSheet({ initial, onClose }: { initial?: Checkin; onClose: () => void }) {
   const toast = useToast();
   const { checkins } = useLedger();
-  const [vals, setVals] = useState<Partial<Record<(typeof SCALES)[number][0], number>>>({});
-  const [effects, setEffects] = useState<string[]>([]);
-  const [flags, setFlags] = useState<string[]>([]);
-  const [weight, setWeight] = useState('');
-  const [wUnit, setWUnit] = useState(() => checkins.find(c => c.weightUnit)?.weightUnit ?? 'lb');
-  const [notes, setNotes] = useState('');
+  const [vals, setVals] = useState<Partial<Record<(typeof SCALES)[number][0], number>>>(() =>
+    Object.fromEntries(SCALES.map(([k]) => [k, initial?.[k]]).filter(([, v]) => v != null)));
+  const [effects, setEffects] = useState<string[]>(initial?.effects ?? []);
+  const [flags, setFlags] = useState<string[]>(initial?.flags ?? []);
+  const [weight, setWeight] = useState(initial?.weight ? String(initial.weight) : '');
+  const [wUnit, setWUnit] = useState(() => initial?.weightUnit ?? checkins.find(c => c.weightUnit)?.weightUnit ?? 'lb');
+  const [notes, setNotes] = useState(initial?.notes ?? '');
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const entry: Checkin = { id: newId(), at: new Date().toISOString(), effects, flags, notes: notes.trim(), ...vals };
+    const entry: Checkin = { id: initial?.id ?? newId(), at: initial?.at ?? new Date().toISOString(), effects, flags, notes: notes.trim(), ...vals };
     if (Number(weight) > 0) { entry.weight = Number(weight); entry.weightUnit = wUnit; }
-    store.addCheckin(entry);
+    if (initial) store.updateCheckin(entry);
+    else store.addCheckin(entry);
     toast(flags.length ? 'Saved. Please get medical help now.' : 'Check-in saved.');
     onClose();
   };
@@ -31,8 +35,8 @@ export function CheckinSheet({ onClose }: { onClose: () => void }) {
     <Sheet onClose={onClose} label="Daily check-in">
       <form className="stack" style={{ gap: 16 }} onSubmit={submit} noValidate>
         <div className="sheet-head">
-          <div><h2>Daily check-in</h2><p className="small muted" style={{ marginTop: 4 }}>1 is poor, 5 is great. Skip anything you like.</p></div>
-          <button type="button" className="btn quiet sm" onClick={onClose}>Close</button>
+          <div><span className="eyebrow">{initial ? 'Add details' : 'Daily check-in'}</span><h2>How are you doing?</h2><p className="small muted" style={{ marginTop: 4 }}>1 is poor, 5 is great. Skip anything you like.</p></div>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close"><CloseIcon /></button>
         </div>
         {SCALES.map(([k, l]) => (
           <div className="field" key={k}>

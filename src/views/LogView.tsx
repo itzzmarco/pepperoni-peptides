@@ -3,13 +3,15 @@ import type { Checkin, DoseEntry, Ledger, Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { adherenceDays, freqText, regimenStatus } from '../lib/schedule';
 import { doseMath } from '../lib/doseMath';
-import { DAY, dayKey, fmtDay, fmtNum, fmtTime } from '../lib/format';
-import { SITE_LABEL } from '../lib/sites';
+import { DAY, dayKey, fmtDay, fmtNum, fmtShort, fmtTime, newId } from '../lib/format';
+import { SITE_LABEL, lastUsedBySite, suggestSite } from '../lib/sites';
 import { ledgerToCsv } from '../lib/csv';
 import { PEP } from '../data/peptides';
-import { UNREGULATED_SOURCE } from '../data/options';
-import { LegalChip, TierChip } from '../components/Chips';
+import { FAMILIES } from '../data/reference';
+import { INJECTABLE, UNREGULATED_SOURCE } from '../data/options';
+import { Fields, LegalChip, TierChip } from '../components/Chips';
 import { LineChart } from '../components/LineChart';
+import { CheckIcon, ChevronIcon, LockIcon, PlusIcon, TargetIcon } from '../components/Icons';
 import { useToast } from '../components/Toast';
 
 export const regName = (r: Pick<Regimen, 'compoundId' | 'name'>) => PEP[r.compoundId]?.name ?? (r.name || 'Unnamed');
@@ -18,21 +20,24 @@ type Actions = {
   addRegimen: () => void;
   editRegimen: (r: Regimen) => void;
   logDose: (r: Regimen) => void;
-  checkin: () => void;
+  checkin: (c?: Checkin) => void;
 };
 
-function Strip({ rid, doses }: { rid: string; doses: DoseEntry[] }) {
+const ROUTE_SHORT: Record<string, string> = { 'Subcutaneous injection': 'SubQ', 'Intramuscular injection': 'IM', 'IV (in clinic)': 'IV', 'Nasal spray': 'Nasal', Sublingual: 'Under tongue' };
+
+/** The last 28 days as a barcode: a tall bar for each day with a logged dose, a dashed bar when today's dose is due. */
+function Strip({ rid, doses, due }: { rid: string; doses: DoseEntry[]; due: boolean }) {
   const days = adherenceDays(rid, doses);
   const count = days.filter(d => d.on).length;
   return (
-    <>
-      <div className="strip" role="img" aria-label={`Doses logged on ${count} of the last 28 days`}>
+    <div className="barcode-wrap">
+      <div className="barcode" role="img" aria-label={`Doses logged on ${count} of the last 28 days${due ? ". Today's dose is due" : ''}`}>
         {days.map(d => (
-          <i key={d.date.getTime()} className={`${d.on ? 'on' : ''}${d.today ? ' today' : ''}`} title={`${fmtDay(d.date)}${d.on ? ': dose logged' : ''}`} />
+          <i key={d.date.getTime()} className={d.on ? 'on' : d.today && due ? 'due' : ''} title={`${fmtDay(d.date)}${d.on ? ': dose logged' : ''}`} />
         ))}
       </div>
-      <div className="strip-legend"><span>4 weeks ago</span><span>Today</span></div>
-    </>
+      <div className="strip-legend"><span>4 weeks ago</span><span>{count} dose{count === 1 ? '' : 's'} logged</span><span>Today</span></div>
+    </div>
   );
 }
 
@@ -41,37 +46,93 @@ function RegimenCard({ r, doses, actions, example }: { r: Regimen; doses: DoseEn
   const p = PEP[r.compoundId];
   const st = example ? { s: 'due', text: 'Due today' } : regimenStatus(r, doses);
   const math = doseMath(r.dose, r.unit, r.vialMg, r.diluentMl);
+  const due = st.s === 'due' || st.s === 'late';
+  const sub = r.prescriber ? `Prescribed by ${r.prescriber}` : p ? FAMILIES[p.family]?.name : '';
+  let site: { k: string; last?: Date } | null = null;
+  if (!example && !r.paused && INJECTABLE.has(r.route)) {
+    const last = lastUsedBySite(doses);
+    const k = suggestSite(last);
+    site = { k, last: last[k] };
+  }
   return (
-    <article className={`regimen${r.paused ? ' paused' : ''}${example ? ' example' : ''}`} aria-hidden={example || undefined}>
-      <div className="top">
-        <div className="stack" style={{ gap: 4 }}>
+    <article className={`regimen label-card${r.paused ? ' paused' : ''}${example ? ' example' : ''}`} aria-hidden={example || undefined}>
+      <div className="lc-head">
+        <div className="stack" style={{ gap: 2, minWidth: 0 }}>
           <h3>{regName(r)}</h3>
-          <div className="dose">{fmtNum(Number(r.dose), 3)} {r.unit} · {freqText(r)} · {r.route}</div>
+          {sub && <span className="small muted">{sub}</span>}
         </div>
         <span className="due" data-s={st.s}>{st.text}</span>
       </div>
-      {math && (
-        <div className="small muted">
-          Draw <b className="mono">{fmtNum(math.units, 1)} units</b> on a U-100 syringe ({fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL). Confirm with your pharmacist.
-        </div>
-      )}
-      {p && <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /></div>}
-      {r.prescriber && <div className="small faint">Prescribed by {r.prescriber}</div>}
-      {r.source === UNREGULATED_SOURCE && (
-        <div className="alert warn"><b>Unregulated source.</b><span>Products sold online as "research use only" aren't checked for identity, dose, sterility, or endotoxin. See Safety for testing data.</span></div>
-      )}
-      <Strip rid={r.id} doses={example ? [] : doses} />
-      {!example && actions && (
-        <div className="row-wrap">
-          {!r.paused && <button className="btn sm" onClick={() => actions.logDose(r)}>Log dose</button>}
-          <button className="btn ghost sm" onClick={() => actions.editRegimen(r)}>Edit</button>
-          <button className="btn quiet sm" onClick={() => { store.saveRegimen({ ...r, paused: !r.paused }); toast(r.paused ? 'Resumed.' : 'Paused. Your history is kept.'); }}>
-            {r.paused ? 'Resume' : 'Pause'}
-          </button>
-          {p && <a className="btn quiet sm" href={`#${p.id}`}>About {p.name}</a>}
-        </div>
-      )}
+      <Fields cols="minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, .8fr)" items={[
+        ['Dose', <span className="mono">{fmtNum(Number(r.dose), 3)} {r.unit}</span>],
+        ['Schedule', freqText(r)],
+        ['Route', ROUTE_SHORT[r.route] ?? r.route],
+      ]} />
+      <div className="lc-body">
+        {math && (
+          <p className="small">
+            Draw <b className="mono">{fmtNum(math.units, 1)} units</b> on a U-100 syringe <span className="muted">({fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL). Confirm with your pharmacist.</span>
+          </p>
+        )}
+        {site && (
+          <p className="next-site">
+            <span className="ns-icon"><TargetIcon /></span>
+            <span>Next site: <b>{SITE_LABEL[site.k].toLowerCase()}</b> <span className="muted">· {site.last ? `last used ${fmtShort(site.last)}` : 'not used yet'}</span></span>
+          </p>
+        )}
+        <Strip rid={r.id} doses={example ? [] : doses} due={due} />
+        {p && <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /></div>}
+        {r.source === UNREGULATED_SOURCE && (
+          <div className="alert warn"><b>Unregulated source.</b><span>Products sold online as "research use only" aren't checked for identity, dose, sterility, or endotoxin. See Safety for testing data.</span></div>
+        )}
+        {!example && actions && (
+          <div className="lc-actions">
+            {!r.paused && <button className={`btn${due ? ' big' : ' ghost'}`} onClick={() => actions.logDose(r)}><CheckIcon />Log dose</button>}
+            <div className="row-wrap" style={{ gap: 4 }}>
+              <button className="btn quiet sm" onClick={() => actions.editRegimen(r)}>Edit</button>
+              <button className="btn quiet sm" onClick={() => { store.saveRegimen({ ...r, paused: !r.paused }); toast(r.paused ? 'Resumed.' : 'Paused. Your history is kept.'); }}>
+                {r.paused ? 'Resume' : 'Pause'}
+              </button>
+              {p && <a className="btn quiet sm" href={`#${p.id}`}>About {p.name}</a>}
+            </div>
+          </div>
+        )}
+      </div>
     </article>
+  );
+}
+
+/** One tap saves a check-in with just an overall score; details can be added to the same entry. */
+function QuickCheckin({ checkins, onDetails }: { checkins: Checkin[]; onDetails: (c?: Checkin) => void }) {
+  const toast = useToast();
+  const today = dayKey(new Date());
+  const done = checkins.find(c => dayKey(new Date(c.at)) === today);
+  const save = (n: number) => {
+    store.addCheckin({ id: newId(), at: new Date().toISOString(), overall: n, effects: [], flags: [], notes: '' });
+    toast(`Saved: feeling ${n} of 5.`);
+  };
+  return (
+    <section className="panel stack quick-checkin" aria-labelledby="qc-h">
+      <div>
+        <h2 id="qc-h" className="h-card">{done ? 'Checked in today' : 'How do you feel today?'}</h2>
+        <p className="small muted">
+          {done
+            ? <>At {fmtTime(new Date(done.at))}{done.overall ? <>, feeling <b className="mono">{done.overall}/5</b></> : null}{done.effects.length ? ` · ${done.effects.join(', ')}` : ''}</>
+            : 'One tap saves a quick check-in. Add sleep, side effects or weight any time.'}
+        </p>
+      </div>
+      {!done && (
+        <>
+          <div className="scale big" role="group" aria-label="Overall feeling, 1 to 5">
+            {[1, 2, 3, 4, 5].map(n => <button type="button" key={n} onClick={() => save(n)} aria-label={`${n} of 5`}>{n}</button>)}
+          </div>
+          <div className="strip-legend" style={{ marginTop: -6 }}><span>1 · rough</span><span>5 · great</span></div>
+        </>
+      )}
+      <button type="button" className="row-link" onClick={() => onDetails(done)}>
+        {done ? 'Add sleep, side effects or weight' : 'Full check-in: sleep, side effects, weight'}<ChevronIcon />
+      </button>
+    </section>
   );
 }
 
@@ -118,8 +179,8 @@ function ExportPanel({ ledger }: { ledger: Ledger }) {
   };
   return (
     <section className="panel stack">
-      <div className="panel-head" style={{ margin: 0 }}><h3>Export and backup</h3></div>
-      <p className="small muted">Your log lives only in this browser. Export a CSV for your clinician, or a JSON backup you can restore on another device.</p>
+      <div className="panel-head" style={{ margin: 0 }}><h2 className="h-card">Export and backup</h2></div>
+      <p className="small muted device-note"><LockIcon size={14} />Your log lives only in this browser. Export a CSV for your clinician, or a JSON backup you can restore on another device.</p>
       <div className="row-wrap">
         <button className="btn ghost sm" disabled={empty} onClick={() => download(`peptide-log-${stamp}.csv`, ledgerToCsv(ledger, id => PEP[id]?.name), 'text/csv')}>Export CSV</button>
         <button className="btn ghost sm" disabled={empty} onClick={() => download(`peptide-ledger-backup-${stamp}.json`, JSON.stringify(ledger, null, 2), 'application/json')}>Download backup</button>
@@ -173,14 +234,25 @@ export function LogView(actions: Actions) {
   ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 60);
   let lastDay = '';
 
+  const statuses = new Map(active.map(r => [r.id, regimenStatus(r, doses)]));
+  const urgent = (r: Regimen) => ['due', 'late'].includes(statuses.get(r.id)!.s);
+  const dueNow = active.filter(urgent);
+  const later = active.filter(r => !urgent(r));
+  const lastCheck = checkins[0];
+  const summary = [
+    regimens.length ? (dueNow.length ? `${dueNow.length} dose${dueNow.length === 1 ? '' : 's'} due.` : 'Nothing due today.') : '',
+    lastCheck ? `Last check-in ${fmtDay(new Date(lastCheck.at))}.` : '',
+  ].filter(Boolean).join(' ');
+
   return (
     <section className="view">
       <div className="view-head">
-        <div><h1>My log</h1><p>Doses, symptoms, and how you feel, in one private record you can export for your clinician.</p></div>
-        <div className="row-wrap">
-          <button className="btn" onClick={actions.addRegimen}>Add a peptide</button>
-          <button className="btn ghost" onClick={actions.checkin}>Daily check-in</button>
+        <div>
+          <span className="eyebrow">{fmtDay(new Date())}</span>
+          <h1>Today</h1>
+          <p>{summary || 'Doses, symptoms, and how you feel, in one private record you can export for your clinician.'}</p>
         </div>
+        {regimens.length > 0 && <button className="btn ghost" onClick={actions.addRegimen}><PlusIcon />Add a peptide</button>}
       </div>
 
       {lastFlag && (
@@ -196,10 +268,10 @@ export function LogView(actions: Actions) {
       {!(introHidden && regimens.length) && (
         <section className="panel stack" aria-label="About this log">
           <div className="panel-head">
-            <h3>Before you start</h3>
+            <h2 className="h-card">Before you start</h2>
             {regimens.length > 0 && <button className="btn quiet sm" onClick={() => { lsSet('pl-intro-hidden', '1'); setIntroHidden(true); }}>Hide</button>}
           </div>
-          <ul className="small" style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 4 }}>
+          <ul className="small dots">
             <li>This is a journal for doses and symptoms, built to share with your clinician. It never suggests a dose; enter the one you were prescribed.</li>
             <li>Everything you enter stays in this browser on this device. There's no account and no server. Use Export to keep a copy.</li>
             <li>Most peptides promoted online are unapproved, and products sold as "research use only" aren't tested for what's in the vial. Check the Library before you log something new.</li>
@@ -209,23 +281,34 @@ export function LogView(actions: Actions) {
       )}
 
       <div className="log-grid">
-        <div className="stack">
-          <div className="panel-head" style={{ margin: 0 }}><h2>Tracking</h2><span className="count">{active.length} active</span></div>
+        <div className="stack" style={{ gap: 24 }}>
           {regimens.length === 0 ? (
-            <>
+            <section className="stack">
+              <h2 className="label-h">Tracking</h2>
               <div className="empty">
                 <h3>Nothing tracked yet</h3>
-                <p className="muted small">Add a peptide or medication you've been prescribed. You'll get a due-date status, a 4-week history strip, and injection-site rotation.</p>
-                <button className="btn" onClick={actions.addRegimen}>Add a peptide</button>
+                <p className="muted small">Add a peptide or medication you've been prescribed. You'll get a due-date status, a 4-week history, and injection-site rotation.</p>
+                <button className="btn" onClick={actions.addRegimen}><PlusIcon />Add a peptide</button>
               </div>
               <RegimenCard r={example} doses={[]} example />
-            </>
+            </section>
           ) : (
             <>
-              {active.map(r => <RegimenCard key={r.id} r={r} doses={doses} actions={actions} />)}
+              {dueNow.length > 0 && (
+                <section className="stack" aria-labelledby="due-h">
+                  <div className="label-row"><h2 id="due-h" className="label-h">Due now</h2><span className="count">{dueNow.length} of {active.length}</span></div>
+                  {dueNow.map(r => <RegimenCard key={r.id} r={r} doses={doses} actions={actions} />)}
+                </section>
+              )}
+              {later.length > 0 && (
+                <section className="stack" aria-labelledby="later-h">
+                  <div className="label-row"><h2 id="later-h" className="label-h">{dueNow.length ? 'Coming up' : 'Tracking'}</h2><span className="count">{later.length} active</span></div>
+                  {later.map(r => <RegimenCard key={r.id} r={r} doses={doses} actions={actions} />)}
+                </section>
+              )}
               {paused.length > 0 && (
-                <details>
-                  <summary className="small muted" style={{ cursor: 'pointer' }}>Paused ({paused.length})</summary>
+                <details className="paused-list">
+                  <summary className="small muted">Paused ({paused.length})</summary>
                   <div className="stack" style={{ marginTop: 10 }}>{paused.map(r => <RegimenCard key={r.id} r={r} doses={doses} actions={actions} />)}</div>
                 </details>
               )}
@@ -234,8 +317,9 @@ export function LogView(actions: Actions) {
         </div>
 
         <div className="stack">
+          <QuickCheckin checkins={checkins} onDetails={actions.checkin} />
           <section className="panel">
-            <div className="panel-head"><h3>How you've felt</h3><span className="count">Last 30 days, 1 to 5</span></div>
+            <div className="panel-head"><h2 className="label-h">How you've felt</h2><span className="count">Last 30 days · 1 to 5</span></div>
             {feel.length >= 2 ? (
               <LineChart points={feel} y0={1} y1={5} ticks={[1, 3, 5]} x0={since} x1={Date.now()} label="Overall feeling over the last 30 days" />
             ) : (
@@ -247,13 +331,13 @@ export function LogView(actions: Actions) {
             const lo = Math.floor(Math.min(...ys) - 1), hi = Math.ceil(Math.max(...ys) + 1);
             return (
               <section className="panel">
-                <div className="panel-head"><h3>Weight</h3><span className="count">{wUnit}</span></div>
+                <div className="panel-head"><h2 className="label-h">Weight</h2><span className="count">{wUnit}</span></div>
                 <LineChart points={weights} y0={lo} y1={hi} ticks={[lo, Math.round((lo + hi) / 2), hi]} label="Weight trend" fmt={v => fmtNum(v, 1)} />
               </section>
             );
           })()}
           <section className="panel">
-            <div className="panel-head"><h3>Recent entries</h3><span className="count">{items.length}</span></div>
+            <div className="panel-head"><h2 className="label-h">Recent entries</h2><span className="count">{items.length}</span></div>
             {items.length ? (
               <div className="timeline">
                 {(showAll ? items : items.slice(0, RECENT)).map(it => {

@@ -37,8 +37,9 @@ npm run preview    # serve the production build locally
 
 `npm run build` produces a fully static `dist/` folder with relative asset paths, so it can be served from any static host or sub-path.
 
-- **GitHub Pages**: in the repo, go to Settings > Pages and set Source to **GitHub Actions**. The included `Deploy to GitHub Pages` workflow then publishes every push to `main`.
-- **Netlify, Vercel, Cloudflare Pages**: build command `npm run build`, output directory `dist`.
+**Vercel** (the main host): on vercel.com, choose Add New > Project, import this GitHub repo, and click Deploy. `vercel.json` already sets the framework (Vite), build command (`npm run build`) and output directory (`dist`), so there is nothing to fill in. After that, every push to `main` goes live and every pull request gets its own preview link. `vercel.json` also gives the hashed files in `assets/` a long cache lifetime and adds a few privacy and security headers.
+
+Any other static host works too (Netlify, Cloudflare Pages, GitHub Pages): build command `npm run build`, output directory `dist`.
 
 ## Where the content comes from
 

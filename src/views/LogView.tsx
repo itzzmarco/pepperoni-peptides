@@ -11,7 +11,8 @@ import { FAMILIES } from '../data/reference';
 import { INJECTABLE, UNREGULATED_SOURCE } from '../data/options';
 import { Fields, LegalChip, TierChip } from '../components/Chips';
 import { LineChart } from '../components/LineChart';
-import { CheckIcon, ChevronIcon, LockIcon, PlusIcon, TargetIcon } from '../components/Icons';
+import { AlertIcon, BookIcon, CheckIcon, ChevronIcon, LockIcon, PlusIcon, SyringeIcon, TargetIcon } from '../components/Icons';
+import { isSample, sampleLedger } from '../lib/sample';
 import { useToast } from '../components/Toast';
 
 export const regName = (r: Pick<Regimen, 'compoundId' | 'name'>) => PEP[r.compoundId]?.name ?? (r.name || 'Unnamed');
@@ -80,7 +81,7 @@ function RegimenCard({ r, doses, actions, example }: { r: Regimen; doses: DoseEn
             <span>Next site: <b>{SITE_LABEL[site.k].toLowerCase()}</b> <span className="muted">· {site.last ? `last used ${fmtShort(site.last)}` : 'not used yet'}</span></span>
           </p>
         )}
-        <Strip rid={r.id} doses={example ? [] : doses} due={due} />
+        <Strip rid={r.id} doses={doses} due={due} />
         {p && <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /></div>}
         {r.source === UNREGULATED_SOURCE && (
           <div className="alert warn"><b>Unregulated source.</b><span>Products sold online as "research use only" aren't checked for identity, dose, sterility, or endotoxin. See Safety for testing data.</span></div>
@@ -204,8 +205,34 @@ function ExportPanel({ ledger }: { ledger: Ledger }) {
   );
 }
 
-const lsGet = (k: string) => { try { return localStorage.getItem(k); } catch { return null; } };
-const lsSet = (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* storage blocked */ } };
+
+/** First-run screen: what the log is, the promises it keeps, and a way to see it filled in before committing. */
+function Welcome({ example, exampleDoses, onAdd, onCheckin }: { example: Regimen; exampleDoses: DoseEntry[]; onAdd: () => void; onCheckin: () => void }) {
+  const toast = useToast();
+  return (
+    <section className="welcome" aria-labelledby="welcome-h">
+      <div className="welcome-copy">
+        <span className="eyebrow">Private · stays on this device</span>
+        <h1 id="welcome-h">Track what you take. See how it's going.</h1>
+        <p className="welcome-lede">A dose and symptom journal built to share with your clinician, next to a plain-language library of {Object.keys(PEP).length} peptides that trend online.</p>
+        <div className="welcome-actions">
+          <button className="btn big accent" onClick={onAdd}><PlusIcon />Add your first peptide</button>
+          <button className="btn big on-dark" onClick={() => { store.importBackup(sampleLedger()); toast('Sample data added. Clear it any time.'); }}>See it with sample data</button>
+        </div>
+        <ul className="promises">
+          <li><LockIcon size={18} /><span><b>No account, no server.</b> Your log lives in this browser. Export it for your clinician.</span></li>
+          <li><SyringeIcon size={18} /><span><b>Never suggests a dose.</b> You enter the one you were prescribed.</span></li>
+          <li><AlertIcon size={18} /><span><b>Flags warning signs.</b> The daily check-in points you to help.</span></li>
+          <li><BookIcon size={18} /><span><b>Most peptides sold online are unapproved and untested.</b> <a href="#library">Check the library</a> before you log something new.</span></li>
+        </ul>
+        <button type="button" className="welcome-alt" onClick={onCheckin}>Not taking anything yet? Start with a daily check-in<ChevronIcon /></button>
+      </div>
+      <div className="welcome-art" aria-hidden="true">
+        <RegimenCard r={example} doses={exampleDoses} example />
+      </div>
+    </section>
+  );
+}
 
 /** How many timeline entries show before "Show all". */
 const RECENT = 12;
@@ -213,7 +240,6 @@ const RECENT = 12;
 export function LogView(actions: Actions) {
   const ledger = useLedger();
   const toast = useToast();
-  const [introHidden, setIntroHidden] = useState(() => lsGet('pl-intro-hidden') === '1');
   const [showAll, setShowAll] = useState(false);
   const { regimens, doses, checkins } = ledger;
   const active = regimens.filter(r => !r.paused);
@@ -226,6 +252,9 @@ export function LogView(actions: Actions) {
   const wUnit = checkins.find(c => c.weight)?.weightUnit ?? '';
   const lastFlag = checkins.find(c => c.flags.length && Date.now() - new Date(c.at).getTime() < 2 * DAY);
   const example: Regimen = { id: 'example', compoundId: 'tirzepatide', name: '', dose: '2.5', unit: 'mg', freq: 'weekly', everyDays: '', route: 'Subcutaneous injection', prescriber: 'your clinician', source: '', start: '', vialMg: '', diluentMl: '', notes: '' };
+  const exampleDoses = [28, 21, 14, 7].map((d, i): DoseEntry => ({ id: `ex${i}`, rid: 'example', name: '', at: new Date(Date.now() - d * DAY).toISOString(), amount: '2.5', unit: 'mg', route: example.route, site: '', notes: '' }));
+  const firstRun = !regimens.length && !doses.length && !checkins.length;
+  const hasSample = regimens.some(isSample) || doses.some(isSample) || checkins.some(isSample);
 
   type Item = { kind: 'dose'; at: string; e: DoseEntry } | { kind: 'check'; at: string; e: Checkin };
   const items: Item[] = [
@@ -243,6 +272,17 @@ export function LogView(actions: Actions) {
     regimens.length ? (dueNow.length ? `${dueNow.length} dose${dueNow.length === 1 ? '' : 's'} due.` : 'Nothing due today.') : '',
     lastCheck ? `Last check-in ${fmtDay(new Date(lastCheck.at))}.` : '',
   ].filter(Boolean).join(' ');
+
+  if (firstRun) {
+    return (
+      <section className="view">
+        {!store.persistent && (
+          <div className="alert warn"><b>This browser isn't saving your log.</b><span>Private browsing or blocked site storage stops saving. Entries will disappear when you close the tab, so export before you leave.</span></div>
+        )}
+        <Welcome example={example} exampleDoses={exampleDoses} onAdd={actions.addRegimen} onCheckin={() => actions.checkin()} />
+      </section>
+    );
+  }
 
   return (
     <section className="view">
@@ -265,19 +305,11 @@ export function LogView(actions: Actions) {
         <div className="alert warn"><b>This browser isn't saving your log.</b><span>Private browsing or blocked site storage stops saving. Entries will disappear when you close the tab, so export before you leave.</span></div>
       )}
 
-      {!(introHidden && regimens.length) && (
-        <section className="panel stack" aria-label="About this log">
-          <div className="panel-head">
-            <h2 className="h-card">Before you start</h2>
-            {regimens.length > 0 && <button className="btn quiet sm" onClick={() => { lsSet('pl-intro-hidden', '1'); setIntroHidden(true); }}>Hide</button>}
-          </div>
-          <ul className="small dots">
-            <li>This is a journal for doses and symptoms, built to share with your clinician. It never suggests a dose; enter the one you were prescribed.</li>
-            <li>Everything you enter stays in this browser on this device. There's no account and no server. Use Export to keep a copy.</li>
-            <li>Most peptides promoted online are unapproved, and products sold as "research use only" aren't tested for what's in the vial. Check the Library before you log something new.</li>
-            <li>If you feel seriously unwell, stop and get help. The daily check-in flags emergency symptoms.</li>
-          </ul>
-        </section>
+      {hasSample && (
+        <div className="alert info sample-bar">
+          <div><b>You're looking at sample data.</b> <span>Look around, then clear it before you log your own.</span></div>
+          <button className="btn sm" onClick={() => { store.clearSample(); toast('Sample data cleared.'); }}>Clear sample data</button>
+        </div>
       )}
 
       <div className="log-grid">

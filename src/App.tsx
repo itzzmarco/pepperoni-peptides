@@ -71,8 +71,8 @@ export function App() {
           <a className="brand" href="#log" aria-label="Peptide Ledger home">
             <svg width="20" height="23" viewBox="0 0 26 30" aria-hidden="true">
               <rect x="6" y="1" width="14" height="6" rx="2" fill="var(--accent)" />
-              <rect x="8" y="7" width="10" height="3" fill="var(--ink-3)" />
-              <path d="M5 12 Q5 10 7 10 H19 Q21 10 21 12 V26 Q21 29 18 29 H8 Q5 29 5 26 Z" fill="var(--surface)" stroke="var(--ink)" strokeWidth="1.8" />
+              <rect x="8" y="7" width="10" height="3" fill="#8F949B" />
+              <path d="M5 12 Q5 10 7 10 H19 Q21 10 21 12 V26 Q21 29 18 29 H8 Q5 29 5 26 Z" fill="#FFFFFF" stroke="#15171A" strokeWidth="1.8" />
               <path d="M6.5 22 H19.5 V26 Q19.5 27.5 18 27.5 H8 Q6.5 27.5 6.5 26 Z" fill="var(--accent)" opacity=".35" />
             </svg>
             <b>Peptide Ledger</b>

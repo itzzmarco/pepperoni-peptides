@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import type { Checkin, DoseEntry, Ledger, Regimen } from './types';
+import { isSample } from './sample';
 
 export const STORAGE_KEY = 'peptide-ledger:v1';
 
@@ -129,6 +130,11 @@ export class LedgerStore {
     const { ledger, added } = merge(this.state, incoming);
     this.commit(ledger);
     return added;
+  }
+  /** Removes the example entries added from the welcome screen, leaving anything the person logged. */
+  clearSample() {
+    const keep = <T extends { id: string }>(xs: T[]) => xs.filter(x => !isSample(x));
+    this.commit({ version: 1, regimens: keep(this.state.regimens), doses: keep(this.state.doses), checkins: keep(this.state.checkins) });
   }
   clearAll() {
     this.commit(empty());

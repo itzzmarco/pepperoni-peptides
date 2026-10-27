@@ -12,7 +12,24 @@ export const SITES = [
   { k: 'glute-l', label: 'Left buttock' },
 ] as const;
 
-export const SITE_LABEL: Record<string, string> = Object.fromEntries(SITES.map(s => [s.k, s.label]));
+/** Belly clock: 12 spots in a ring around the navel, 12 toward the chest. Moving one hour clockwise each dose rotates sites. */
+export const BELLY = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(h => ({ k: `belly-${h}`, h, label: `Belly, ${h} o'clock` }));
+
+export const SITE_LABEL: Record<string, string> = Object.fromEntries([...SITES, ...BELLY].map(s => [s.k, s.label]));
+
+export const bellyHour = (site: string) => BELLY.find(b => b.k === site)?.h ?? null;
+
+/** The belly-clock hour of this regimen's most recent dose there. `doses` is newest first, as the store keeps it. */
+export const lastBellyHour = (rid: string, doses: { rid: string; site: string }[]) => {
+  const d = doses.find(x => x.rid === rid && bellyHour(x.site));
+  return d ? bellyHour(d.site) : null;
+};
+
+/** One hour clockwise from the last belly dose; with no history, the hour rested longest (12 first). */
+export function nextBellyHour(lastHour: number | null, last: Record<string, Date>): number {
+  if (lastHour) return (lastHour % 12) + 1;
+  return BELLY.slice().sort((a, b) => (last[a.k]?.getTime() ?? 0) - (last[b.k]?.getTime() ?? 0))[0].h;
+}
 
 /** Most recent use of each site across all logged doses. */
 export function lastUsedBySite(doses: { site: string; at: string }[]): Record<string, Date> {

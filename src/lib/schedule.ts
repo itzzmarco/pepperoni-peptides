@@ -56,6 +56,16 @@ export function regimenStatus(r: Regimen, doses: DoseEntry[], now = new Date()):
   return { s: 'late', text: `Due ${-d} day${d === -1 ? '' : 's'} ago`, last, due };
 }
 
+const RANK: Record<DueState, number> = { late: 0, due: 1, ok: 2, prn: 3, paused: 4 };
+
+/** Active regimens with their status, overdue first, then due, then by next due date. */
+export function upcoming(regimens: Regimen[], doses: DoseEntry[], now = new Date()) {
+  return regimens
+    .filter(r => !r.paused)
+    .map(r => ({ r, st: regimenStatus(r, doses, now) }))
+    .sort((a, b) => RANK[a.st.s] - RANK[b.st.s] || (a.st.due?.getTime() ?? Infinity) - (b.st.due?.getTime() ?? Infinity));
+}
+
 /** The last `n` days (oldest first) with whether a dose of this regimen was logged that day. */
 export function adherenceDays(rid: string, doses: DoseEntry[], n = 28, now = new Date()) {
   const on = new Set(doses.filter(d => d.rid === rid).map(d => dayKey(new Date(d.at))));

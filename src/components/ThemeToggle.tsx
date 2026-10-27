@@ -17,12 +17,11 @@ export function ThemeToggle() {
     try { localStorage.setItem(KEY, theme); } catch { /* storage blocked */ }
   }, [theme]);
   return (
-    <button className="btn quiet sm theme-btn" onClick={() => setTheme(NEXT[theme])} aria-label={`Theme: ${LABEL[theme]}. Change theme`} title={`Theme: ${LABEL[theme]}`}>
-      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+    <button className="icon-btn" onClick={() => setTheme(NEXT[theme])} aria-label={`Theme: ${LABEL[theme]}. Change theme`} title={`Theme: ${LABEL[theme]}`}>
+      <svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true">
         <circle cx="8" cy="8" r="6.25" fill="none" stroke="currentColor" strokeWidth="1.5" />
         {theme !== 'light' && <path d={theme === 'dark' ? 'M8 1.75a6.25 6.25 0 0 1 0 12.5 4.5 4.5 0 0 1 0-12.5z' : 'M8 1.75a6.25 6.25 0 0 1 0 12.5z'} fill="currentColor" />}
       </svg>
-      <span className="hide-sm">{LABEL[theme]} theme</span>
     </button>
   );
 }

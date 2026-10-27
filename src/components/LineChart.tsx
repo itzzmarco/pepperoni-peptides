@@ -54,7 +54,7 @@ export function LineChart({ points, y0, y1, ticks, x0, x1, label, fmt = String }
         {pts.length > 1 && (
           <>
             <path className="area" d={`${d} L${lx.toFixed(1)} ${sy(y0)} L${sx(pts[0].x.getTime()).toFixed(1)} ${sy(y0)} Z`} />
-            <path className="ln" d={d} />
+            <path className="ln draw" pathLength={1} d={d} />
           </>
         )}
         {pts.map((p, i) => {

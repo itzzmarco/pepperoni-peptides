@@ -2,12 +2,17 @@
 
 Learn what the evidence actually says about trending peptides, and keep a private log of what your clinician prescribed.
 
-Peptide Ledger is a static web app (React + TypeScript + Vite). It has four parts:
+Peptide Ledger is a static web app (React + TypeScript + Vite), laid out like a phone health app: a floating tab bar with **Today**, **Trends**, a center **Log** button, **Learn** and **Peptides**.
 
-- **My log**: track each peptide or medication you were prescribed, log doses and injection sites, do a quick daily check-in (sleep, energy, mood, appetite, weight, side effects), and see what's due. Emergency symptoms in a check-in trigger a "get care now" message.
-- **Library**: 54 trending peptides and peptide-adjacent compounds, each with an evidence tier (1 Approved to 5 Unstudied), US legal status as of October 26, 2026, WADA status, what the claims are versus what studies show, side effects, red flags, who should avoid it, and linked sources.
-- **Dose math**: reconstitution arithmetic for a dose a prescriber gave you (vial mg, water mL, U-100 syringe units), with a to-scale syringe and checks for common mistakes such as mcg/mg mix-ups and draws that don't fit the syringe.
-- **Safety & law**: emergency signs and hotlines, vial and needle safety, contamination findings, a plain-language guide to how FDA sorts compounding ingredients, and a timeline of US peptide rules from 2023 to 2027.
+- **Today**: what's due next with a timeline of today's doses, adherence over the last 4 weeks, weight, recent side effects, where to inject next, and a daily check-in. Emergency symptoms in a check-in trigger a "get care now" message.
+- **Log** (center button): log a dose of whatever is due first, with the draw in syringe units when vial details are saved, and the injection site on a body map or a **belly clock** (12 spots around the navel; move one hour clockwise each dose).
+- **Trends**: a calendar of logged doses, weight and how-you-felt charts, side effects by day, a 4-week grid of doses against side-effect days, site rotation, CSV export and backups, and the full history.
+- **Peptides**: each peptide or medication you were prescribed, with its due status, a 4-week strip, and pause/edit. Tracking two different GLP-1 medicines at once shows a warning.
+- **Learn**: 54 trending peptides and peptide-adjacent compounds, each with an evidence tier (1 Approved to 5 Unstudied), US legal status as of October 26, 2026, WADA status, what the claims are versus what studies show, side effects, red flags, who should avoid it, and linked sources. Two guides sit on top:
+  - **Dose math**: reconstitution arithmetic for a dose a prescriber gave you (vial mg, water mL, U-100 syringe units), with a to-scale syringe and checks for common mistakes such as mcg/mg mix-ups and draws that don't fit the syringe.
+  - **Safety & law**: emergency signs and hotlines, vial and needle safety, contamination findings, a plain-language guide to how FDA sorts compounding ingredients, and a timeline of US peptide rules from 2023 to 2027.
+
+The visual style ("Soft Bento") uses tinted tiles with one job per color: mint for adherence and evidence, lilac for weight and dose math, peach for side effects and warnings, sky for sites and schedule, lemon for learning. Light and dark themes follow the device or the toggle.
 
 ## What this app will not do
 
@@ -28,7 +33,7 @@ Requires Node 22 or newer.
 ```bash
 npm install
 npm run dev        # local dev server
-npm test           # unit tests (dose math, schedules, storage, CSV, library data checks)
+npm test           # unit tests (dose math, schedules, adherence and patterns, storage, CSV, library data checks)
 npm run build      # typecheck + production build into dist/
 npm run preview    # serve the production build locally
 ```
@@ -65,11 +70,11 @@ US peptide rules are moving quickly. As of October 26, 2026, an HHS "Interim Acc
 
 ```
 src/
-  App.tsx              tabs, routing (#log, #library, #calculator, #safety, #<peptide-id>), sheets
-  views/               the four pages and the peptide detail page
+  App.tsx              tab bar, routing (#today, #trends, #learn, #peptides, #calculator, #safety, #<peptide-id>), sheets
+  views/               Today, Trends, Peptides, Learn (library), dose math, safety, and the peptide detail page
   sheets/              add/edit regimen, log a dose, daily check-in
-  components/          chips, charts, syringe, body map, sheet, toast, theme toggle
-  lib/                 types, storage, dose math, schedules, CSV, formatting
+  components/          tab bar, chips, charts, syringe, body map, belly clock, sheet, toast, theme toggle
+  lib/                 types, storage, dose math, schedules, insights (adherence, side-effect pattern), CSV, formatting
   data/                library, reference content, form options
 public/                icons, web manifest, service worker
 ```

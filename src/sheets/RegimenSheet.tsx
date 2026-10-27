@@ -9,7 +9,7 @@ import { FAMILIES, LEGAL, TIERS } from '../data/reference';
 import { ROUTES, SOURCES, UNITS, UNREGULATED_SOURCE } from '../data/options';
 import { Sheet } from '../components/Sheet';
 import { useToast } from '../components/Toast';
-import { regName } from '../views/LogView';
+import { regName } from '../views/PeptidesView';
 
 const OTHER = '__other';
 
@@ -77,7 +77,7 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved }: { initial: Re
             <h2>{isNew ? 'Track a peptide' : `Edit ${regName(initial)}`}</h2>
             <p className="small muted" style={{ marginTop: 4 }}>Enter what your prescriber told you. This app doesn't suggest doses.</p>
           </div>
-          <button type="button" className="btn quiet sm" onClick={onClose}>Close</button>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
         </div>
         <label className="field"><span>Peptide or medication</span>
           <select id="r-compound" value={pick} onChange={e => choose(e.target.value)}>

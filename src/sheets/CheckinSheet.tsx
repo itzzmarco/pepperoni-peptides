@@ -32,7 +32,7 @@ export function CheckinSheet({ onClose }: { onClose: () => void }) {
       <form className="stack" style={{ gap: 16 }} onSubmit={submit} noValidate>
         <div className="sheet-head">
           <div><h2>Daily check-in</h2><p className="small muted" style={{ marginTop: 4 }}>1 is poor, 5 is great. Skip anything you like.</p></div>
-          <button type="button" className="btn quiet sm" onClick={onClose}>Close</button>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
         </div>
         {SCALES.map(([k, l]) => (
           <div className="field" key={k}>
@@ -50,7 +50,7 @@ export function CheckinSheet({ onClose }: { onClose: () => void }) {
         </div>
         <fieldset className="field" style={{ border: 0, padding: 0, margin: 0 }}>
           <legend style={{ fontSize: 'var(--fs-sm)', fontWeight: 600, marginBottom: 6 }}>Side effects today</legend>
-          <div className="checks">
+          <div className="checks peachy">
             {EFFECTS.map(x => <label key={x}><input type="checkbox" checked={effects.includes(x)} onChange={() => setEffects(toggle(effects, x))} />{x}</label>)}
           </div>
         </fieldset>

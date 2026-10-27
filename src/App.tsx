@@ -2,7 +2,11 @@ import { useCallback, useEffect, useState } from 'react';
 import type { Regimen } from './lib/types';
 import { PEP } from './data/peptides';
 import { AS_OF } from './data/reference';
-import { LogView } from './views/LogView';
+import { useLedger } from './lib/store';
+import { upcoming } from './lib/schedule';
+import { TodayView } from './views/TodayView';
+import { TrendsView } from './views/TrendsView';
+import { PeptidesView } from './views/PeptidesView';
 import { LibraryView } from './views/LibraryView';
 import { PeptideDetail } from './views/PeptideDetail';
 import { CalculatorView } from './views/CalculatorView';
@@ -11,21 +15,19 @@ import { RegimenSheet, blankRegimen } from './sheets/RegimenSheet';
 import { DoseSheet } from './sheets/DoseSheet';
 import { CheckinSheet } from './sheets/CheckinSheet';
 import { ThemeToggle } from './components/ThemeToggle';
+import { TabBar } from './components/TabBar';
 
-const TABS = [
-  ['log', 'My log'],
-  ['library', 'Library'],
-  ['calculator', 'Dose math'],
-  ['safety', 'Safety & law'],
-] as const;
-type Tab = (typeof TABS)[number][0];
+const ROUTES = ['today', 'trends', 'learn', 'peptides', 'calculator', 'safety'] as const;
+export type Route = (typeof ROUTES)[number];
+/** Links from before the redesign keep working. */
+const ALIASES: Record<string, Route> = { log: 'today', library: 'learn' };
 
-/** Hash routes work on any static host: #log, #library, #calculator, #safety, or a peptide id such as #bpc-157. */
-function parseHash(): { tab: Tab; id: string | null } {
+/** Hash routes work on any static host: #today, #trends, #learn, #peptides, #calculator, #safety, or a peptide id such as #bpc-157. */
+function parseHash(): { tab: Route; id: string | null } {
   const h = decodeURIComponent(window.location.hash.slice(1));
-  if (PEP[h]) return { tab: 'library', id: h };
-  if (TABS.some(([k]) => k === h)) return { tab: h as Tab, id: null };
-  return { tab: 'log', id: null };
+  if (PEP[h]) return { tab: 'learn', id: h };
+  if ((ROUTES as readonly string[]).includes(h)) return { tab: h as Route, id: null };
+  return { tab: ALIASES[h] ?? 'today', id: null };
 }
 
 type SheetState =
@@ -37,15 +39,16 @@ type SheetState =
 export function App() {
   const [route, setRoute] = useState(parseHash);
   const [sheet, setSheet] = useState<SheetState>(null);
+  const { regimens, doses } = useLedger();
   useEffect(() => {
     const onHash = () => { setRoute(parseHash()); setSheet(null); window.scrollTo(0, 0); };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
   const close = useCallback(() => setSheet(null), []);
-  const goLog = useCallback(() => {
+  const goPeptides = useCallback(() => {
     setSheet(null);
-    if (window.location.hash !== '#log') window.location.hash = 'log';
+    if (window.location.hash !== '#peptides') window.location.hash = 'peptides';
   }, []);
 
   const actions = {
@@ -54,47 +57,50 @@ export function App() {
     logDose: (r: Regimen) => setSheet({ kind: 'dose', r }),
     checkin: () => setSheet({ kind: 'checkin' }),
   };
+  // The middle tab-bar button logs whatever is overdue or due first, else the next dose coming up.
+  const logNext = () => {
+    const r = upcoming(regimens, doses)[0]?.r;
+    if (r) actions.logDose(r);
+    else actions.addRegimen();
+  };
 
   let view;
-  if (route.tab === 'library') view = route.id ? <PeptideDetail p={PEP[route.id]} onTrack={id => setSheet({ kind: 'regimen', r: blankRegimen(id), isNew: true })} /> : <LibraryView />;
+  if (route.id) view = <PeptideDetail p={PEP[route.id]} onTrack={id => setSheet({ kind: 'regimen', r: blankRegimen(id), isNew: true })} onLog={actions.logDose} />;
+  else if (route.tab === 'trends') view = <TrendsView />;
+  else if (route.tab === 'learn') view = <LibraryView />;
+  else if (route.tab === 'peptides') view = <PeptidesView {...actions} />;
   else if (route.tab === 'calculator') view = <CalculatorView />;
   else if (route.tab === 'safety') view = <SafetyView />;
-  else view = <LogView {...actions} />;
+  else view = <TodayView {...actions} />;
 
   // While a sheet is open, the page behind it is inert: not focusable and hidden from screen readers.
   const bg = sheet ? true : undefined;
+  const tab = route.tab === 'calculator' || route.tab === 'safety' ? 'learn' : route.tab;
   return (
     <>
-      <header className="masthead" inert={bg}>
-        <div className="wrap gutter">
+      <header className="topbar gutter" inert={bg}>
+        <div className="wrap">
           <div className="row">
-            <a className="brand" href="#log" aria-label="Peptide Ledger home">
-              <svg width="26" height="30" viewBox="0 0 26 30" aria-hidden="true">
-                <rect x="6" y="1" width="14" height="6" rx="2" fill="var(--accent)" />
-                <rect x="8" y="7" width="10" height="3" fill="var(--ink-3)" />
-                <path d="M5 12 Q5 10 7 10 H19 Q21 10 21 12 V26 Q21 29 18 29 H8 Q5 29 5 26 Z" fill="var(--surface-2)" stroke="var(--ink)" strokeWidth="1.6" />
-                <path d="M6.5 22 H19.5 V26 Q19.5 27.5 18 27.5 H8 Q6.5 27.5 6.5 26 Z" fill="var(--ink-3)" opacity=".5" />
+            <a className="brand" href="#today" aria-label="Peptide Ledger, today">
+              <svg width="22" height="26" viewBox="0 0 26 30" aria-hidden="true">
+                <rect x="6" y="1" width="14" height="6" rx="2" fill="var(--sky-ink)" />
+                <rect x="8" y="7" width="10" height="3" fill="var(--ink-4)" />
+                <path d="M5 12 Q5 10 7 10 H19 Q21 10 21 12 V26 Q21 29 18 29 H8 Q5 29 5 26 Z" fill="var(--surface)" stroke="var(--ink)" strokeWidth="1.8" />
+                <path d="M6.5 22 H19.5 V26 Q19.5 27.5 18 27.5 H8 Q6.5 27.5 6.5 26 Z" fill="var(--lilac-line)" opacity=".6" />
               </svg>
-              <b>Peptide Ledger</b>
+              Peptide Ledger
             </a>
-            <span className="sync" data-mode="local" title="Your log is saved only in this browser. Nothing is sent to a server.">
+            <span className="sync" title="Your log is saved only in this browser. Nothing is sent to a server.">
               <i /><span className="hide-sm">Saved on this device</span><span className="show-sm">On device</span>
             </span>
             <ThemeToggle />
           </div>
-          <nav className="tabs" aria-label="Sections">
-            {TABS.map(([k, label]) => (
-              <a key={k} className="tab" href={`#${k}`} aria-current={route.tab === k ? 'page' : undefined}>{label}</a>
-            ))}
-          </nav>
+          <p className="notice" role="note">
+            <b>Education only.</b>
+            <span>Not medical advice. Most peptides here aren't FDA-approved for what's promoted online. Emergency: 911.</span>
+          </p>
         </div>
       </header>
-      <div className="notice" role="note" inert={bg}>
-        <div className="wrap gutter">
-          <b>Education only.</b>
-          <span>Not medical advice. Most peptides here are not FDA-approved for the uses promoted online. Talk to a licensed clinician before starting or changing anything. Emergency: call 911.</span>
-        </div>
-      </div>
       <main className="gutter" inert={bg}>
         <div className="wrap">{view}</div>
       </main>
@@ -104,7 +110,9 @@ export function App() {
           <p>US Poison Control: 1-800-222-1222 · Emergency: 911 · Suicide &amp; Crisis Lifeline: 988</p>
         </div>
       </footer>
-      {sheet?.kind === 'regimen' && <RegimenSheet initial={sheet.r} isNew={sheet.isNew} onClose={close} onSaved={goLog} />}
+      <div className="app-end" />
+      <TabBar current={route.id ? 'learn' : tab} onLog={logNext} inert={bg} />
+      {sheet?.kind === 'regimen' && <RegimenSheet initial={sheet.r} isNew={sheet.isNew} onClose={close} onSaved={goPeptides} />}
       {sheet?.kind === 'dose' && <DoseSheet r={sheet.r} onClose={close} />}
       {sheet?.kind === 'checkin' && <CheckinSheet onClose={close} />}
     </>

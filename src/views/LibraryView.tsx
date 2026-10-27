@@ -3,7 +3,7 @@ import type { FamilyKey, LegalKey, Peptide, Tier } from '../lib/types';
 import { PEPTIDES } from '../data/peptides';
 import { AS_OF, FAMILIES, LEGAL, TIERS } from '../data/reference';
 import { fmtNum } from '../lib/format';
-import { Ladder, LegalChip, SeqStrip, TierChip } from '../components/Chips';
+import { Ladder, LegalChip, TierChip } from '../components/Chips';
 
 const TIER_LIST: Tier[] = [1, 2, 3, 4, 5];
 
@@ -39,21 +39,16 @@ function TopChart() {
   for (let t = 0; t <= ticksMax; t += step) ticks.push(t);
   const pct = (v: number) => (v / ticksMax) * 100;
   return (
-    <section className="panel">
-      <div className="panel-head">
-        <div>
-          <h3>The most-discussed peptides mostly have the weakest evidence</h3>
-          <p className="small muted" style={{ marginTop: 4 }}>
-            30-day engagement on Reddit and YouTube as of October 2026 (from the source overview, via humanpeptides.fyi), colored by evidence tier.
-          </p>
-        </div>
+    <section className="tile rise" style={{ ['--i' as string]: 4 }}>
+      <div className="stack" style={{ gap: 4 }}>
+        <span className="eyebrow">Hype vs evidence</span>
+        <h3>The most-discussed peptides mostly have the weakest evidence</h3>
+        <p className="small muted">
+          30-day engagement on Reddit and YouTube as of October 2026 (from the source overview, via humanpeptides.fyi), colored by evidence tier.
+        </p>
       </div>
-      <div className="row-wrap small muted" style={{ gap: 14, marginBottom: 12 }}>
-        {TIER_LIST.map(t => (
-          <span key={t} className="row-wrap" style={{ gap: 5 }}>
-            <span style={{ width: 9, height: 9, borderRadius: 2, display: 'inline-block', background: `var(--t${t})` }} />T{t} {TIERS[t].label}
-          </span>
-        ))}
+      <div className="legend">
+        {TIER_LIST.map(t => <span key={t}><i style={{ background: `var(--t${t})` }} />T{t} {TIERS[t].label}</span>)}
       </div>
       <div className="hbar" role="list" aria-label="Top 10 peptides by engagement, with evidence tier" style={{ gridTemplateRows: `repeat(${top.length}, auto) auto` }}>
         <div className="hbar-grid" aria-hidden="true" style={{ gridRow: `1 / ${top.length + 1}` }}>
@@ -64,7 +59,7 @@ function TopChart() {
             title={`${p.name}: ${fmtNum(p.popularity!, 0)} engagement points, Tier ${p.tier} (${TIERS[p.tier].label})`}>
             <span className="hbar-label">{p.name}</span>
             <span className="hbar-track">
-              <span className="hbar-fill" style={{ width: `max(${pct(p.popularity!)}%, 4px)`, background: `var(--t${p.tier})` }} />
+              <span className="hbar-fill grow" style={{ width: `max(${pct(p.popularity!)}%, 4px)`, background: `var(--t${p.tier})`, ['--i' as string]: i }} />
               <span className="hbar-val" style={{ left: `max(${pct(p.popularity!)}%, 4px)` }}>{fmtNum(p.popularity!, 0)} · T{p.tier}</span>
             </span>
           </a>
@@ -92,6 +87,11 @@ function TierOverview() {
   );
 }
 
+const GUIDES = [
+  { href: '#calculator', tone: 'lilac', title: 'Dose math, step by step', sub: 'Vial, water and syringe units', icon: 'M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5V2M8.5 2h7M14.5 16h-5' },
+  { href: '#safety', tone: 'peach', title: 'Safety & law', sub: 'Warning signs and US rules', icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
+];
+
 export function LibraryView() {
   const [f, setF] = useState<Filters>(loadFilters);
   useEffect(() => {
@@ -108,41 +108,60 @@ export function LibraryView() {
     </button>
   );
   const usedLegal = (Object.keys(LEGAL) as LegalKey[]).filter(k => PEPTIDES.some(p => p.legal === k));
+  const trialBacked = PEPTIDES.filter(p => p.tier <= 2).length;
   return (
     <section className="view">
-      <div className="view-head">
-        <div>
-          <h1>Peptide library</h1>
-          <p>{PEPTIDES.length} compounds that trend online, with what the evidence shows, how they're regulated in the US, and the warning signs to know. Updated {AS_OF}.</p>
-        </div>
-      </div>
-      <TopChart />
-      <details className="panel">
-        <summary style={{ cursor: 'pointer' }}><b>How evidence tiers work</b> <span className="small muted">· every compound sorted from approved to unstudied</span></summary>
-        <div style={{ marginTop: 14 }}><TierOverview /></div>
-      </details>
-      <div className="filters">
+      <header className="head rise">
+        <span className="eyebrow">Learn</span>
+        <h1>What the evidence says.<br /><span className="soft">{PEPTIDES.length} peptides, graded.</span></h1>
+        <p>Compounds that trend online, with what studies show, how they're regulated in the US, and the warning signs to know. Updated {AS_OF}.</p>
+      </header>
+      <div className="search rise" style={{ ['--i' as string]: 1 }}>
         <label className="sr-only" htmlFor="lib-q">Search peptides</label>
-        <input type="search" id="lib-q" value={f.q} onChange={e => setF({ ...f, q: e.target.value })} placeholder="Search by name, nickname, or goal (e.g. tendon, sleep, tan)" autoComplete="off" />
-        <div className="filter-row"><span className="label">Evidence</span>{chip('tier', 'all', 'All')}{TIER_LIST.map(t => chip('tier', `${t}` as const, `T${t} ${TIERS[t].label}`, `var(--t${t})`))}</div>
-        <div className="filter-row"><span className="label">Category</span>{chip('fam', 'all', 'All')}{(Object.keys(FAMILIES) as FamilyKey[]).map(k => chip('fam', k, FAMILIES[k].name))}</div>
-        <div className="filter-row"><span className="label">US status</span>{chip('legal', 'all', 'All')}{usedLegal.map(k => chip('legal', k, LEGAL[k].label))}</div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+        <input type="search" id="lib-q" value={f.q} onChange={e => setF({ ...f, q: e.target.value })} placeholder="Search name, nickname or goal" autoComplete="off" />
       </div>
-      <div className="count" aria-live="polite">{list.length === PEPTIDES.length ? `Showing all ${list.length}` : `Showing ${list.length} of ${PEPTIDES.length}`}</div>
+
+      <div className="bento rise" style={{ ['--i' as string]: 2 }}>
+        {GUIDES.map(g => (
+          <a key={g.href} href={g.href} className={`tile ${g.tone}`} style={{ gap: 10 }}>
+            <span className="badge-icon" style={{ width: 44, height: 44, background: 'var(--surface)', color: `var(--${g.tone}-ink)` }} aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={g.icon} /></svg>
+            </span>
+            <span style={{ fontSize: '1.125rem', fontWeight: 600, lineHeight: 1.2 }}>{g.title}</span>
+            <span className="sub">{g.sub}</span>
+          </a>
+        ))}
+        <details className="tile mint span-2">
+          <summary className="spread" style={{ alignItems: 'center', flexWrap: 'nowrap' }}>
+            <span className="stack" style={{ gap: 4 }}>
+              <span className="label">How evidence tiers work</span>
+              <span style={{ fontSize: '1.125rem', fontWeight: 600, lineHeight: 1.25 }}>Only {trialBacked} of {PEPTIDES.length} have randomized human trials</span>
+            </span>
+            <span className="arrow" aria-hidden="true"><svg className="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+          </summary>
+          <TierOverview />
+        </details>
+      </div>
+
+      <TopChart />
+
+      <div className="section-title"><h2>Library</h2><span className="count" aria-live="polite">{list.length === PEPTIDES.length ? `All ${list.length}` : `${list.length} of ${PEPTIDES.length}`}</span></div>
+      <div className="filters">
+        <div className="filter-row"><span className="label muted">Evidence</span>{chip('tier', 'all', 'All')}{TIER_LIST.map(t => chip('tier', `${t}` as const, `T${t} ${TIERS[t].label}`, `var(--t${t})`))}</div>
+        <div className="filter-row"><span className="label muted">Category</span>{chip('fam', 'all', 'All')}{(Object.keys(FAMILIES) as FamilyKey[]).map(k => chip('fam', k, FAMILIES[k].name))}</div>
+        <div className="filter-row"><span className="label muted">US status</span>{chip('legal', 'all', 'All')}{usedLegal.map(k => chip('legal', k, LEGAL[k].label))}</div>
+      </div>
       <div className="cards">
         {list.length ? list.map(p => (
           <a className="card" href={`#${p.id}`} key={p.id}>
-            <div className="top">
-              <div><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 3).join(' · ')}</div> : null}</div>
-              <Ladder t={p.tier} />
-            </div>
-            <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /></div>
+            <div><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 2).join(' · ')}</div> : null}</div>
+            <Ladder t={p.tier} />
             <p className="sum">{p.summary}</p>
-            <SeqStrip p={p} />
-            <div className="xsmall faint">{FAMILIES[p.family]?.name}{p.isPeptide === false ? ' · not technically a peptide' : ''}</div>
+            <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /></div>
           </a>
         )) : (
-          <div className="empty">
+          <div className="empty" style={{ gridColumn: '1 / -1' }}>
             <h3>No matches</h3>
             <p className="small muted">Try a different word or clear a filter.</p>
             <button className="btn ghost sm" onClick={() => setF({ q: '', fam: 'all', tier: 'all', legal: 'all' })}>Clear filters</button>

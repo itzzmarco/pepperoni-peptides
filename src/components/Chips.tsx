@@ -10,9 +10,9 @@ export function TierChip({ t }: { t: Tier }) {
 }
 
 /** Five rungs; more filled rungs means stronger evidence. Always paired with a text label nearby. */
-export function Ladder({ t }: { t: Tier }) {
+export function Ladder({ t, wide }: { t: Tier; wide?: boolean }) {
   return (
-    <span className="ladder" data-t={t} role="img" aria-label={`Evidence tier ${t} of 5: ${TIERS[t].label}`}>
+    <span className={`ladder${wide ? ' wide' : ''}`} data-t={t} role="img" aria-label={`Evidence tier ${t} of 5: ${TIERS[t].label}`}>
       <i /><i /><i /><i /><i />
     </span>
   );

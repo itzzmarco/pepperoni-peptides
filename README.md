@@ -66,7 +66,7 @@ To set it up from scratch:
 2. In the SQL editor, run [`supabase/migrations/20261030000000_ledger_items.sql`](supabase/migrations/20261030000000_ledger_items.sql). It creates the `ledger_items` table and its row-level security policies.
 3. In Authentication > URL Configuration, set **Site URL** to the app's address (for example `https://pepperoni-peptides.vercel.app`), so links in password-reset emails come back to the app.
 4. In Authentication > Sign In / Providers > Email, turn off **Confirm email**. Supabase's built-in email only delivers to members of your Supabase team, so other people wouldn't get the confirmation link. (Setting up custom SMTP, for example with Resend, is the alternative and also makes password-reset emails reach everyone.)
-5. Add the two variables above to the Vercel project (Settings > Environment Variables, for Production and Preview) and redeploy, or put them in `.env.production`. For local development, copy `.env.example` to `.env.local`.
+5. Put the two values in `.env.production` (this repo's copy points at the live project), or set them as Vercel environment variables, which take precedence. `npm run dev` doesn't read `.env.production`, so local development stays device-only unless you copy `.env.example` to `.env.local` and fill it in.
 6. Each person opens the app, taps **Sign in** at the top, and chooses **Create account**.
 7. Once everyone has an account, turn off **Allow new users to sign up** in Authentication > Sign In / Providers, so strangers can't create accounts on your project.
 

@@ -35,13 +35,15 @@ export interface AccountState {
   deviceKept: boolean;
   /** Opened from a password-reset email, so the next step is choosing a new password. */
   recovering: boolean;
-  /** A problem reported by a link from an email, such as an expired reset link. */
+  /** A problem reported by a link from an email or a Google sign-in that came back with an error. */
   linkError: string;
+  /** True when the Supabase project has Google sign-in turned on. */
+  google: boolean;
 }
 
 let state: AccountState = {
   configured, user: null, status: 'idle', error: '', pending: 0, lastSynced: null,
-  deviceItems: 0, deviceKept: false, recovering: false, linkError: linkErrorFromUrl(),
+  deviceItems: 0, deviceKept: false, recovering: false, linkError: linkErrorFromUrl(), google: false,
 };
 const listeners = new Set<() => void>();
 function patch(p: Partial<AccountState>) {
@@ -169,11 +171,12 @@ function storedUser(): { id: string; email?: string } | null {
 
 function linkErrorFromUrl() {
   if (typeof window === 'undefined') return '';
-  const p = new URLSearchParams(window.location.hash.slice(1) || window.location.search.slice(1));
+  // Supabase reports a failed link or Google sign-in in the hash or the query string.
+  const p = new URLSearchParams(`${window.location.search.slice(1)}&${window.location.hash.slice(1)}`);
   const d = p.get('error_description');
   if (!d) return '';
   window.history.replaceState(null, '', window.location.pathname);
-  return p.get('error_code') === 'otp_expired' ? 'That email link has expired or was already used. Request a new one below.' : d;
+  return p.get('error_code') === 'otp_expired' ? 'That email link has expired or was already used. Sign in, or use "Forgot password?" for a new one.' : d;
 }
 
 function onAuth(event: string, session: Session | null) {
@@ -224,9 +227,20 @@ function message(e: { code?: string; message?: string; status?: number } | null 
   return m || 'Something went wrong. Try again.';
 }
 
+/** Asks the project which sign-in methods are on, so the Google button only shows once Google is set up. */
+let providers: Promise<void> | null = null;
+function checkProviders() {
+  providers ??= fetch(`${URL}/auth/v1/settings`, { headers: { apikey: KEY! } })
+    .then(r => r.json())
+    .then(j => patch({ google: !!j?.external?.google }))
+    .catch(() => { providers = null; });
+}
+
 /** Starts loading the client before the person needs it, for example when the account sheet opens. */
 export function warmUp() {
-  if (configured) void getClient().catch(() => {});
+  if (!configured) return;
+  void getClient().catch(() => {});
+  checkProviders();
 }
 
 /** Runs an auth call, turning a client that won't load into the usual offline message. */
@@ -240,6 +254,16 @@ async function withAuth<T>(fn: (sb: SupabaseClient) => Promise<T>): Promise<T | 
 
 export async function signIn(email: string, password: string) {
   const { error } = await withAuth(sb => sb.auth.signInWithPassword({ email: email.trim(), password }));
+  return message(error);
+}
+
+/** Leaves for Google's sign-in page; Google sends the person back here signed in. */
+export async function signInWithGoogle() {
+  const { error } = await withAuth(sb => sb.auth.signInWithOAuth({
+    provider: 'google',
+    // Always show Google's account picker, so two people sharing a device each pick their own account.
+    options: { redirectTo: appUrl(), queryParams: { prompt: 'select_account' } },
+  }));
   return message(error);
 }
 

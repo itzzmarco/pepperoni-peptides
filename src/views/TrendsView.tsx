@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import type { Checkin, DoseEntry, Ledger } from '../lib/types';
 import { store, useLedger } from '../lib/store';
+import { useAccount } from '../lib/account';
 import { intervalDays } from '../lib/schedule';
 import { DAY, dayKey, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
 import { adherence, doseDays, effectDays, effectsNearDoses, patternWeeks, siteCounts, topEffects } from '../lib/insights';
@@ -44,6 +45,7 @@ function ExportPanel({ ledger }: { ledger: Ledger }) {
   const toast = useToast();
   const file = useRef<HTMLInputElement>(null);
   const [wipe, setWipe] = useState(false);
+  const signedIn = !!useAccount().user;
   const stamp = dayKey(new Date());
   const empty = !ledger.regimens.length && !ledger.doses.length && !ledger.checkins.length;
   const onImport = async (f: File | undefined) => {
@@ -65,7 +67,7 @@ function ExportPanel({ ledger }: { ledger: Ledger }) {
         <h3 id="share-h">Share with your clinician</h3>
       </div>
       <div className="stack">
-        <p className="small muted">Your log lives only in this browser. Export a CSV of doses, sites, side effects and weight for an appointment, or a backup you can restore on another device.</p>
+        <p className="small muted">{signedIn ? 'Your log syncs to your account.' : 'Your log lives only in this browser.'} Export a CSV of doses, sites, side effects and weight for an appointment, or a backup you can restore on another device.</p>
         <div className="row-wrap">
           <button className="btn sm" disabled={empty} onClick={() => download(`peptide-log-${stamp}.csv`, ledgerToCsv(ledger, id => PEP[id]?.name), 'text/csv')}>Export CSV</button>
           <button className="btn ghost sm" disabled={empty} onClick={() => download(`peptide-ledger-backup-${stamp}.json`, JSON.stringify(ledger, null, 2), 'application/json')}>Download backup</button>
@@ -76,8 +78,8 @@ function ExportPanel({ ledger }: { ledger: Ledger }) {
           <div className="row-wrap">
             {wipe ? (
               <>
-                <span className="small">Erase every regimen, dose, and check-in on this device?</span>
-                <button className="btn danger sm" onClick={() => { store.clearAll(); setWipe(false); toast('Your log was erased from this device.'); }}>Erase everything</button>
+                <span className="small">{signedIn ? 'Erase every regimen, dose, and check-in from your account, on all your devices?' : 'Erase every regimen, dose, and check-in on this device?'}</span>
+                <button className="btn danger sm" onClick={() => { store.clearAll(); setWipe(false); toast(signedIn ? 'Your log was erased from your account.' : 'Your log was erased from this device.'); }}>Erase everything</button>
                 <button className="btn quiet sm" onClick={() => setWipe(false)}>Keep my log</button>
               </>
             ) : (

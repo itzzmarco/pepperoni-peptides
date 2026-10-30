@@ -1,23 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { Checkin, DoseEntry, Regimen } from '../types';
 import { LedgerStore, STORAGE_KEY, merge, normalize } from '../store';
-
-class MemoryKV {
-  data = new Map<string, string>();
-  fail = false;
-  getItem(k: string) { return this.data.get(k) ?? null; }
-  setItem(k: string, v: string) {
-    if (this.fail) throw new Error('QuotaExceededError');
-    this.data.set(k, v);
-  }
-}
-
-const reg = (id: string): Regimen => ({
-  id, compoundId: '', name: 'Test', dose: '1', unit: 'mg', freq: 'weekly', everyDays: '', route: 'Oral',
-  prescriber: '', source: '', start: '2026-10-01', vialMg: '', diluentMl: '', notes: '',
-});
-const dose = (id: string, at: string): DoseEntry => ({ id, rid: 'r1', name: 'Test', at, amount: '1', unit: 'mg', route: 'Oral', site: '', notes: '' });
-const check = (id: string, at: string): Checkin => ({ id, at, effects: [], flags: [], notes: '' });
+import { MemoryKV, check, dose, reg } from './helpers';
 
 describe('normalize', () => {
   it('rejects things that are not a ledger', () => {

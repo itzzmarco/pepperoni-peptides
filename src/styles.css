@@ -115,6 +115,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .brand svg { flex: none; }
 .sync { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--ink-2); background: var(--surface); box-shadow: var(--ring); border-radius: 999px; padding: 6px 12px 6px 10px; white-space: nowrap; min-height: 32px; }
 .sync i { width: 7px; height: 7px; border-radius: 50%; background: var(--good); display: inline-block; }
+button.sync { appearance: none; border: 0; cursor: pointer; min-height: 44px; font-weight: 500; }
+button.sync:hover { background: var(--surface-2); }
+.sync[data-s="idle"] i, .sync[data-s="syncing"] i, .sync-chip[data-s="idle"] .dot, .sync-chip[data-s="syncing"] .dot { background: var(--sky-ink); }
+.sync[data-s="offline"] i, .sync-chip[data-s="offline"] .dot { background: var(--ink-4); }
+.sync[data-s="error"] i, .sync-chip[data-s="error"] .dot { background: var(--danger); }
+.sync-chip .dot { background: var(--good); }
 .show-sm { display: none; }
 @media (max-width: 420px) { .hide-sm { display: none; } .show-sm { display: inline; } }
 .notice { margin-top: 10px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; background: var(--lemon); color: var(--ink); border-radius: 16px; padding: 8px 14px; font-size: var(--fs-xs); line-height: 1.45; }
@@ -182,7 +188,7 @@ a.tile { color: var(--ink); }
 .field { display: grid; gap: 6px; min-width: 0; }
 .field > span { font-size: var(--fs-sm); font-weight: 600; }
 .field small { color: var(--ink-3); font-size: var(--fs-xs); font-weight: 400; }
-input[type="text"], input[type="number"], input[type="search"], input[type="date"], input[type="datetime-local"], select, textarea {
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="search"], input[type="date"], input[type="datetime-local"], select, textarea {
   width: 100%; background: var(--surface); border: 0; box-shadow: var(--ring); border-radius: var(--r-sm); padding: 10px 14px; min-height: 48px;
 }
 input[type="search"] { border-radius: 24px; padding-left: 44px; }

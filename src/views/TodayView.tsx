@@ -8,6 +8,8 @@ import { BELLY, SITE_LABEL, lastBellyHour, lastUsedBySite, nextBellyHour, sugges
 import { INJECTABLE } from '../data/options';
 import { PEP } from '../data/peptides';
 import { TIERS } from '../data/reference';
+import { useAccount } from '../lib/account';
+import { DeviceLogPrompt } from '../sheets/AccountSheet';
 import { MiniClock } from '../components/BellyClock';
 import { useCountUp } from '../components/Motion';
 import { Glp1Alert, regName, type Actions } from './PeptidesView';
@@ -79,6 +81,7 @@ function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now }: {
 
 export function TodayView(actions: Actions) {
   const { regimens, doses, checkins } = useLedger();
+  const signedIn = !!useAccount().user;
   const now = new Date();
   const today = dayKey(now);
   const list = upcoming(regimens, doses, now);
@@ -148,6 +151,7 @@ export function TodayView(actions: Actions) {
       {!store.persistent && (
         <div className="alert warn"><b>This browser isn't saving your log.</b><span>Private browsing or blocked site storage stops saving. Entries will disappear when you close the tab, so export before you leave.</span></div>
       )}
+      <DeviceLogPrompt onToday />
       <Glp1Alert regimens={regimens} />
 
       {next ? (
@@ -157,7 +161,7 @@ export function TodayView(actions: Actions) {
         <section className="tile dark rise" style={rise(2)}>
           <span className="eyebrow">Start your log</span>
           <span style={{ fontSize: '1.375rem', fontWeight: 600, lineHeight: 1.25 }}>Track a peptide or medication your clinician prescribed.</span>
-          <span className="sub">You'll see what's due, how consistent you've been, and where to inject next. Nothing leaves this device.</span>
+          <span className="sub">You'll see what's due, how consistent you've been, and where to inject next. {signedIn ? 'It syncs to your account, and only you can see it.' : 'Nothing leaves this device.'}</span>
           <div><button className="btn" onClick={actions.addRegimen}>Add a peptide</button></div>
         </section>
       )}

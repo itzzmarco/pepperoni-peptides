@@ -14,6 +14,9 @@ import { SafetyView } from './views/SafetyView';
 import { RegimenSheet, blankRegimen } from './sheets/RegimenSheet';
 import { DoseSheet } from './sheets/DoseSheet';
 import { CheckinSheet } from './sheets/CheckinSheet';
+import { AccountSheet } from './sheets/AccountSheet';
+import { useAccount } from './lib/account';
+import { AccountButton } from './components/AccountButton';
 import { ThemeToggle } from './components/ThemeToggle';
 import { TabBar } from './components/TabBar';
 
@@ -34,12 +37,18 @@ type SheetState =
   | { kind: 'regimen'; r: Regimen; isNew: boolean }
   | { kind: 'dose'; r: Regimen }
   | { kind: 'checkin' }
+  | { kind: 'account' }
   | null;
 
 export function App() {
   const [route, setRoute] = useState(parseHash);
   const [sheet, setSheet] = useState<SheetState>(null);
   const { regimens, doses } = useLedger();
+  const { recovering, linkError } = useAccount();
+  // A password-reset link, or an email link that failed, lands here: open the account sheet to finish.
+  useEffect(() => {
+    if (recovering || linkError) setSheet({ kind: 'account' });
+  }, [recovering, linkError]);
   useEffect(() => {
     const onHash = () => { setRoute(parseHash()); setSheet(null); window.scrollTo(0, 0); };
     window.addEventListener('hashchange', onHash);
@@ -90,9 +99,7 @@ export function App() {
               </svg>
               Peptide Ledger
             </a>
-            <span className="sync" title="Your log is saved only in this browser. Nothing is sent to a server.">
-              <i /><span className="hide-sm">Saved on this device</span><span className="show-sm">On device</span>
-            </span>
+            <AccountButton onOpen={() => setSheet({ kind: 'account' })} />
             <ThemeToggle />
           </div>
           <p className="notice" role="note">
@@ -115,6 +122,7 @@ export function App() {
       {sheet?.kind === 'regimen' && <RegimenSheet initial={sheet.r} isNew={sheet.isNew} onClose={close} onSaved={goPeptides} />}
       {sheet?.kind === 'dose' && <DoseSheet r={sheet.r} onClose={close} />}
       {sheet?.kind === 'checkin' && <CheckinSheet onClose={close} />}
+      {sheet?.kind === 'account' && <AccountSheet onClose={close} />}
     </>
   );
 }

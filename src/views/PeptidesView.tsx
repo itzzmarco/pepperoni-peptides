@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { DoseEntry, Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
+import { configured, useAccount } from '../lib/account';
 import { adherenceDays, freqText, regimenStatus } from '../lib/schedule';
 import { doseMath } from '../lib/doseMath';
 import { fmtDay, fmtNum } from '../lib/format';
@@ -91,6 +92,7 @@ const lsSet = (k: string, v: string) => { try { localStorage.setItem(k, v); } ca
 
 export function PeptidesView(actions: Actions) {
   const { regimens, doses } = useLedger();
+  const signedIn = !!useAccount().user;
   const [introHidden, setIntroHidden] = useState(() => lsGet('pl-intro-hidden') === '1');
   const active = regimens.filter(r => !r.paused);
   const paused = regimens.filter(r => r.paused);
@@ -123,7 +125,11 @@ export function PeptidesView(actions: Actions) {
           </div>
           <ul className="small" style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 6 }}>
             <li>This is a journal for doses and symptoms, built to share with your clinician. It never suggests a dose; enter the one you were prescribed.</li>
-            <li>Everything you enter stays in this browser on this device. There's no account and no server. Use Export on Trends to keep a copy.</li>
+            <li>{signedIn
+              ? 'Your log syncs to your account, so it follows you to any device you sign in on. Only you can see it. Use Export on Trends to keep a copy.'
+              : configured
+                ? "Signed out, everything you enter stays in this browser on this device. Sign in (top right) to sync it across your devices; each person in your home can have their own account. Use Export on Trends to keep a copy."
+                : "Everything you enter stays in this browser on this device. There's no account and no server. Use Export on Trends to keep a copy."}</li>
             <li>Most peptides promoted online are unapproved, and products sold as "research use only" aren't tested for what's in the vial. Check the library before you log something new.</li>
             <li>If you feel seriously unwell, stop and get help. The daily check-in flags emergency symptoms.</li>
           </ul>

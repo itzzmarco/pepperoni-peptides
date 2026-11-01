@@ -42,7 +42,62 @@ export function lastUsedBySite(doses: { site: string; at: string }[]): Record<st
   return last;
 }
 
-/** Least recently used site first; never-used sites come before any used one. */
-export function suggestSite(last: Record<string, Date>): string {
-  return SITES.slice().sort((a, b) => (last[a.k]?.getTime() ?? 0) - (last[b.k]?.getTime() ?? 0))[0].k;
+/**
+ * Which body-map sites fit an injection, by how it's given and, for approved drugs, by what the label says.
+ * Sites are listed in the order to start from (belly first under the skin).
+ */
+export interface SitePlan {
+  sites: string[];
+  /** Whether the belly clock applies (any belly site allowed). */
+  belly: boolean;
+  /** Short list for a card, e.g. "Belly, thighs or back of arms". */
+  short: string;
+  /** One sentence for the body map. */
+  note: string;
+}
+
+const ABDOMEN = ['abd-ur', 'abd-ul', 'abd-lr', 'abd-ll'];
+const THIGHS = ['thigh-r', 'thigh-l'];
+const ARMS = ['arm-r', 'arm-l'];
+const GLUTES = ['glute-r', 'glute-l'];
+
+const SUBQ: SitePlan = {
+  sites: [...ABDOMEN, ...THIGHS, ...ARMS], belly: true,
+  short: 'Belly, thighs or back of arms',
+  note: 'Under the skin: the belly (about 2 in or 5 cm from the navel), the front of the thighs, or the back of the upper arms.',
+};
+const IM: SitePlan = {
+  sites: [...ARMS, ...THIGHS, ...GLUTES], belly: false,
+  short: 'Upper arm, outer thigh or buttock',
+  note: 'Into the muscle: the upper arm (deltoid), the outer thigh, or the buttock. Not the belly.',
+};
+
+/** Approved drugs whose labels name the sites. Everything else injected under the skin uses SUBQ. */
+const LABELED: Record<string, SitePlan> = {
+  tirzepatide: { ...SUBQ, short: 'Belly, thighs or back of arms (label)', note: "The label's sites: belly, front of the thighs, or back of the upper arms. The arm is easier if someone else gives it." },
+  semaglutide: { ...SUBQ, short: 'Belly, thighs or upper arms (label)', note: "The label's sites: belly, thighs, or upper arms." },
+  tesamorelin: { sites: ABDOMEN, belly: true, short: 'Belly only (Egrifta label)', note: "Egrifta's label: inject into the belly only, rotating spots." },
+  bremelanotide: { sites: [...ABDOMEN, ...THIGHS], belly: true, short: 'Belly or thighs (Vyleesi label)', note: "Vyleesi's label: the belly or the front of the thigh." },
+  somatropin: { sites: [...ABDOMEN, ...THIGHS, ...ARMS, ...GLUTES], belly: true, short: 'Belly, thighs, arms or buttocks', note: 'Growth hormone labels list the belly, thighs, back of the upper arms and buttocks. Follow the one for your pen.' },
+};
+
+/** The sites for a dose given by `route`, or null when it isn't injected. */
+export function sitePlan(route: string, compoundId?: string): SitePlan | null {
+  if (route === 'Intramuscular injection') return IM;
+  if (route !== 'Subcutaneous injection') return null;
+  return (compoundId && LABELED[compoundId]) || SUBQ;
+}
+
+/** A site's name for this kind of injection: the back of the arm under the skin, the deltoid into the muscle. */
+export function siteLabel(k: string, route?: string): string {
+  const side = k.endsWith('-r') ? 'right' : 'left';
+  if (route === 'Subcutaneous injection' && k.startsWith('arm-')) return `Back of ${side} upper arm`;
+  if (route === 'Intramuscular injection' && k.startsWith('arm-')) return `${side === 'right' ? 'Right' : 'Left'} upper arm (deltoid)`;
+  if (route === 'Intramuscular injection' && k.startsWith('thigh-')) return `${side === 'right' ? 'Right' : 'Left'} outer thigh`;
+  return SITE_LABEL[k] ?? k;
+}
+
+/** Least recently used of `allowed` (all sites by default); never-used sites first, in the order given. */
+export function suggestSite(last: Record<string, Date>, allowed: readonly string[] = SITES.map(s => s.k)): string {
+  return allowed.slice().sort((a, b) => (last[a]?.getTime() ?? 0) - (last[b]?.getTime() ?? 0))[0];
 }

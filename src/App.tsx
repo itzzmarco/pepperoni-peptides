@@ -14,6 +14,7 @@ import { SafetyView } from './views/SafetyView';
 import { RegimenSheet, blankRegimen } from './sheets/RegimenSheet';
 import { DoseSheet } from './sheets/DoseSheet';
 import { CheckinSheet } from './sheets/CheckinSheet';
+import { BackfillSheet } from './sheets/BackfillSheet';
 import { AccountSheet } from './sheets/AccountSheet';
 import { useAccount } from './lib/account';
 import { AccountButton } from './components/AccountButton';
@@ -37,6 +38,7 @@ type SheetState =
   | { kind: 'regimen'; r: Regimen; isNew: boolean }
   | { kind: 'dose'; r: Regimen }
   | { kind: 'checkin' }
+  | { kind: 'backfill' }
   | { kind: 'account' }
   | null;
 
@@ -75,7 +77,7 @@ export function App() {
 
   let view;
   if (route.id) view = <PeptideDetail p={PEP[route.id]} onTrack={id => setSheet({ kind: 'regimen', r: blankRegimen(id), isNew: true })} onLog={actions.logDose} />;
-  else if (route.tab === 'trends') view = <TrendsView />;
+  else if (route.tab === 'trends') view = <TrendsView onBackfill={() => setSheet({ kind: 'backfill' })} />;
   else if (route.tab === 'learn') view = <LibraryView />;
   else if (route.tab === 'peptides') view = <PeptidesView {...actions} />;
   else if (route.tab === 'calculator') view = <CalculatorView />;
@@ -121,7 +123,8 @@ export function App() {
       <TabBar current={route.id ? 'learn' : tab} onLog={logNext} inert={bg} />
       {sheet?.kind === 'regimen' && <RegimenSheet initial={sheet.r} isNew={sheet.isNew} onClose={close} onSaved={goPeptides} />}
       {sheet?.kind === 'dose' && <DoseSheet r={sheet.r} onClose={close} />}
-      {sheet?.kind === 'checkin' && <CheckinSheet onClose={close} />}
+      {sheet?.kind === 'checkin' && <CheckinSheet onClose={close} onBackfill={() => setSheet({ kind: 'backfill' })} />}
+      {sheet?.kind === 'backfill' && <BackfillSheet onClose={close} />}
       {sheet?.kind === 'account' && <AccountSheet onClose={close} />}
     </>
   );

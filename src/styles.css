@@ -507,6 +507,38 @@ tr:last-child td { border-bottom: 0; }
 .recent { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .recent span { padding: 4px 10px; border-radius: 999px; font-size: var(--fs-xs); font-weight: 600; background: #FBDCCB; color: #7C2D12; }
 
+/* Fill in past days: a month grid like a paper wall calendar. Weight mode has a box per day; dose mode has a toggle per day. */
+.tile.bf { padding: 14px 12px; }
+.bf-title { font-size: var(--fs-lg); font-weight: 600; text-align: center; }
+.icon-btn[disabled] { opacity: .35; cursor: default; }
+.linkish { appearance: none; border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: var(--accent); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.bf-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.bf-wd { font-size: var(--fs-xs); font-weight: 600; text-align: center; color: var(--ink-3); padding-bottom: 2px; }
+.bf-cell { display: grid; grid-template-rows: auto 1fr; min-height: 56px; min-width: 0; border-radius: 12px; background: var(--surface); padding: 3px 2px 2px; cursor: text; }
+.bf-d { font-size: 11px; font-weight: 600; line-height: 1.2; color: var(--ink-3); padding-left: 4px; text-align: left; font-variant-numeric: tabular-nums; }
+.bf-cell input[type="text"] { width: 100%; min-width: 0; min-height: 34px; padding: 0 1px; border: 0; border-radius: 8px; background: transparent; box-shadow: none; text-align: center; font-size: 16px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.bf-cell input[type="text"]:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+.bf-cell.saved input[type="text"] { color: var(--ink-3); font-weight: 500; }
+.bf-cell.changed { box-shadow: inset 0 0 0 2px var(--lilac-line); }
+.bf-cell.jump { background: var(--peach); box-shadow: inset 0 0 0 2px var(--peach-bar); }
+.bf-cell.wrong { background: var(--danger-bg); box-shadow: inset 0 0 0 2px var(--danger); }
+.bf-cell.today .bf-d { color: var(--accent); }
+.bf-cell.future { background: transparent; box-shadow: inset 0 0 0 1.5px var(--line); opacity: .6; cursor: default; }
+.bf-cell.dose { appearance: none; border: 0; font: inherit; color: var(--mint-ink); cursor: pointer; justify-items: stretch; }
+.bf-cell.dose svg { justify-self: center; align-self: center; }
+.bf-cell.dose.due { box-shadow: inset 0 -4px 0 var(--mint-ink); }
+.bf-cell.dose.logged, .bf-cell.dose.new { background: var(--mint-ink); color: var(--mint); }
+.bf-cell.dose.logged .bf-d, .bf-cell.dose.new .bf-d { color: var(--mint); }
+.bf-cell.dose.new { box-shadow: inset 0 0 0 3px var(--accent); }
+.bf-key { background: var(--surface); }
+.bf-key.changed { box-shadow: inset 0 0 0 2px var(--lilac-line); }
+.bf-key.jump { background: var(--peach); box-shadow: inset 0 0 0 2px var(--peach-bar); }
+.bf-unit { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-2); }
+.bf-unit select { width: auto; min-height: 36px; padding: 4px 10px; }
+.bf-badge { font-size: 11px; font-weight: 700; border-radius: 999px; padding: 1px 6px; background: var(--mint-ink); color: var(--mint); }
+.fchip[aria-pressed="true"] .bf-badge { background: var(--btn-ink); color: var(--btn); }
+.bf-paste > summary { font-weight: 600; }
+
 /* Tab bar */
 .tabbar { position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: min(440px, calc(100% - 32px)); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; padding: 6px; border-radius: var(--r-xl); background: var(--surface); box-shadow: var(--shadow-float), var(--ring); }
 .tabbar a { color: var(--ink-4); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; font-size: 11px; font-weight: 500; text-decoration: none; border-radius: 22px; }

@@ -180,6 +180,26 @@ export class LedgerStore {
   deleteCheckin(id: string) {
     this.commit({ ...this.state, checkins: this.state.checkins.filter(c => c.id !== id) }, [itemKey('checkin', id)]);
   }
+  /** Saves several check-ins and doses (new or changed) and deletes check-ins, as one change. */
+  applyBatch({ checkins = [], doses = [], deleteCheckins = [] }: { checkins?: Checkin[]; doses?: DoseEntry[]; deleteCheckins?: string[] }) {
+    const upsert = <T extends { id: string }>(list: T[], items: T[]) => {
+      const byId = new Map(list.map(x => [x.id, x]));
+      for (const x of items) byId.set(x.id, x);
+      return [...byId.values()];
+    };
+    const gone = new Set(deleteCheckins);
+    const changed = [
+      ...checkins.map(c => itemKey('checkin', c.id)),
+      ...doses.map(d => itemKey('dose', d.id)),
+      ...deleteCheckins.map(id => itemKey('checkin', id)),
+    ];
+    if (!changed.length) return;
+    this.commit({
+      ...this.state,
+      checkins: upsert(this.state.checkins, checkins).filter(c => !gone.has(c.id)).sort(byNewest),
+      doses: upsert(this.state.doses, doses).sort(byNewest),
+    }, changed);
+  }
   /** Restores a backup file's contents (or another saved log) alongside what is already here. */
   importBackup(raw: unknown): number | null {
     const incoming = normalize(raw);

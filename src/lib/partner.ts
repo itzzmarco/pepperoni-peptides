@@ -156,10 +156,13 @@ export async function createInvite(): Promise<{ code?: string; error?: string }>
 export async function acceptInvite(code: string): Promise<{ name?: string; error?: string }> {
   try {
     const sb = await getClient();
-    const { data, error } = await sb.rpc('accept_partner_invite', { invite_code: cleanCode(code) });
+    // Answers {name} or {error}. A wrong code is an answer, not a failure, so the server can count it.
+    const { data, error } = await sb.rpc('link_partner', { invite_code: cleanCode(code) });
     if (error) throw error;
+    const res = (data ?? {}) as { name?: string; error?: string };
+    if (res.error) return { error: res.error };
     await refreshPartners(true);
-    return { name: String(data ?? '') };
+    return { name: String(res.name ?? '') };
   } catch (e) {
     return { error: partnerError(e) };
   }

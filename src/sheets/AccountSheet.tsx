@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
-  clearLinkError, keepDeviceLog, moveDeviceLog, sendReset, setPassword, signIn, signInWithGoogle, signOut, signUp, syncNow, useAccount, warmUp,
-  type AccountState,
+  clearLinkError, deleteAccount, hasConsent, keepDeviceLog, moveDeviceLog, sendReset, setConsent, setPassword, signIn, signInWithGoogle, signOut, signUp,
+  syncNow, useAccount, warmUp, type AccountState,
 } from '../lib/account';
 import { fmtDay, fmtShort, fmtTime } from '../lib/format';
 import { acceptInvite, cleanCode, createInvite, firstName, refreshPartners, showCode, unlinkPartner, usePartners } from '../lib/partner';
@@ -36,10 +36,14 @@ function Credentials({ mode, email, setEmail, pw, setPw }: { mode: Mode; email: 
   );
 }
 
-function GoogleButton({ onError }: { onError: (msg: string) => void }) {
+const AGREE_FIRST = "Tick the box to confirm you're 18 or older and agree to the Terms and Privacy Policy.";
+
+function GoogleButton({ agreed, onError }: { agreed: boolean; onError: (msg: string) => void }) {
   const [busy, setBusy] = useState(false);
   return (
     <button type="button" className="btn ghost block" disabled={busy} onClick={async () => {
+      // Continuing with Google creates an account for someone new, so it needs the same agreement.
+      if (!agreed) return onError(AGREE_FIRST);
       setBusy(true);
       const err = await signInWithGoogle();
       // On success the page is already on its way to Google.
@@ -56,9 +60,23 @@ function GoogleButton({ onError }: { onError: (msg: string) => void }) {
   );
 }
 
+/** The agreement people tick before creating an account, with Google or with email. */
+function Agree({ agreed, onChange }: { agreed: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div className="checks long">
+      <label>
+        <input type="checkbox" id="a-agree" checked={agreed} onChange={e => onChange(e.target.checked)} />
+        <span>I'm 18 or older, and I agree to the <a href="./terms.html" target="_blank" rel="noopener">Terms</a> and the <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a>, including storing my health log in my account.</span>
+      </label>
+    </div>
+  );
+}
+
 function SignedOut({ acct, onClose }: { acct: AccountState; onClose: () => void }) {
   const toast = useToast();
   const [mode, setMode] = useState<Mode>('in');
+  const [agreed, setAgreed] = useState(hasConsent);
+  const agree = (v: boolean) => { setAgreed(v); setConsent(v); if (v) setErr(''); };
   const [email, setEmail] = useState('');
   const [pw, setPw] = useState('');
   const [err, setErr] = useState('');
@@ -71,6 +89,7 @@ function SignedOut({ acct, onClose }: { acct: AccountState; onClose: () => void 
     if (!/^\S+@\S+\.\S+$/.test(email.trim())) return setErr('Enter your email address.');
     if (mode === 'in' && !pw) return setErr('Enter your password.');
     if (mode === 'up' && pw.length < MIN_PW) return setErr(`Choose a password of at least ${MIN_PW} characters.`);
+    if (mode === 'up' && !agreed) return setErr(AGREE_FIRST);
     setBusy(true);
     const res = mode === 'in' ? await signIn(email, pw) : mode === 'up' ? await signUp(email, pw) : await sendReset(email);
     setBusy(false);
@@ -90,37 +109,48 @@ function SignedOut({ acct, onClose }: { acct: AccountState; onClose: () => void 
           <p className="small muted" style={{ marginTop: 4 }}>
             {mode === 'reset'
               ? "Enter your account's email and we'll send a link to choose a new password."
-              : 'Sign in to keep your log on all your devices. Everyone in your home gets their own account, and each person sees only their own log.'}
+              : 'Sign in to keep your log on all your devices. Your log is private to you, unless you choose to link a partner.'}
           </p>
         </div>
         <Close onClose={onClose} />
       </div>
       {acct.linkError && <div className="alert caution" role="alert"><b>That sign-in didn't work.</b><span>{acct.linkError}</span></div>}
+      {mode !== 'reset' && (acct.google || mode === 'up') && <Agree agreed={agreed} onChange={agree} />}
       {acct.google && mode !== 'reset' && (
         <>
-          <GoogleButton onError={setErr} />
-          <div className="or" aria-hidden="true"><span>or use email</span></div>
+          <GoogleButton agreed={agreed} onError={setErr} />
+          {acct.email && <div className="or" aria-hidden="true"><span>or use email</span></div>}
         </>
       )}
-      {mode !== 'reset' && (
-        <div className="seg" role="group" aria-label="Account">
-          <button type="button" aria-pressed={mode === 'in'} onClick={() => go('in')}>Sign in</button>
-          <button type="button" aria-pressed={mode === 'up'} onClick={() => go('up')}>Create account</button>
-        </div>
+      {!acct.signupOpen && mode !== 'reset' && <p className="small muted">New accounts are closed right now. If you already have one, sign in.</p>}
+      {acct.email ? (
+        <>
+          {mode !== 'reset' && acct.signupOpen && (
+            <div className="seg" role="group" aria-label="Account">
+              <button type="button" aria-pressed={mode === 'in'} onClick={() => go('in')}>Sign in</button>
+              <button type="button" aria-pressed={mode === 'up'} onClick={() => go('up')}>Create account</button>
+            </div>
+          )}
+          <Credentials mode={mode} email={email} setEmail={setEmail} pw={pw} setPw={setPw} />
+          {err && <div className="alert danger" role="alert"><span>{err}</span></div>}
+          {note && <div className="alert good" role="status"><span>{note}</span></div>}
+          <div className="sheet-foot" style={{ justifyContent: 'space-between' }}>
+            {mode === 'in' ? <button type="button" className="btn quiet sm" onClick={() => go('reset')}>Forgot password?</button>
+              : mode === 'reset' ? <button type="button" className="btn quiet sm" onClick={() => go('in')}>Back to sign in</button>
+              : <span />}
+            <button type="submit" className="btn" disabled={busy}>
+              {busy ? 'One moment…' : mode === 'in' ? 'Sign in' : mode === 'up' ? 'Create account' : 'Send reset link'}
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          {err && <div className="alert danger" role="alert"><span>{err}</span></div>}
+          {!acct.google && <p className="small">Sign-in isn't available right now. Your log stays on this device in the meantime.</p>}
+        </>
       )}
-      <Credentials mode={mode} email={email} setEmail={setEmail} pw={pw} setPw={setPw} />
-      {err && <div className="alert danger" role="alert"><span>{err}</span></div>}
-      {note && <div className="alert good" role="status"><span>{note}</span></div>}
-      <div className="sheet-foot" style={{ justifyContent: 'space-between' }}>
-        {mode === 'in' ? <button type="button" className="btn quiet sm" onClick={() => go('reset')}>Forgot password?</button>
-          : mode === 'reset' ? <button type="button" className="btn quiet sm" onClick={() => go('in')}>Back to sign in</button>
-          : <span />}
-        <button type="submit" className="btn" disabled={busy}>
-          {busy ? 'One moment…' : mode === 'in' ? 'Sign in' : mode === 'up' ? 'Create account' : 'Send reset link'}
-        </button>
-      </div>
       <p className="xsmall muted">
-        Signed out, everything stays on this device only. Signed in, your log is stored with the app's database provider (Supabase) so it can sync. Sign out on a shared device to remove your log from it.
+        Signed out, everything stays on this device only. Signed in, your log is stored with the app's database provider (Supabase) so it can sync; see the <a href="./privacy.html" target="_blank" rel="noopener">Privacy Policy</a>. Sign out on a shared device to remove your log from it.
       </p>
     </form>
   );
@@ -300,6 +330,46 @@ const STATUS: Record<AccountState['status'], string> = {
   error: "Couldn't sync.",
 };
 
+/** Deleting the account: two steps, with what goes and a nudge to download a copy first. */
+function DeleteAccount({ onClose }: { onClose: () => void }) {
+  const toast = useToast();
+  const [step, setStep] = useState<'idle' | 'confirm'>('idle');
+  const [typed, setTyped] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const ready = typed.trim().toLowerCase() === 'delete';
+  const go = async () => {
+    setBusy(true); setErr('');
+    const msg = await deleteAccount();
+    setBusy(false);
+    if (msg) return setErr(msg);
+    toast('Your account and its log were deleted.');
+    onClose();
+  };
+  return (
+    <section className="tile" aria-labelledby="delete-h">
+      <div className="spread" style={{ alignItems: 'center' }}>
+        <h3 id="delete-h">Delete account</h3>
+        {step === 'idle' && <button className="btn quiet sm" onClick={() => setStep('confirm')}>Delete account…</button>}
+      </div>
+      {step === 'confirm' && (
+        <div className="stack" style={{ gap: 10 }}>
+          <p className="small">This deletes your account and your whole log from the server: regimens, doses, check-ins and notes. Your other devices remove their copy when they next connect, and a linked partner loses access. It can't be undone.</p>
+          <p className="small">Want a copy first? <a href="#trends" onClick={onClose}>Download a backup on Trends</a>.</p>
+          <label className="field"><span>Type <b>delete</b> to confirm</span>
+            <input type="text" id="a-delete" autoComplete="off" autoCapitalize="none" spellCheck={false} value={typed} onChange={e => setTyped(e.target.value)} />
+          </label>
+          {err && <div className="alert danger" role="alert"><span>{err}</span></div>}
+          <div className="row-wrap">
+            <button className="btn danger sm" disabled={!ready || busy} onClick={go}>{busy ? 'Deleting…' : 'Delete my account'}</button>
+            <button className="btn quiet sm" onClick={() => { setStep('idle'); setTyped(''); setErr(''); }}>Keep it</button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function SignedIn({ acct, onClose }: { acct: AccountState; onClose: () => void }) {
   const toast = useToast();
   const [changing, setChanging] = useState(false);
@@ -348,6 +418,8 @@ function SignedIn({ acct, onClose }: { acct: AccountState; onClose: () => void }
           </div>
         )}
       </section>
+
+      <DeleteAccount onClose={onClose} />
 
       {unsent > 0 ? (
         <div className="alert caution" role="alert">

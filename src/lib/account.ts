@@ -41,12 +41,31 @@ export interface AccountState {
   linkError: string;
   /** True when the Supabase project has Google sign-in turned on. */
   google: boolean;
+  /** False when the project has email and password sign-in turned off. */
+  email: boolean;
+  /** False when the project isn't taking new accounts. */
+  signupOpen: boolean;
 }
 
 let state: AccountState = {
   configured, user: null, status: 'idle', error: '', pending: 0, lastSynced: null,
-  deviceItems: 0, deviceKept: false, recovering: false, linkError: linkErrorFromUrl(), google: false,
+  deviceItems: 0, deviceKept: false, recovering: false, linkError: linkErrorFromUrl(), google: false, email: true, signupOpen: true,
 };
+
+/**
+ * The version of the Terms and Privacy Policy (public/terms.html, public/privacy.html) people agree
+ * to before creating an account. Change it when either page changes in a way people should agree to again.
+ */
+export const TERMS_VERSION = '2026-11-02';
+const CONSENT_KEY = 'peptide-ledger:terms';
+/** True when someone on this device ticked the agreement for the current Terms. */
+export function hasConsent() {
+  try { return kv?.getItem(CONSENT_KEY) === TERMS_VERSION; } catch { return false; }
+}
+export function setConsent(on: boolean) {
+  try { if (on) kv?.setItem(CONSENT_KEY, TERMS_VERSION); else kv?.removeItem(CONSENT_KEY); } catch { /* storage blocked */ }
+}
+const consentData = () => ({ terms_version: TERMS_VERSION, terms_accepted_at: new Date().toISOString() });
 const listeners = new Set<() => void>();
 function patch(p: Partial<AccountState>) {
   state = { ...state, ...p };
@@ -187,6 +206,10 @@ function onAuth(event: string, session: Session | null) {
   // Supabase asks that nothing awaits its client inside this callback, so the work runs on the next tick.
   setTimeout(() => {
     if (event === 'PASSWORD_RECOVERY') patch({ recovering: true });
+    // Google sign-ups can't carry extra data, so the agreement ticked before leaving for Google is recorded on return.
+    if (event === 'SIGNED_IN' && session?.user && session.user.user_metadata?.terms_version !== TERMS_VERSION && hasConsent()) {
+      void getClient().then(sb => sb.auth.updateUser({ data: consentData() })).catch(() => {});
+    }
     if (session?.user) attach(session.user);
     // Opening the app offline with an expired token reports no session while it's still saved.
     // Stay signed in then; only a real sign-out, or a session Supabase threw away, signs out here.
@@ -218,10 +241,10 @@ function message(e: { code?: string; message?: string; status?: number } | null 
     case 'invalid_credentials': return "That email and password don't match an account.";
     case 'user_already_exists':
     case 'email_exists': return 'There is already an account with that email. Sign in instead.';
-    case 'signup_disabled': return 'New accounts are turned off for this app. Ask the person who set it up.';
+    case 'signup_disabled': return "New accounts are closed right now. If you already have one, sign in.";
     case 'weak_password': return 'Choose a longer password: at least 8 characters.';
     case 'email_not_confirmed': return 'Confirm your email first, using the link we sent, then sign in.';
-    case 'email_address_not_authorized': return "This app can't send email to that address yet. Ask the person who set it up to reset your password.";
+    case 'email_address_not_authorized': return "We couldn't send email to that address. Try again later, or continue with Google.";
     case 'over_email_send_rate_limit':
     case 'over_request_rate_limit': return 'Too many tries in a short time. Wait a few minutes and try again.';
     case 'same_password': return 'That is already your password. Choose a new one.';
@@ -231,12 +254,15 @@ function message(e: { code?: string; message?: string; status?: number } | null 
   return m || 'Something went wrong. Try again.';
 }
 
-/** Asks the project which sign-in methods are on, so the Google button only shows once Google is set up. */
+/**
+ * Asks the project which sign-in methods are on and whether it takes new accounts, so the sheet
+ * only offers what works: the Google button once Google is set up, no email form when email is off.
+ */
 let providers: Promise<void> | null = null;
 function checkProviders() {
   providers ??= fetch(`${URL}/auth/v1/settings`, { headers: { apikey: KEY! } })
     .then(r => r.json())
-    .then(j => patch({ google: !!j?.external?.google }))
+    .then(j => patch({ google: !!j?.external?.google, email: j?.external?.email !== false, signupOpen: !j?.disable_signup }))
     .catch(() => { providers = null; });
 }
 
@@ -273,7 +299,7 @@ export async function signInWithGoogle() {
 
 /** Resolves to 'confirm' when the project requires confirming the email before the first sign-in. */
 export async function signUp(email: string, password: string) {
-  const res = await withAuth(sb => sb.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: appUrl() } }));
+  const res = await withAuth(sb => sb.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: appUrl(), data: consentData() } }));
   if (res.error) return message(res.error);
   return 'data' in res && res.data.session ? '' : 'confirm';
 }
@@ -306,6 +332,24 @@ export async function signOut(discardUnsynced = false): Promise<number> {
     window.location.reload();
   }
   return 0;
+}
+
+/**
+ * Deletes the account and everything in it from the server: the log, partner links and codes.
+ * Then signs out here. Resolves to an error message, or '' once the account is gone.
+ */
+export async function deleteAccount(): Promise<string> {
+  const res = await withAuth(async sb => await sb.rpc('delete_my_account'));
+  const err = res.error as { code?: string; message?: string } | null;
+  if (err) {
+    if (err.code === 'PGRST202' || /could not find the function/i.test(err.message ?? '')) return "Deleting accounts isn't switched on yet. Try again later.";
+    return message(err);
+  }
+  detach(true);
+  // The account no longer exists, so make sure its session is forgotten on this device too.
+  await withAuth(sb => sb.auth.signOut({ scope: 'local' }));
+  try { kv?.removeItem(AUTH_KEY); } catch { /* storage blocked */ }
+  return '';
 }
 
 export function syncNow() {

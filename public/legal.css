@@ -1,0 +1,52 @@
+/* The Privacy Policy and Terms pages: plain, readable, light and dark. */
+:root {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --ink: #151b23;
+  --ink-2: #4a5462;
+  --line: #dfe4ea;
+  --accent: #2563a8;
+  --tint: #e8f1fb;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f141a;
+    --surface: #151b23;
+    --ink: #eef2f6;
+    --ink-2: #aab4c0;
+    --line: #2a333e;
+    --accent: #8ab8ec;
+    --tint: #1b2633;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+main {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+h1 { font-size: 2rem; line-height: 1.2; margin: 8px 0 4px; letter-spacing: -0.01em; }
+h2 { font-size: 1.2rem; margin: 32px 0 8px; }
+h3 { font-size: 1rem; margin: 20px 0 6px; }
+p, li { color: var(--ink); }
+ul { padding-left: 1.25rem; }
+li { margin: 6px 0; }
+a { color: var(--accent); }
+.meta { color: var(--ink-2); font-size: 0.9rem; margin: 0 0 20px; }
+.back { margin: 0; font-size: 0.95rem; }
+.back a { text-decoration: none; font-weight: 600; }
+.summary {
+  background: var(--tint);
+  border-radius: 16px;
+  padding: 4px 20px 8px;
+  margin: 16px 0;
+}
+.summary h2 { margin-top: 16px; }

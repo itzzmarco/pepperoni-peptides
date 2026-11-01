@@ -9,6 +9,7 @@ import { INJECTABLE } from '../data/options';
 import { PEP } from '../data/peptides';
 import { TIERS } from '../data/reference';
 import { useAccount } from '../lib/account';
+import { firstName, usePartners, weightChange } from '../lib/partner';
 import { DeviceLogPrompt } from '../sheets/AccountSheet';
 import { MiniClock } from '../components/BellyClock';
 import { useCountUp } from '../components/Motion';
@@ -122,6 +123,14 @@ export function TodayView(actions: Actions) {
   const comingUp = list.find(x => x !== next && x.st.s === 'ok');
   const learnP = next ? PEP[next.r.compoundId] : undefined;
 
+  // A linked partner's latest weight and next shot, view only.
+  const { partners, logs } = usePartners();
+  const partner = partners[0];
+  const pLog = partner ? logs[partner.id] : undefined;
+  const pUnit = wNow?.weightUnit ?? pLog?.checkins.find(c => c.weightUnit)?.weightUnit ?? 'lb';
+  const pW = pLog ? weightChange(pLog.checkins, pUnit, now.getTime() - 90 * DAY) : null;
+  const pNext = pLog ? upcoming(pLog.regimens, pLog.doses, now)[0] : undefined;
+
   const hour = now.getHours();
   const hello = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   let line1: string, line2: string;
@@ -197,6 +206,20 @@ export function TodayView(actions: Actions) {
               </>
             ) : <span className="sub">None logged this week.</span>}
           </a>
+
+          {partner && (
+            <a href="#partner" className="tile span-2 partner-tile rise" style={rise(6)}>
+              <span className="avatar" aria-hidden="true">{firstName(partner.name)[0]}</span>
+              <span className="stack" style={{ gap: 2, flex: 1, minWidth: 0 }}>
+                <span className="label" style={{ color: 'var(--peach-ink)' }}>{firstName(partner.name)} · partner</span>
+                <span style={{ fontSize: '1.3125rem', fontWeight: 600, lineHeight: 1.2 }}>
+                  {pW ? <>{fmtNum(pW.last.w, 1)}<small className="sub"> {pUnit}</small>{pW.count > 1 && <span className="sub"> · {pW.change > 0 ? '+' : pW.change < 0 ? '−' : ''}{Math.abs(pW.change).toFixed(1)} since {fmtShort(pW.first.at)}</span>}</> : 'No weigh-ins yet'}
+                </span>
+                {pNext && <span className="sub">{regName(pNext.r)} · {pNext.st.text}</span>}
+              </span>
+              <span className="arrow" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+            </a>
+          )}
 
           {inj && (
             <button type="button" className="tile sky span-2 rise" style={{ ...rise(6), border: 0, textAlign: 'left', font: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 16 }} onClick={() => actions.logDose(inj.r)}>

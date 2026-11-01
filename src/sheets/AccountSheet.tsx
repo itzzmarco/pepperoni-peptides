@@ -3,7 +3,8 @@ import {
   clearLinkError, keepDeviceLog, moveDeviceLog, sendReset, setPassword, signIn, signInWithGoogle, signOut, signUp, syncNow, useAccount, warmUp,
   type AccountState,
 } from '../lib/account';
-import { fmtDay, fmtTime } from '../lib/format';
+import { fmtDay, fmtShort, fmtTime } from '../lib/format';
+import { acceptInvite, cleanCode, createInvite, firstName, refreshPartners, showCode, unlinkPartner, usePartners } from '../lib/partner';
 import { Sheet } from '../components/Sheet';
 import { useToast } from '../components/Toast';
 
@@ -177,6 +178,120 @@ export function DeviceLogPrompt({ onToday = false }: { onToday?: boolean }) {
   );
 }
 
+/**
+ * Link with a partner so each of you can see the other's log. One person makes a code, the other
+ * enters it. While a code is showing, the list refreshes every few seconds to catch the link.
+ */
+function PartnerSection({ onClose }: { onClose: () => void }) {
+  const toast = useToast();
+  const { partners, error } = usePartners();
+  const [mode, setMode] = useState<'idle' | 'code' | 'enter'>('idle');
+  const [code, setCode] = useState('');
+  const [typed, setTyped] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const [armed, setArmed] = useState('');
+
+  // Waiting for the partner to enter the code: check for the new link every 5 seconds.
+  useEffect(() => {
+    if (mode !== 'code' || !code) return;
+    const t = setInterval(() => void refreshPartners(true), 5000);
+    return () => clearInterval(t);
+  }, [mode, code]);
+  const linkedCount = partners.length;
+  const [seen, setSeen] = useState(linkedCount);
+  useEffect(() => {
+    if (mode === 'code' && linkedCount > seen) {
+      toast(`Linked with ${firstName(partners[partners.length - 1].name)}.`);
+      setMode('idle');
+      setCode('');
+    }
+    setSeen(linkedCount);
+  }, [linkedCount]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const makeCode = async () => {
+    setBusy(true); setErr('');
+    const r = await createInvite();
+    setBusy(false);
+    if (r.error) return setErr(r.error);
+    setCode(r.code!);
+    setMode('code');
+  };
+  const enter = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (cleanCode(typed).length !== 6) return setErr('Codes have 6 letters and numbers.');
+    setBusy(true); setErr('');
+    const r = await acceptInvite(typed);
+    setBusy(false);
+    if (r.error) return setErr(r.error);
+    toast(`Linked with ${firstName(r.name ?? '')}. You can each see the other's progress now.`);
+    setTyped('');
+    setMode('idle');
+  };
+  const unlink = async (id: string) => {
+    setBusy(true);
+    const msg = await unlinkPartner(id);
+    setBusy(false);
+    setArmed('');
+    toast(msg || 'Unlinked. Neither of you can see the other\u2019s log now.');
+  };
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(code); toast('Code copied.'); } catch { toast(`Your code is ${showCode(code)}.`); }
+  };
+
+  return (
+    <section className="tile" aria-labelledby="partner-h">
+      <div className="spread"><h3 id="partner-h">Partner</h3>{linkedCount > 0 && <span className="chip">View only</span>}</div>
+      {partners.map(p => (
+        <div key={p.id} className="partner-row">
+          <span className="avatar" aria-hidden="true">{firstName(p.name)[0]}</span>
+          <div className="stack" style={{ gap: 0, minWidth: 0 }}>
+            <b style={{ overflowWrap: 'anywhere' }}>{p.name || 'Your partner'}</b>
+            <span className="xsmall muted">Linked {fmtShort(new Date(p.since))}</span>
+          </div>
+          <div className="row-wrap" style={{ justifyContent: 'flex-end' }}>
+            <a className="btn soft sm" href="#partner" onClick={onClose}>See progress</a>
+            {armed === p.id
+              ? <button className="btn danger sm" disabled={busy} onClick={() => unlink(p.id)}>Unlink for both</button>
+              : <button className="btn quiet sm" onClick={() => setArmed(p.id)}>Unlink</button>}
+          </div>
+        </div>
+      ))}
+      <p className="small muted">
+        {linkedCount
+          ? 'You can each see the other\u2019s whole log: doses, weights, check-ins and notes. Neither of you can change the other\u2019s.'
+          : 'Link with your partner to see each other\u2019s progress. They\u2019ll see your whole log (doses, weights, check-ins and notes) and you\u2019ll see theirs. Neither of you can change the other\u2019s.'}
+      </p>
+      {mode === 'code' && code ? (
+        <div className="inset stack" style={{ gap: 8 }}>
+          <span className="xsmall muted">Your code</span>
+          <button type="button" className="code" onClick={copy} aria-label={`Your code is ${code.split('').join(' ')}. Tap to copy.`}>{showCode(code)}</button>
+          <p className="small">On your partner's phone: sign in to Peptide Ledger, open the account menu, tap <b>Enter a code</b> and type this in. It works once and lasts 2 days.</p>
+          <p className="xsmall muted" role="status">Waiting for them to enter it…</p>
+          <div><button className="btn quiet sm" onClick={() => { setMode('idle'); setCode(''); }}>Done</button></div>
+        </div>
+      ) : mode === 'enter' ? (
+        <form className="stack" style={{ gap: 8 }} onSubmit={enter} noValidate>
+          <label className="field"><span>Code from your partner</span>
+            <input type="text" id="p-code" className="code-input" inputMode="text" autoCapitalize="characters" autoComplete="one-time-code" spellCheck={false}
+              maxLength={7} placeholder="K7Q 4MX" value={typed} onChange={e => setTyped(e.target.value)} autoFocus />
+          </label>
+          <div className="row-wrap">
+            <button type="submit" className="btn sm" disabled={busy}>{busy ? 'Linking…' : 'Link'}</button>
+            <button type="button" className="btn quiet sm" onClick={() => { setMode('idle'); setErr(''); }}>Cancel</button>
+          </div>
+        </form>
+      ) : linkedCount ? null : (
+        <div className="row-wrap">
+          <button className="btn ghost sm" disabled={busy} onClick={makeCode}>{busy ? 'Making a code…' : 'Get a code to share'}</button>
+          <button className="btn quiet sm" onClick={() => { setMode('enter'); setErr(''); }}>Enter a code</button>
+        </div>
+      )}
+      {(err || error) && <p className="small" role="alert" style={{ color: 'var(--danger)' }}>{err || error}</p>}
+    </section>
+  );
+}
+
 const STATUS: Record<AccountState['status'], string> = {
   idle: 'Connecting…',
   syncing: 'Syncing…',
@@ -222,6 +337,8 @@ function SignedIn({ acct, onClose }: { acct: AccountState; onClose: () => void }
         </p>
         <div><button className="btn ghost sm" onClick={syncNow} disabled={acct.status === 'syncing'}>Sync now</button></div>
       </section>
+
+      <PartnerSection onClose={onClose} />
 
       <section className="tile" aria-label="Password">
         {changing ? <NewPassword recovering={false} onDone={() => setChanging(false)} onClose={onClose} /> : (

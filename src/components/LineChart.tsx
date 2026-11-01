@@ -7,9 +7,13 @@ export interface Pt {
   tip: string;
 }
 
-/** Single-series line with area wash, end label, and a hover tooltip per point. The panel title names the series. */
-export function LineChart({ points, y0, y1, ticks, x0, x1, label, fmt = String }: {
+/**
+ * Line with area wash, end label, and a hover tooltip per point. The panel title names the series.
+ * An optional second series (`points2`) draws as a second line in another color, without the wash.
+ */
+export function LineChart({ points, points2 = [], y0, y1, ticks, x0, x1, label, fmt = String }: {
   points: Pt[];
+  points2?: Pt[];
   y0: number;
   y1: number;
   ticks: number[];
@@ -32,14 +36,39 @@ export function LineChart({ points, y0, y1, ticks, x0, x1, label, fmt = String }
     return () => ro.disconnect();
   }, []);
   const H = 160, L = 30, R = 12, T = 14, B = 24;
-  const pts = points.slice().sort((a, b) => a.x.getTime() - b.x.getTime());
-  const xs = pts.map(p => p.x.getTime());
+  const byX = (a: Pt, b: Pt) => a.x.getTime() - b.x.getTime();
+  const pts = points.slice().sort(byX);
+  const pts2 = points2.slice().sort(byX);
+  const xs = [...pts, ...pts2].map(p => p.x.getTime());
   const lo = x0 ?? Math.min(...xs), hi = x1 ?? Math.max(...xs);
   const sx = (x: number) => L + (hi === lo ? (W - L - R) / 2 : ((x - lo) / (hi - lo)) * (W - L - R));
   const sy = (y: number) => T + (1 - (y - y0) / (y1 - y0)) * (H - T - B);
-  const d = pts.map((p, i) => `${i ? 'L' : 'M'}${sx(p.x.getTime()).toFixed(1)} ${sy(p.y).toFixed(1)}`).join(' ');
+  const path = (ps: Pt[]) => ps.map((p, i) => `${i ? 'L' : 'M'}${sx(p.x.getTime()).toFixed(1)} ${sy(p.y).toFixed(1)}`).join(' ');
+  const d = path(pts);
   const last = pts[pts.length - 1];
   const lx = sx(last.x.getTime());
+  const last2 = pts2[pts2.length - 1];
+  const dots = (ps: Pt[], cls: string) => ps.map((p, i) => {
+    const cx = sx(p.x.getTime()), cy = sy(p.y);
+    const isLast = i === ps.length - 1;
+    return (
+      <g key={`${cls}${i}`}>
+        {(isLast || ps.length < 12) && <circle className={`pt ${cls}`} cx={cx} cy={cy} r={isLast ? 5 : 4} />}
+        <circle cx={cx} cy={cy} r={11} fill="transparent" onMouseEnter={() => setHover({ left: (cx / W) * 100, top: (cy / H) * 100, text: p.tip })} />
+      </g>
+    );
+  });
+  const endLabel = (p: Pt, cls: string, nudge: number) => {
+    const x = sx(p.x.getTime());
+    return (
+      <text className={`end ${cls}`} x={Math.min(x + 8, W - R)} y={sy(p.y) + nudge} textAnchor={x > W - 60 ? 'end' : 'start'} style={{ fontWeight: 600 }}>
+        {fmt(p.y)}
+      </text>
+    );
+  };
+  // Keep the two end labels from landing on each other.
+  const close = last2 && Math.abs(sy(last2.y) - sy(last.y)) < 16;
+  const above = !last2 || sy(last.y) <= sy(last2.y);
   return (
     <div className="chart-wrap" ref={wrap} onMouseLeave={() => setHover(null)}>
       <svg className="chart" width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
@@ -57,22 +86,11 @@ export function LineChart({ points, y0, y1, ticks, x0, x1, label, fmt = String }
             <path className="ln draw" pathLength={1} d={d} />
           </>
         )}
-        {pts.map((p, i) => {
-          const cx = sx(p.x.getTime()), cy = sy(p.y);
-          const isLast = i === pts.length - 1;
-          return (
-            <g key={i}>
-              {(isLast || pts.length < 12) && <circle className="pt" cx={cx} cy={cy} r={isLast ? 5 : 4} />}
-              <circle
-                cx={cx} cy={cy} r={11} fill="transparent"
-                onMouseEnter={() => setHover({ left: (cx / W) * 100, top: (cy / H) * 100, text: p.tip })}
-              />
-            </g>
-          );
-        })}
-        <text x={Math.min(lx + 8, W - R)} y={sy(last.y) - 8} textAnchor={lx > W - 60 ? 'end' : 'start'} style={{ fill: 'var(--ink)', fontWeight: 600 }}>
-          {fmt(last.y)}
-        </text>
+        {pts2.length > 1 && <path className="ln two draw" pathLength={1} d={path(pts2)} />}
+        {dots(pts2, 'two')}
+        {dots(pts, '')}
+        {endLabel(last, '', above || !close ? -8 : 18)}
+        {last2 && endLabel(last2, 'two', above && close ? 18 : -8)}
       </svg>
       {hover && (
         <div className="tip" style={{ left: `clamp(60px, ${hover.left}%, calc(100% - 60px))`, top: `${hover.top}%` }}>

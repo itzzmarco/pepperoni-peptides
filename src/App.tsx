@@ -11,6 +11,7 @@ import { LibraryView } from './views/LibraryView';
 import { PeptideDetail } from './views/PeptideDetail';
 import { CalculatorView } from './views/CalculatorView';
 import { SafetyView } from './views/SafetyView';
+import { PartnerView } from './views/PartnerView';
 import { RegimenSheet, blankRegimen } from './sheets/RegimenSheet';
 import { DoseSheet } from './sheets/DoseSheet';
 import { CheckinSheet } from './sheets/CheckinSheet';
@@ -21,7 +22,7 @@ import { AccountButton } from './components/AccountButton';
 import { ThemeToggle } from './components/ThemeToggle';
 import { TabBar } from './components/TabBar';
 
-const ROUTES = ['today', 'trends', 'learn', 'peptides', 'calculator', 'safety'] as const;
+const ROUTES = ['today', 'trends', 'learn', 'peptides', 'calculator', 'safety', 'partner'] as const;
 export type Route = (typeof ROUTES)[number];
 /** Links from before the redesign keep working. */
 const ALIASES: Record<string, Route> = { log: 'today', library: 'learn' };
@@ -82,11 +83,12 @@ export function App() {
   else if (route.tab === 'peptides') view = <PeptidesView {...actions} />;
   else if (route.tab === 'calculator') view = <CalculatorView />;
   else if (route.tab === 'safety') view = <SafetyView />;
+  else if (route.tab === 'partner') view = <PartnerView onAccount={() => setSheet({ kind: 'account' })} />;
   else view = <TodayView {...actions} />;
 
   // While a sheet is open, the page behind it is inert: not focusable and hidden from screen readers.
   const bg = sheet ? true : undefined;
-  const tab = route.tab === 'calculator' || route.tab === 'safety' ? 'learn' : route.tab;
+  const tab = route.tab === 'calculator' || route.tab === 'safety' ? 'learn' : route.tab === 'partner' ? 'today' : route.tab;
   return (
     <>
       <header className="topbar gutter" inert={bg}>

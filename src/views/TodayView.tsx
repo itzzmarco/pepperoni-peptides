@@ -4,7 +4,7 @@ import { upcoming, type RegimenStatus } from '../lib/schedule';
 import { doseMath, drugAmount, isVolumeUnit } from '../lib/doseMath';
 import { DAY, dayKey, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
 import { adherence, topEffects, usualMinutes } from '../lib/insights';
-import { BELLY, SITE_LABEL, lastBellyHour, lastUsedBySite, nextBellyHour, suggestSite } from '../lib/sites';
+import { BELLY, lastBellyHour, lastUsedBySite, nextBellyHour, siteLabel, sitePlan, suggestSite } from '../lib/sites';
 import { INJECTABLE } from '../data/options';
 import { PEP } from '../data/peptides';
 import { TIERS } from '../data/reference';
@@ -118,8 +118,12 @@ export function TodayView(actions: Actions) {
   // Site suggestion for the next injectable dose: belly clock if this regimen has used it, else the least-used body site.
   const inj = list.find(x => INJECTABLE.has(x.r.route));
   const lastUsed = lastUsedBySite(doses);
-  const bh = inj ? lastBellyHour(inj.r.id, doses) : null;
+  // The sites that fit this injection: under the skin or into the muscle, and what the drug's label allows.
+  const plan = inj ? sitePlan(inj.r.route, inj.r.compoundId) : null;
+  const bh = inj && plan?.belly ? lastBellyHour(inj.r.id, doses) : null;
   const nextHour = bh ? nextBellyHour(bh, lastUsed) : null;
+  const nextSite = plan ? suggestSite(lastUsed, plan.sites) : '';
+  const usedSite = !!plan?.sites.some(k => lastUsed[k]);
   const comingUp = list.find(x => x !== next && x.st.s === 'ok');
   const learnP = next ? PEP[next.r.compoundId] : undefined;
 
@@ -221,7 +225,7 @@ export function TodayView(actions: Actions) {
             </a>
           )}
 
-          {inj && (
+          {inj && plan && (
             <button type="button" className="tile sky span-2 rise" style={{ ...rise(6), border: 0, textAlign: 'left', font: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 16 }} onClick={() => actions.logDose(inj.r)}>
               {nextHour ? <MiniClock hour={nextHour} /> : (
                 <span className="badge-icon" style={{ background: 'var(--surface)', color: 'var(--sky-ink)' }} aria-hidden="true">
@@ -230,8 +234,8 @@ export function TodayView(actions: Actions) {
               )}
               <span className="stack" style={{ gap: 2 }}>
                 <span className="label">Next site · {regName(inj.r)}</span>
-                <span style={{ fontSize: '1.375rem', fontWeight: 600, lineHeight: 1.2 }}>{nextHour ? BELLY.find(b => b.h === nextHour)!.label : SITE_LABEL[suggestSite(lastUsed)]}</span>
-                <span className="sub">{nextHour ? `One hour clockwise from ${bh} o'clock` : 'Rested longest of your sites'}</span>
+                <span style={{ fontSize: '1.375rem', fontWeight: 600, lineHeight: 1.2 }}>{nextHour ? BELLY.find(b => b.h === nextHour)!.label : siteLabel(nextSite, inj.r.route)}</span>
+                <span className="sub">{nextHour ? `One hour clockwise from ${bh} o'clock` : usedSite ? 'Rested longest of your sites' : plan.short}</span>
               </span>
             </button>
           )}

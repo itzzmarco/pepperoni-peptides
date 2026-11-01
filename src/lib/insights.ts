@@ -1,5 +1,5 @@
 import type { Checkin, DoseEntry, Regimen } from './types';
-import { intervalDays } from './schedule';
+import { intervalDays, scheduledOn } from './schedule';
 import { DAY, dayKey, startOfDay } from './format';
 
 /**
@@ -16,6 +16,18 @@ export function adherence(regimens: Regimen[], doses: DoseEntry[], now = new Dat
     if (r.paused || !iv) continue;
     const mine = doses.filter(d => d.rid === r.id).map(d => new Date(d.at).getTime());
     if (!mine.length) continue;
+    if (r.freq === 'days') {
+      // Scheduled days from the first dose (or the window's start) up to yesterday, plus today once today's dose is in.
+      const today = startOfDay(now).getTime();
+      let due = 0;
+      for (let d = startOfDay(new Date(Math.max(from, Math.min(...mine)))); d.getTime() <= today; d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) {
+        if (!scheduledOn(r, d)) continue;
+        if (d.getTime() < today || mine.some(x => x >= today && x <= t)) due++;
+      }
+      expected += due;
+      logged += Math.min(due, mine.filter(x => x >= from && x <= t).length);
+      continue;
+    }
     const t0 = Math.min(...mine), step = iv * DAY;
     const due = Math.max(0, Math.floor((t - t0) / step) - Math.max(0, Math.ceil((from - t0) / step)) + 1);
     expected += due;

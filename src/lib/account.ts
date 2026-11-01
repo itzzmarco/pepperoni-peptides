@@ -20,6 +20,8 @@ const POLL_MS = 90_000;
 const RETRY_MS = 30_000;
 
 export const accountKey = (uid: string) => `${STORAGE_KEY}:${uid}`;
+/** The copy of linked partners' logs kept on this device for a signed-in person. */
+export const partnersKey = (uid: string) => `peptide-ledger:partners:${uid}`;
 const keptKey = (uid: string) => `peptide-ledger:device-kept:${uid}`;
 
 export interface AccountState {
@@ -56,7 +58,7 @@ function patch(p: Partial<AccountState>) {
  * sign in don't wait for it. If it can't load (offline on a first visit), the next sync tries again.
  */
 let client: Promise<SupabaseClient> | null = null;
-function getClient(): Promise<SupabaseClient> {
+export function getClient(): Promise<SupabaseClient> {
   if (!client) {
     client = import('@supabase/supabase-js').then(({ createClient }) => {
       const sb = createClient(URL!, KEY!, { auth: { storageKey: AUTH_KEY, persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
@@ -149,6 +151,8 @@ function detach(discardUnsynced: boolean) {
       kv?.removeItem(syncStateKey(uid));
     } catch { /* storage blocked */ }
   }
+  // A partner's log is never unsent work, so it always goes on sign-out.
+  if (uid) try { kv?.removeItem(partnersKey(uid)); } catch { /* storage blocked */ }
   patch({ user: null, status: 'idle', error: '', pending: 0, lastSynced: null, deviceItems: 0, deviceKept: false, recovering: false });
 }
 
@@ -325,6 +329,9 @@ export function keepDeviceLog() {
   try { kv?.setItem(keptKey(state.user.id), String(state.deviceItems)); } catch { /* storage blocked */ }
   patch({ deviceKept: true });
 }
+
+/** The signed-in person's id, or null. */
+export const currentUserId = () => state.user?.id ?? null;
 
 export function clearLinkError() {
   patch({ linkError: '' });

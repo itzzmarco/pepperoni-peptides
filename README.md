@@ -25,7 +25,7 @@ The visual style ("Soft Bento") uses tinted tiles with one job per color: mint f
 
 There is no analytics or tracking. Signed out, the log is saved in the browser's `localStorage` on that device only (key `peptide-ledger:v1`) and nothing is sent anywhere. People can download a CSV for a spreadsheet or their clinician, save a JSON backup, restore a backup on another device, or erase everything. If the browser blocks storage (for example in some private windows), the app says that entries won't be kept.
 
-Signed in, each regimen, dose and check-in is also saved to the account's private table in Supabase (Postgres), and a copy stays on the device so the app works offline. Row-level security on the table means a signed-in person can read and write only their own rows, and signed-out visitors can read nothing. On the device, each account's copy is kept under its own key (`peptide-ledger:v1:<user id>`), and signing out removes it. Entries made before signing in stay on the device until the person chooses to move them into their account. "Erase my log" while signed in erases the log from the account on every device.
+Signed in, each regimen, dose and check-in is also saved to the account's private table in Supabase (Postgres), and a copy stays on the device so the app works offline. Row-level security on the table means a signed-in person can read and write only their own rows, and signed-out visitors can read nothing. The one exception is a linked partner: two people who link their accounts with an invite code can each read the other's log (doses, weights, check-ins and notes), but neither can add to it, change it or delete from it. Either person can unlink at any time, which ends it for both, and the partner's copy on the device is removed at sign-out like everything else. On the device, each account's copy is kept under its own key (`peptide-ledger:v1:<user id>`), and signing out removes it. Entries made before signing in stay on the device until the person chooses to move them into their account. "Erase my log" while signed in erases the log from the account on every device.
 
 Fonts are bundled with the app, so no request goes to a font CDN. The app works offline after the first visit and can be installed to a phone's home screen.
 
@@ -63,7 +63,7 @@ Both are meant to be public: they ship inside the app, and the database's row-le
 To set it up from scratch:
 
 1. Create a Supabase project.
-2. In the SQL editor, run [`supabase/migrations/20261030000000_ledger_items.sql`](supabase/migrations/20261030000000_ledger_items.sql). It creates the `ledger_items` table and its row-level security policies.
+2. In the SQL editor, run [`supabase/migrations/20261030000000_ledger_items.sql`](supabase/migrations/20261030000000_ledger_items.sql). It creates the `ledger_items` table and its row-level security policies. Then run [`supabase/migrations/20261101000000_partners.sql`](supabase/migrations/20261101000000_partners.sql), which adds partner linking (the invite codes, the links, and the read-only policy that lets a linked partner see the log). Until it's run, the partner section in the account sheet says it isn't set up yet, and nothing else changes.
 3. In Authentication > URL Configuration, set **Site URL** to the app's address (for example `https://pepperoni-peptides.vercel.app`). To try sign-in on Vercel preview links too, add `https://pepperoni-peptides-*-itzzmarcos-projects.vercel.app/**` under **Redirect URLs**.
 4. **Google sign-in** (recommended; no passwords or emails to manage). The "Continue with Google" button appears once this is on:
    1. In [Google Cloud Console](https://console.cloud.google.com/), create a project, open **Google Auth Platform**, and click **Get started**: app name "Peptide Ledger", your email, audience **External**.
@@ -76,6 +76,8 @@ To set it up from scratch:
 8. Once everyone has an account, turn off **Allow new users to sign up** in Authentication > Sign In / Providers, so strangers can't create accounts on your project.
 
 How sync works: every change is saved on the device first and queued. The queue is sent to the server a moment later, then anything newer from the person's other devices is pulled in (on open, when the app comes back to the foreground, every 90 seconds while it's open, and when the connection returns). If two devices change the same entry, the change the server saw last wins. Deleted entries are kept on the server as empty markers so other devices remove them too. The code is in `src/lib/sync.ts` (engine, unit-tested with a fake server) and `src/lib/account.ts` (Supabase client, sign-in and the sync triggers).
+
+How partners work: in the account sheet, one person taps **Get a code to share** and the other enters that 6-character code on their own account (codes last 2 days, and a new one replaces the old). The server then links both accounts both ways. The partner's log is fetched when a screen needs it (at most once a minute, or with **Refresh**) and kept on the device so it shows offline. It appears as a tile on Today and on its own screen (`#partner`) with both weight changes on one chart, their shots, and their latest entries. The code is in `src/lib/partner.ts` and the database side in the partners migration, where every function runs with an empty `search_path` and only signed-in people can call them.
 
 ## Where the content comes from
 
@@ -101,14 +103,14 @@ US peptide rules are moving quickly. As of October 26, 2026, an HHS "Interim Acc
 
 ```
 src/
-  App.tsx              tab bar, routing (#today, #trends, #learn, #peptides, #calculator, #safety, #<peptide-id>), sheets
-  views/               Today, Trends, Peptides, Learn (library), dose math, safety, and the peptide detail page
+  App.tsx              tab bar, routing (#today, #trends, #partner, #learn, #peptides, #calculator, #safety, #<peptide-id>), sheets
+  views/               Today, Trends, Partner, Peptides, Learn (library), dose math, safety, and the peptide detail page
   sheets/              add/edit regimen, log a dose, daily check-in, account
   components/          tab bar, chips, charts, syringe, body map, belly clock, sheet, toast, theme toggle
   lib/                 types, storage, accounts and sync, dose math, schedules, insights (adherence, side-effect pattern), CSV, formatting
   data/                library, reference content, form options
 public/                icons, web manifest, service worker
-supabase/migrations/   the accounts table and its row-level security
+supabase/migrations/   the accounts table, partner links, and their row-level security
 ```
 
 ## Disclaimer

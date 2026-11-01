@@ -190,7 +190,7 @@ a.tile { color: var(--ink); }
 .field { display: grid; gap: 6px; min-width: 0; }
 .field > span { font-size: var(--fs-sm); font-weight: 600; }
 .field small { color: var(--ink-3); font-size: var(--fs-xs); font-weight: 400; }
-input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="search"], input[type="date"], input[type="datetime-local"], select, textarea {
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="search"], input[type="date"], input[type="datetime-local"], input[type="time"], select, textarea {
   width: 100%; background: var(--surface); border: 0; box-shadow: var(--ring); border-radius: var(--r-sm); padding: 10px 14px; min-height: 48px;
 }
 input[type="search"] { border-radius: 24px; padding-left: 44px; }
@@ -593,3 +593,5 @@ footer.foot p { max-width: 90ch; }
   .hour:active, .site:active, .btn:active, .fchip:active { transform: scale(.96); }
   .site:active { transform: translate(-50%, -50%) scale(.94); }
 }
+.weekdays { gap: 6px; }
+.weekdays .fchip { min-width: 44px; padding: 0 10px; justify-content: center; }

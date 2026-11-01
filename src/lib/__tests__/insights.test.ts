@@ -13,6 +13,16 @@ const day = (d: number, h = 9) => new Date(2026, 9, d, h); // October 2026
 describe('adherence', () => {
   const now = day(27, 10); // Tue Oct 27, 10 AM
 
+  it('counts set weekdays by the calendar: every Mon, Wed, Fri since the first dose', () => {
+    // First dose Mon Oct 12. Scheduled since: 12, 14, 16, 19, 21, 23, 26 (7 days; today, Tue 27, isn't one).
+    const doses = [12, 14, 16, 19, 21, 26].map(d => dose('m', day(d, 8)));
+    expect(adherence([reg('m', 'days', { weekdays: [1, 3, 5] })], doses, now)).toEqual({ logged: 6, expected: 7, pct: 6 / 7 });
+    // On a scheduled day, today counts once today's dose is in.
+    const wed = day(28, 10);
+    expect(adherence([reg('m', 'days', { weekdays: [1, 3, 5] })], doses, wed).expected).toBe(7);
+    expect(adherence([reg('m', 'days', { weekdays: [1, 3, 5] })], [...doses, dose('m', day(28, 9))], wed)).toMatchObject({ logged: 7, expected: 8 });
+  });
+
   it('counts a weekly regimen as on track when every due dose was logged', () => {
     const doses = [26, 19, 12, 5].map(d => dose('w', day(d, 8)));
     expect(adherence([reg('w', 'weekly')], doses, now)).toEqual({ logged: 4, expected: 4, pct: 1 });

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { FamilyKey, Peptide, Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
-import { FREQS } from '../lib/schedule';
+import { DAY_SHORT, FREQS, WEEK, weekdaysOf } from '../lib/schedule';
 import { SYRINGE_UNITS, drugAmount, isVolumeUnit } from '../lib/doseMath';
 import { checkDose } from '../lib/vial';
 import { dayKey, fmtNum, newId } from '../lib/format';
@@ -59,6 +59,13 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved }: { initial: Re
   const oldUnitDoses = isNew || r.unit === initial.unit ? [] : doses.filter(x => x.rid === r.id && x.unit === initial.unit);
   const [relabel, setRelabel] = useState(false);
 
+  // Choosing set weekdays starts with today's day ticked, so there's always at least one.
+  const setFreq = (freq: string) => setR(cur => ({ ...cur, freq, weekdays: freq === 'days' && !weekdaysOf(cur).length ? [new Date().getDay()] : cur.weekdays }));
+  const toggleDay = (d: number) => setR(cur => {
+    const has = weekdaysOf(cur).includes(d);
+    return { ...cur, weekdays: has ? weekdaysOf(cur).filter(x => x !== d) : [...weekdaysOf(cur), d] };
+  });
+
   const choose = (v: string) => {
     setPick(v);
     const np = PEP[v];
@@ -67,10 +74,11 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved }: { initial: Re
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const out: Regimen = { ...r, compoundId: p ? pick : '', name: pick === OTHER ? r.name.trim() : '', prescriber: r.prescriber.trim(), notes: r.notes.trim() };
+    const out: Regimen = { ...r, compoundId: p ? pick : '', name: pick === OTHER ? r.name.trim() : '', prescriber: r.prescriber.trim(), notes: r.notes.trim(), weekdays: r.freq === 'days' ? weekdaysOf(r) : undefined };
     const problem = !out.compoundId && !out.name ? 'Choose a peptide or type a name.'
       : !(Number(out.dose) > 0) ? 'Enter the dose you were prescribed.'
       : out.freq === 'custom' && !(Number(out.everyDays) >= 1) ? 'Enter how many days between doses.'
+      : out.freq === 'days' && !weekdaysOf(out).length ? 'Choose at least one day of the week.'
       : firstTime && !ack ? "Please confirm you understand this log isn't medical advice." : '';
     if (problem) { setErr(problem); return; }
     if (isNew) out.createdAt = new Date().toISOString();
@@ -107,9 +115,18 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved }: { initial: Re
         <div className="grid-3">
           <label className="field"><span>Dose</span><input type="number" id="r-dose" step="any" min="0" inputMode="decimal" value={r.dose} onChange={set('dose')} /></label>
           <label className="field"><span>Unit</span><select id="r-unit" value={r.unit} onChange={set('unit')}><UnitOptions compoundId={p ? pick : ''} /></select></label>
-          <label className="field"><span>How often</span><select id="r-freq" value={r.freq} onChange={set('freq')}>{FREQS.map(f => <option key={f.k} value={f.k}>{f.label}</option>)}</select></label>
+          <label className="field"><span>How often</span><select id="r-freq" value={r.freq} onChange={e => setFreq(e.target.value)}>{FREQS.map(f => <option key={f.k} value={f.k}>{f.label}</option>)}</select></label>
         </div>
         <UsualUnits compoundId={p ? pick : ''} value={r.unit} onPick={u => setR({ ...r, unit: u })} />
+        {r.freq === 'days' && (
+          <div className="field">
+            <span id="r-days-h">Which days?</span>
+            <div className="row-wrap weekdays" role="group" aria-labelledby="r-days-h">
+              {WEEK.map(d => <button key={d} type="button" className="fchip" aria-pressed={weekdaysOf(r).includes(d)} onClick={() => toggleDay(d)}>{DAY_SHORT[d]}</button>)}
+            </div>
+            <small>For 5 days on, 2 off, pick Mon to Fri. Due days follow the calendar, so a late dose doesn't move the next one.</small>
+          </div>
+        )}
         {r.freq === 'custom' && <label className="field"><span>Every how many days?</span><input type="number" id="r-every" min="1" step="1" value={r.everyDays} onChange={set('everyDays')} /></label>}
         <div className="grid-2">
           <label className="field"><span>How it's taken</span><select id="r-route" value={r.route} onChange={set('route')}>{ROUTES.map(x => <option key={x}>{x}</option>)}</select></label>

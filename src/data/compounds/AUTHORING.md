@@ -35,6 +35,10 @@ ordinary people deciding whether something is safe, so accuracy beats completene
 | `isPeptide` | `false` only for things that are not peptides (small molecules, coenzymes, amino-acid derivatives). |
 | `goals` | 2 to 5 lowercase search words people would type (e.g. "tendon", "fat loss", "sleep"). |
 | `defaultRoute` | One of: "Subcutaneous injection", "Intramuscular injection", "Nasal spray", "Oral", "Sublingual", "Topical", "IV (in clinic)", "Other". |
-| `defaultUnit` | "mg" or "mcg". |
+| `defaultUnit` | "mg" or "mcg": the unit the amount is usually written in. It is used to show the drug amount when a dose is logged in syringe units. |
 | `popularity` | Only the numbers you are given. Otherwise omit. |
 | `sources` | 3 to 8 `{ t, u }` with real URLs taken from the notes. Prefer FDA, labels, journals, PubMed, ClinicalTrials.gov, WADA, regulators. No vendor sales pages. |
+
+## Usual units
+
+Every entry also needs a line in `src/data/measures.ts`: the units people actually measure a dose in, by product form (syringe units for a vial, mg for a pen, capsules, sprays, applications for creams), with the most common first. The first one is where a new regimen starts. Each `how` names the form in a few words and never an amount. `npm test` checks that every entry has one.

@@ -2,14 +2,16 @@ import { useMemo, useState } from 'react';
 import type { Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { freqText } from '../lib/schedule';
-import { doseMath } from '../lib/doseMath';
+import { doseMath, drugAmount, isVolumeUnit } from '../lib/doseMath';
 import { DAY, fmtNum, fmtTime, newId, toLocalInput } from '../lib/format';
 import { BELLY, SITE_LABEL, bellyHour, lastUsedBySite, nextBellyHour } from '../lib/sites';
-import { INJECTABLE, ROUTES, UNITS } from '../data/options';
+import { INJECTABLE, ROUTES } from '../data/options';
+import { PEP } from '../data/peptides';
 import { BodyMap } from '../components/BodyMap';
 import { BellyClock } from '../components/BellyClock';
 import { Sheet } from '../components/Sheet';
 import { Syringe } from '../components/Syringe';
+import { UnitOptions } from '../components/UnitPicker';
 import { useToast } from '../components/Toast';
 import { regName } from '../views/PeptidesView';
 
@@ -89,7 +91,9 @@ export function DoseSheet({ r: initial, onClose }: { r: Regimen; onClose: () => 
           <span style={{ fontSize: '2.25rem', fontWeight: 600, letterSpacing: '-.02em', lineHeight: 1 }}>{fmtNum(Number(r.dose), 3)} <span className="sub" style={{ fontSize: '1.125rem' }}>{r.unit}</span></span>
           {math && injectable && (
             <div className="white-inset stack" style={{ gap: 8 }}>
-              <p className="small">Draw to <b className="mono" style={{ color: 'var(--lilac-ink)' }}>{fmtNum(math.units, 1)} units</b> ({fmtNum(math.vol, 2)} mL) on a U-100 syringe. {fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL water.</p>
+              {isVolumeUnit(d.unit)
+                ? <p className="small">That's <b className="mono" style={{ color: 'var(--lilac-ink)' }}>{drugAmount(math.doseMg, PEP[r.compoundId]?.defaultUnit)}</b> ({fmtNum(math.vol, 2)} mL) from a vial with {fmtNum(Number(r.vialMg))} mg in {fmtNum(Number(r.diluentMl))} mL.</p>
+                : <p className="small">Draw to <b className="mono" style={{ color: 'var(--lilac-ink)' }}>{fmtNum(math.units, 1)} units</b> ({fmtNum(math.vol, 2)} mL) on a U-100 syringe. {fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL water.</p>}
               <div className="syringe-wrap"><Syringe units={math.units} cap={math.units > 50 ? 100 : 50} /></div>
               <a className="small" href="#calculator">How this is calculated</a>
             </div>
@@ -99,7 +103,7 @@ export function DoseSheet({ r: initial, onClose }: { r: Regimen; onClose: () => 
         <section className="tile" aria-label="What you took">
           <div className="grid-3">
             <label className="field"><span>Amount</span><input type="number" id="d-amount" step="any" min="0" inputMode="decimal" value={d.amount} onChange={set('amount')} /></label>
-            <label className="field"><span>Unit</span><select id="d-unit" value={d.unit} onChange={set('unit')}>{UNITS.map(u => <option key={u}>{u}</option>)}</select></label>
+            <label className="field"><span>Unit</span><select id="d-unit" value={d.unit} onChange={set('unit')}><UnitOptions compoundId={r.compoundId} /></select></label>
           </div>
           {(amountDiffers || unitDiffers) && (
             <p className="alert warn" role="status">

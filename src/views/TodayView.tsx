@@ -1,7 +1,7 @@
 import type { Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { upcoming, type RegimenStatus } from '../lib/schedule';
-import { doseMath } from '../lib/doseMath';
+import { doseMath, drugAmount, isVolumeUnit } from '../lib/doseMath';
 import { DAY, dayKey, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
 import { adherence, topEffects, usualMinutes } from '../lib/insights';
 import { BELLY, SITE_LABEL, lastBellyHour, lastUsedBySite, nextBellyHour, suggestSite } from '../lib/sites';
@@ -60,7 +60,7 @@ function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now }: {
       <div className="stack" style={{ gap: 4 }}>
         <span style={{ fontSize: '1.625rem', fontWeight: 600, letterSpacing: '-.01em', lineHeight: 1.15 }}>{regName(r)} · {fmtNum(Number(r.dose), 3)} {r.unit}</span>
         <span className="sub" style={{ fontSize: '.9375rem' }}>
-          {[usual && st.s !== 'ok' ? `Usually around ${fmtTime(usual)}` : '', math ? `draw ${fmtNum(math.units, 1)} units` : '', r.route].filter(Boolean).join(' · ')}
+          {[usual && st.s !== 'ok' ? `Usually around ${fmtTime(usual)}` : '', math ? (isVolumeUnit(r.unit) ? `about ${drugAmount(math.doseMg, PEP[r.compoundId]?.defaultUnit)}` : `draw ${fmtNum(math.units, 1)} units`) : '', r.route].filter(Boolean).join(' · ')}
         </span>
       </div>
       {(done.length > 0 || todo.length > 0) && <DayBar done={done} todo={todo} now={now} />}

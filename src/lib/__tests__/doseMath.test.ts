@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calcAlerts, doseMath, mgInUnits, toMg } from '../doseMath';
+import { calcAlerts, doseMath, drugAmount, isVolumeUnit, mgInUnits, toMg } from '../doseMath';
 
 describe('toMg', () => {
   it('converts mcg and mg, and refuses units it cannot convert', () => {
@@ -81,5 +81,24 @@ describe('calcAlerts', () => {
     expect(info.title).toBe('Rounds to 5 units on the syringe.');
     expect(info.body).toMatch(/4\.2%/);
     expect(tones(300, 'mcg', 10, 3, 30)).toEqual([]);
+  });
+});
+
+describe('doses measured as liquid', () => {
+  it('turns syringe units into the drug amount', () => {
+    // 20 mg in 2 mL is 10 mg/mL; 50 units is 0.5 mL, which holds 5 mg
+    const m = doseMath(50, 'units (syringe)', 20, 2)!;
+    expect(m.vol).toBeCloseTo(0.5);
+    expect(m.doseMg).toBeCloseTo(5);
+    expect(m.units).toBeCloseTo(50);
+    expect(m.perVial).toBeCloseTo(4);
+    expect(doseMath(0.5, 'mL', 20, 2)!.doseMg).toBeCloseTo(5);
+    expect(doseMath(2, 'capsule', 20, 2)).toBeNull();
+  });
+
+  it('writes the amount in mcg for compounds dosed in mcg', () => {
+    expect(drugAmount(0.25, 'mcg')).toBe('250 mcg');
+    expect(drugAmount(2.5)).toBe('2.5 mg');
+    expect(isVolumeUnit('units (syringe)') && isVolumeUnit('mL') && !isVolumeUnit('mg')).toBe(true);
   });
 });

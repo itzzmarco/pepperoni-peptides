@@ -3,7 +3,7 @@ import type { DoseEntry, Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { configured, useAccount } from '../lib/account';
 import { adherenceDays, freqText, regimenStatus } from '../lib/schedule';
-import { doseMath } from '../lib/doseMath';
+import { doseMath, drugAmount, isVolumeUnit } from '../lib/doseMath';
 import { fmtDay, fmtNum } from '../lib/format';
 import { glp1Overlap } from '../lib/insights';
 import { PEP } from '../data/peptides';
@@ -64,7 +64,9 @@ function RegimenCard({ r, doses, actions, example, i = 0 }: { r: Regimen; doses:
       </div>
       {math && (
         <div className="inset small" style={{ background: 'var(--lilac)' }}>
-          Draw <b className="mono">{fmtNum(math.units, 1)} units</b> on a U-100 syringe ({fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL). Confirm with your pharmacist.
+          {isVolumeUnit(r.unit)
+            ? <>Each dose is about <b className="mono">{drugAmount(math.doseMg, p?.defaultUnit)}</b> ({fmtNum(Number(r.vialMg))} mg in {fmtNum(Number(r.diluentMl))} mL). Confirm with your pharmacist.</>
+            : <>Draw <b className="mono">{fmtNum(math.units, 1)} units</b> on a U-100 syringe ({fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL). Confirm with your pharmacist.</>}
         </div>
       )}
       {p && <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /></div>}

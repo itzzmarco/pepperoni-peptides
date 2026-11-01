@@ -1,3 +1,5 @@
+import { fmtNum } from './format';
+
 export interface DoseMath {
   /** mg per mL after reconstitution */
   conc: number;
@@ -20,21 +22,30 @@ export function toMg(amount: number, unit: string): number | null {
   return null;
 }
 
+/** Units that measure liquid drawn up rather than drug: their amount depends on how the vial was mixed. */
+export const SYRINGE_UNITS = 'units (syringe)';
+export const isVolumeUnit = (unit: string) => unit === SYRINGE_UNITS || unit === 'mL';
+
 /**
  * Reconstitution arithmetic for a lyophilized vial: concentration = vial mg / diluent mL,
- * volume = dose / concentration, U-100 units = mL x 100.
+ * volume = dose / concentration, U-100 units = mL x 100. A dose given in syringe units or mL
+ * works the other way: the drug in it = volume x concentration.
  */
 export function doseMath(amount: number | string, unit: string, vialMg: number | string, diluentMl: number | string): DoseMath | null {
   const a = Number(amount);
   const v = Number(vialMg);
   const ml = Number(diluentMl);
   if (!(a > 0 && v > 0 && ml > 0)) return null;
-  const doseMg = toMg(a, unit);
-  if (doseMg == null) return null;
   const conc = v / ml;
+  const doseMg = unit === SYRINGE_UNITS ? (a / 100) * conc : unit === 'mL' ? a * conc : toMg(a, unit);
+  if (doseMg == null) return null;
   const vol = doseMg / conc;
   return { conc, vol, units: vol * 100, perVial: v / doseMg, mcgPerUnit: conc * 10, doseMg };
 }
+
+/** A drug amount given in mg, written in mcg for compounds usually dosed in mcg. */
+export const drugAmount = (mg: number, prefer = 'mg') =>
+  prefer === 'mcg' ? `${fmtNum(mg * 1000, 1)} mcg` : `${fmtNum(mg, 3)} mg`;
 
 /** How much drug is in a given number of U-100 units at a given concentration (mg/mL). */
 export const mgInUnits = (units: number, conc: number) => (units / 100) * conc;

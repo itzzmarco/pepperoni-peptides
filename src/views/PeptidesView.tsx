@@ -3,7 +3,8 @@ import type { DoseEntry, Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { configured, useAccount } from '../lib/account';
 import { adherenceDays, freqText, regimenStatus } from '../lib/schedule';
-import { doseMath, drugAmount, isVolumeUnit } from '../lib/doseMath';
+import { drugAmount, isVolumeUnit } from '../lib/doseMath';
+import { checkRegimen } from '../lib/vial';
 import { fmtDay, fmtNum } from '../lib/format';
 import { glp1Overlap } from '../lib/insights';
 import { PEP } from '../data/peptides';
@@ -52,7 +53,7 @@ function RegimenCard({ r, doses, actions, example, i = 0 }: { r: Regimen; doses:
   const toast = useToast();
   const p = PEP[r.compoundId];
   const st = example ? { s: 'due', text: 'Due today' } : regimenStatus(r, doses);
-  const math = doseMath(r.dose, r.unit, r.vialMg, r.diluentMl);
+  const { math, checks } = checkRegimen(r);
   return (
     <article className={`tile regimen rise${r.paused ? ' paused' : ''}${example ? ' example' : ''}`} style={{ ['--i' as string]: i + 2 }} aria-hidden={example || undefined}>
       <div className="top">
@@ -68,6 +69,9 @@ function RegimenCard({ r, doses, actions, example, i = 0 }: { r: Regimen; doses:
             ? <>Each dose is about <b className="mono">{drugAmount(math.doseMg, p?.defaultUnit)}</b> ({fmtNum(Number(r.vialMg))} mg in {fmtNum(Number(r.diluentMl))} mL). Confirm with your pharmacist.</>
             : <>Draw <b className="mono">{fmtNum(math.units, 1)} units</b> on a U-100 syringe ({fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL). Confirm with your pharmacist.</>}
         </div>
+      )}
+      {checks.length > 0 && (
+        <div className="alert danger"><b>The dose and vial numbers don't add up.</b><span>{checks[0].title} Tap Edit to check them.</span></div>
       )}
       {p && <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /></div>}
       {r.prescriber && <div className="small muted">Prescribed by {r.prescriber}</div>}

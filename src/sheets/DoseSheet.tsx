@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import type { Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { freqText } from '../lib/schedule';
-import { doseMath, drugAmount, isVolumeUnit } from '../lib/doseMath';
+import { drugAmount, isVolumeUnit } from '../lib/doseMath';
+import { checkDose } from '../lib/vial';
 import { DAY, fmtNum, fmtTime, newId, toLocalInput } from '../lib/format';
 import { BELLY, bellyHour, lastUsedBySite, nextBellyHour, siteLabel, sitePlan } from '../lib/sites';
 import { INJECTABLE, ROUTES } from '../data/options';
@@ -21,7 +22,8 @@ const ago = (t: Date) => {
   return d <= 0 ? 'today' : d === 1 ? 'yesterday' : `${d} days ago`;
 };
 
-export function DoseSheet({ r: initial, onClose }: { r: Regimen; onClose: () => void }) {
+/** `onFix` opens the regimen's settings, for vial details that don't add up. */
+export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose: () => void; onFix?: (r: Regimen) => void }) {
   const toast = useToast();
   const { doses, regimens } = useLedger();
   const active = regimens.filter(x => !x.paused);
@@ -43,7 +45,7 @@ export function DoseSheet({ r: initial, onClose }: { r: Regimen; onClose: () => 
   const plan = sitePlan(d.route, r.compoundId);
   const clock = view === 'clock' && !!plan?.belly;
   const siteFits = !d.site || !plan || plan.sites.includes(d.site) || (plan.belly && !!bellyHour(d.site));
-  const math = doseMath(d.amount, d.unit, r.vialMg, r.diluentMl);
+  const { math, checks } = checkDose(r, d.amount, d.unit);
   const hour = bellyHour(d.site);
 
   const switchTo = (x: Regimen) => {
@@ -100,6 +102,13 @@ export function DoseSheet({ r: initial, onClose }: { r: Regimen; onClose: () => 
                 : <p className="small">Draw to <b className="mono" style={{ color: 'var(--lilac-ink)' }}>{fmtNum(math.units, 1)} units</b> ({fmtNum(math.vol, 2)} mL) on a U-100 syringe. {fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL water.</p>}
               <div className="syringe-wrap"><Syringe units={math.units} cap={math.units > 50 ? 100 : 50} /></div>
               <a className="small" href="#calculator">How this is calculated</a>
+            </div>
+          )}
+          {checks.length > 0 && injectable && (
+            <div className="alert danger" role="alert">
+              <b>These numbers don't add up, so there's no draw to show.</b>
+              {checks.map(c => <span key={c.title}>{c.title} {c.body}</span>)}
+              {onFix && <div style={{ marginTop: 6 }}><button type="button" className="btn sm" onClick={() => onFix(r)}>Fix {regName(r)}'s details</button></div>}
             </div>
           )}
         </section>

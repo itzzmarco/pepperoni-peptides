@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { calcAlerts, doseMath, drugAmount, isVolumeUnit, mgInUnits, toMg } from '../doseMath';
+import { calcAlerts, doseMath, drugAmount, isVolumeUnit, mgInUnits, SYRINGE_UNITS, toMg, vialChecks } from '../doseMath';
+import { checkDose, vialHints } from '../vial';
 
 describe('toMg', () => {
   it('converts mcg and mg, and refuses units it cannot convert', () => {
@@ -100,5 +101,59 @@ describe('doses measured as liquid', () => {
     expect(drugAmount(0.25, 'mcg')).toBe('250 mcg');
     expect(drugAmount(2.5)).toBe('2.5 mg');
     expect(isVolumeUnit('units (syringe)') && isVolumeUnit('mL') && !isVolumeUnit('mg')).toBe(true);
+  });
+});
+
+describe('vialChecks', () => {
+  const r = (dose: string, unit: string, vialMg: string, diluentMl: string) => ({ dose, unit, vialMg, diluentMl });
+
+  it('passes plausible vials', () => {
+    expect(vialChecks(r('50', SYRINGE_UNITS, '30', '3'))).toEqual([]);
+    expect(vialChecks(r('250', 'mcg', '5', '2'))).toEqual([]);
+    expect(vialChecks(r('5', 'mg', '30', '3'))).toEqual([]);
+  });
+
+  it('catches the tirzepatide mix-up: 50 "mg" from a 30 mg vial with "300 mL" of water', () => {
+    const c = vialChecks(r('50', 'mg', '30', '300'));
+    expect(c.map(x => x.title)).toEqual(['300 mL is more liquid than a vial holds.', 'One dose would be more than the whole vial (30 mg).']);
+    expect(c[0].fix?.set).toEqual({ diluentMl: '3' });
+    expect(c[1].fix?.set).toEqual({ unit: SYRINGE_UNITS });
+    // With both fixes, 50 units of a 10 mg/mL vial is 5 mg.
+    expect(vialChecks(r('50', SYRINGE_UNITS, '30', '3'))).toEqual([]);
+    expect(doseMath('50', SYRINGE_UNITS, '30', '3')!.doseMg).toBeCloseTo(5);
+  });
+
+  it('flags a draw bigger than the syringe', () => {
+    const c = vialChecks(r('2', 'mg', '10', '10'));
+    expect(c).toHaveLength(1);
+    expect(c[0].title).toBe("That's 200 units, more than a 1 mL syringe holds.");
+    expect(c[0].fix?.set.unit).toBe(SYRINGE_UNITS);
+  });
+
+  it('only offers syringe units when the number could be a draw and the compound is drawn that way', () => {
+    expect(vialChecks(r('500', 'mg', '10', '2'))[0].fix).toBeUndefined();
+    expect(vialChecks(r('50', 'mg', '10', '2'), { unitsUsual: false })[0].fix).toBeUndefined();
+  });
+
+  it('gives no one-tap fix when the liquid is far off either way', () => {
+    const c = vialChecks(r('', 'mg', '', '20'));
+    expect(c[0].fix).toBeUndefined();
+  });
+
+  it('allows larger vials for products sold by the mL', () => {
+    expect(vialHints('l-carnitine').liquidLimit).toBe(30);
+    expect(vialHints('tirzepatide')).toEqual({ liquidLimit: 10, unitsUsual: true });
+    expect(vialHints('ghk-cu').unitsUsual).toBe(false);
+    expect(vialHints(undefined).unitsUsual).toBe(true);
+  });
+
+  it('hides the math while something is off', () => {
+    const bad = checkDose({ compoundId: 'tirzepatide', vialMg: '30', diluentMl: '300' }, '50', 'mg');
+    expect(bad.math).toBeNull();
+    expect(bad.checks).toHaveLength(2);
+    const good = checkDose({ compoundId: 'tirzepatide', vialMg: '30', diluentMl: '3' }, '50', SYRINGE_UNITS);
+    expect(good.checks).toEqual([]);
+    expect(good.math!.doseMg).toBeCloseTo(5);
+    expect(checkDose({ compoundId: 'tirzepatide', vialMg: '', diluentMl: '' }, '50', 'mg')).toEqual({ math: null, checks: [] });
   });
 });

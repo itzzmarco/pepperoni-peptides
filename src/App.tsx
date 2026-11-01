@@ -36,7 +36,8 @@ function parseHash(): { tab: Route; id: string | null } {
 }
 
 type SheetState =
-  | { kind: 'regimen'; r: Regimen; isNew: boolean }
+  // `back` reopens that regimen's dose sheet when the edit started there.
+  | { kind: 'regimen'; r: Regimen; isNew: boolean; back?: boolean }
   | { kind: 'dose'; r: Regimen }
   | { kind: 'checkin' }
   | { kind: 'backfill' }
@@ -123,8 +124,10 @@ export function App() {
       </footer>
       <div className="app-end" />
       <TabBar current={route.id ? 'learn' : tab} onLog={logNext} inert={bg} />
-      {sheet?.kind === 'regimen' && <RegimenSheet initial={sheet.r} isNew={sheet.isNew} onClose={close} onSaved={goPeptides} />}
-      {sheet?.kind === 'dose' && <DoseSheet r={sheet.r} onClose={close} />}
+      {sheet?.kind === 'regimen' && (sheet.back
+        ? <RegimenSheet initial={sheet.r} isNew={false} onClose={() => setSheet({ kind: 'dose', r: sheet.r })} onSaved={x => setSheet(x ? { kind: 'dose', r: x } : null)} />
+        : <RegimenSheet initial={sheet.r} isNew={sheet.isNew} onClose={close} onSaved={goPeptides} />)}
+      {sheet?.kind === 'dose' && <DoseSheet r={sheet.r} onClose={close} onFix={r => setSheet({ kind: 'regimen', r, isNew: false, back: true })} />}
       {sheet?.kind === 'checkin' && <CheckinSheet onClose={close} onBackfill={() => setSheet({ kind: 'backfill' })} />}
       {sheet?.kind === 'backfill' && <BackfillSheet onClose={close} />}
       {sheet?.kind === 'account' && <AccountSheet onClose={close} />}

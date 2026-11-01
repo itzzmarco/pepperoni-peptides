@@ -1,7 +1,8 @@
 import type { Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { upcoming, type RegimenStatus } from '../lib/schedule';
-import { doseMath, drugAmount, isVolumeUnit } from '../lib/doseMath';
+import { drugAmount, isVolumeUnit } from '../lib/doseMath';
+import { checkRegimen } from '../lib/vial';
 import { DAY, dayKey, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
 import { adherence, topEffects, usualMinutes } from '../lib/insights';
 import { BELLY, lastBellyHour, lastUsedBySite, nextBellyHour, siteLabel, sitePlan, suggestSite } from '../lib/sites';
@@ -48,7 +49,7 @@ function DayBar({ done, todo, now }: { done: Date[]; todo: Date[]; now: Date }) 
 function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now }: {
   r: Regimen; st: RegimenStatus; actions: Actions; doneToday: number; dueToday: number; todo: Date[]; done: Date[]; now: Date;
 }) {
-  const math = doseMath(r.dose, r.unit, r.vialMg, r.diluentMl);
+  const { math, checks } = checkRegimen(r);
   const usual = todo[0];
   const total = doneToday + dueToday;
   return (
@@ -60,7 +61,7 @@ function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now }: {
       <div className="stack" style={{ gap: 4 }}>
         <span style={{ fontSize: '1.625rem', fontWeight: 600, letterSpacing: '-.01em', lineHeight: 1.15 }}>{regName(r)} · {fmtNum(Number(r.dose), 3)} {r.unit}</span>
         <span className="sub" style={{ fontSize: '.9375rem' }}>
-          {[usual && st.s !== 'ok' ? `Usually around ${fmtTime(usual)}` : '', math ? (isVolumeUnit(r.unit) ? `about ${drugAmount(math.doseMg, PEP[r.compoundId]?.defaultUnit)}` : `draw ${fmtNum(math.units, 1)} units`) : '', r.route].filter(Boolean).join(' · ')}
+          {[usual && st.s !== 'ok' ? `Usually around ${fmtTime(usual)}` : '', math ? (isVolumeUnit(r.unit) ? `about ${drugAmount(math.doseMg, PEP[r.compoundId]?.defaultUnit)}` : `draw ${fmtNum(math.units, 1)} units`) : checks.length ? 'check the vial details' : '', r.route].filter(Boolean).join(' · ')}
         </span>
       </div>
       {(done.length > 0 || todo.length > 0) && <DayBar done={done} todo={todo} now={now} />}

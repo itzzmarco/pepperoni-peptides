@@ -134,7 +134,7 @@ export function PeptidesView(actions: Actions) {
             <li>{signedIn
               ? 'Your log syncs to your account, so it follows you to any device you sign in on. Only you can see it. Use Export on Trends to keep a copy.'
               : configured
-                ? "Signed out, everything you enter stays in this browser on this device. Sign in (top right) to sync it across your devices; each person in your home can have their own account. Use Export on Trends to keep a copy."
+                ? "Signed out, everything you enter stays in this browser on this device. Sign in (top right) to sync it across your devices; each account is private to the person who made it. Use Export on Trends to keep a copy."
                 : "Everything you enter stays in this browser on this device. There's no account and no server. Use Export on Trends to keep a copy."}</li>
             <li>Most peptides promoted online are unapproved, and products sold as "research use only" aren't tested for what's in the vial. Check the library before you log something new.</li>
             <li>If you feel seriously unwell, stop and get help. The daily check-in flags emergency symptoms.</li>

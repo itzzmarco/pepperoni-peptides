@@ -1,6 +1,6 @@
 export const ROUTES = ['Subcutaneous injection', 'Intramuscular injection', 'Nasal spray', 'Oral', 'Sublingual', 'Topical', 'IV (in clinic)', 'Other'];
 export const INJECTABLE = new Set(['Subcutaneous injection', 'Intramuscular injection']);
-export const UNITS = ['mcg', 'mg', 'IU', 'mL', 'units (syringe)', 'capsule', 'spray', 'application'];
+export const UNITS = ['mcg', 'mg', 'IU', 'mL', 'units (syringe)', 'capsule', 'spray', 'drop', 'application'];
 export const SOURCES = ['Retail pharmacy (prescription)', 'Compounding pharmacy (prescription)', "Doctor's office or clinic", 'Online vendor (not a pharmacy)', 'Other or not sure'];
 export const UNREGULATED_SOURCE = SOURCES[3];
 

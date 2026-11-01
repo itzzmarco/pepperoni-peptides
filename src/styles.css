@@ -228,6 +228,9 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .fchip { appearance: none; border: 0; box-shadow: var(--ring); background: var(--surface); min-height: 40px; padding: 0 14px; border-radius: 999px; font-size: var(--fs-sm); cursor: pointer; color: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; flex: none; }
 .fchip:hover { color: var(--ink); }
 .fchip[aria-pressed="true"] { background: var(--btn); color: var(--btn-ink); box-shadow: none; }
+.usual-units { display: grid; gap: 6px; margin-top: -6px; }
+.usual-units .fchip { white-space: normal; text-align: left; padding: 6px 14px; gap: 8px; }
+.usual-units .fchip small { font-size: var(--fs-xs); opacity: .8; }
 
 /* Evidence ladder: five rungs, more filled = stronger evidence */
 .ladder { display: inline-grid; grid-template-columns: repeat(5, 10px); gap: 2px; vertical-align: middle; }

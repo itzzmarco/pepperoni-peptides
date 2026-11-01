@@ -89,6 +89,7 @@ The library and safety content were built from a research pass over the original
 | Rules for writing an entry | `src/data/compounds/AUTHORING.md` |
 | Evidence tiers, legal labels, timeline, safety center | `src/data/reference.ts` |
 | Emergency symptoms, routes, units, side-effect list | `src/data/options.ts` |
+| How each compound is usually measured (syringe units, mg, sprays...) | `src/data/measures.ts` |
 
 ### Keeping it current
 

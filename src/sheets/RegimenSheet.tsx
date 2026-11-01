@@ -2,12 +2,14 @@ import { useState } from 'react';
 import type { FamilyKey, Peptide, Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { FREQS } from '../lib/schedule';
-import { doseMath } from '../lib/doseMath';
+import { doseMath, drugAmount, isVolumeUnit } from '../lib/doseMath';
 import { dayKey, fmtNum, newId } from '../lib/format';
 import { PEP, PEPTIDES } from '../data/peptides';
 import { FAMILIES, LEGAL, TIERS } from '../data/reference';
-import { ROUTES, SOURCES, UNITS, UNREGULATED_SOURCE } from '../data/options';
+import { ROUTES, SOURCES, UNREGULATED_SOURCE } from '../data/options';
+import { measuresFor } from '../data/measures';
 import { Sheet } from '../components/Sheet';
+import { UnitOptions, UsualUnits } from '../components/UnitPicker';
 import { useToast } from '../components/Toast';
 import { regName } from '../views/PeptidesView';
 
@@ -27,10 +29,13 @@ function Caution({ p }: { p?: Peptide }) {
   );
 }
 
+/** The unit a new regimen starts with: how the compound is usually measured. */
+const startUnit = (compoundId: string) => measuresFor(compoundId)[0]?.u ?? PEP[compoundId]?.defaultUnit;
+
 export function blankRegimen(compoundId = ''): Regimen {
   const p = PEP[compoundId];
   return {
-    id: newId(), compoundId, name: '', dose: '', unit: p?.defaultUnit ?? 'mg', freq: 'weekly', everyDays: '',
+    id: newId(), compoundId, name: '', dose: '', unit: startUnit(compoundId) ?? 'mg', freq: 'weekly', everyDays: '',
     route: p?.defaultRoute ?? 'Subcutaneous injection', prescriber: '', source: '', start: dayKey(new Date()),
     vialMg: '', diluentMl: '', notes: '',
   };
@@ -48,11 +53,12 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved }: { initial: Re
   const p = PEP[pick];
   const set = <K extends keyof Regimen>(k: K) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setR({ ...r, [k]: e.target.value });
   const math = doseMath(r.dose, r.unit, r.vialMg, r.diluentMl);
+  const volume = isVolumeUnit(r.unit);
 
   const choose = (v: string) => {
     setPick(v);
     const np = PEP[v];
-    setR(cur => ({ ...cur, compoundId: np ? v : '', route: isNew && np?.defaultRoute ? np.defaultRoute : cur.route, unit: isNew && np?.defaultUnit ? np.defaultUnit : cur.unit }));
+    setR(cur => ({ ...cur, compoundId: np ? v : '', route: isNew && np?.defaultRoute ? np.defaultRoute : cur.route, unit: isNew && np ? startUnit(v) ?? cur.unit : cur.unit }));
   };
 
   const submit = (e: React.FormEvent) => {
@@ -94,9 +100,10 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved }: { initial: Re
         <Caution p={p} />
         <div className="grid-3">
           <label className="field"><span>Dose</span><input type="number" id="r-dose" step="any" min="0" inputMode="decimal" value={r.dose} onChange={set('dose')} /></label>
-          <label className="field"><span>Unit</span><select id="r-unit" value={r.unit} onChange={set('unit')}>{UNITS.map(u => <option key={u}>{u}</option>)}</select></label>
+          <label className="field"><span>Unit</span><select id="r-unit" value={r.unit} onChange={set('unit')}><UnitOptions compoundId={p ? pick : ''} /></select></label>
           <label className="field"><span>How often</span><select id="r-freq" value={r.freq} onChange={set('freq')}>{FREQS.map(f => <option key={f.k} value={f.k}>{f.label}</option>)}</select></label>
         </div>
+        <UsualUnits compoundId={p ? pick : ''} value={r.unit} onPick={u => setR({ ...r, unit: u })} />
         {r.freq === 'custom' && <label className="field"><span>Every how many days?</span><input type="number" id="r-every" min="1" step="1" value={r.everyDays} onChange={set('everyDays')} /></label>}
         <div className="grid-2">
           <label className="field"><span>How it's taken</span><select id="r-route" value={r.route} onChange={set('route')}>{ROUTES.map(x => <option key={x}>{x}</option>)}</select></label>
@@ -111,14 +118,20 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved }: { initial: Re
         {r.source === UNREGULATED_SOURCE && (
           <div className="alert warn"><b>Products from online vendors aren't regulated.</b><span>Independent tests have found wrong amounts, impurities, and bacterial endotoxin in "research use only" vials. A licensed pharmacy is the safer route when one is available.</span></div>
         )}
-        <details open={!!r.vialMg}>
-          <summary className="small" style={{ cursor: 'pointer' }}><b>Mixing from powder?</b> Add vial details to see units per dose</summary>
+        <details open={!!r.vialMg || isVolumeUnit(r.unit)}>
+          <summary className="small" style={{ cursor: 'pointer' }}>
+            {volume ? <><b>Vial details</b> Add them to see how much drug each dose is</> : <><b>Mixing from powder?</b> Add vial details to see units per dose</>}
+          </summary>
           <div className="grid-2" style={{ marginTop: 10 }}>
-            <label className="field"><span>Powder in vial (mg)</span><input type="number" id="r-vial" step="any" min="0" value={r.vialMg} onChange={set('vialMg')} /></label>
-            <label className="field"><span>Water added (mL)</span><input type="number" id="r-ml" step="any" min="0" value={r.diluentMl} onChange={set('diluentMl')} /></label>
+            <label className="field"><span>{volume ? 'Drug in vial (mg)' : 'Powder in vial (mg)'}</span><input type="number" id="r-vial" step="any" min="0" value={r.vialMg} onChange={set('vialMg')} /></label>
+            <label className="field"><span>{volume ? 'Liquid in vial (mL)' : 'Water added (mL)'}</span><input type="number" id="r-ml" step="any" min="0" value={r.diluentMl} onChange={set('diluentMl')} /></label>
           </div>
           <p className="small muted" style={{ marginTop: 8 }}>
-            {math ? <>Concentration {fmtNum(math.conc, 3)} mg/mL. Each dose is <b className="mono">{fmtNum(math.units, 1)} units</b> ({fmtNum(math.vol, 3)} mL) on a U-100 syringe, about {fmtNum(Math.floor(math.perVial), 0)} doses per vial.</> : 'Enter the dose in mcg or mg plus the vial details.'}
+            {math && volume
+              ? <>Concentration {fmtNum(math.conc, 3)} mg/mL. Each {r.unit === 'mL' ? `${fmtNum(Number(r.dose), 3)} mL dose` : `${fmtNum(Number(r.dose), 3)}-unit dose (${fmtNum(math.vol, 3)} mL)`} is <b className="mono">{drugAmount(math.doseMg, p?.defaultUnit)}</b>, about {fmtNum(Math.floor(math.perVial), 0)} doses per vial.</>
+              : math ? <>Concentration {fmtNum(math.conc, 3)} mg/mL. Each dose is <b className="mono">{fmtNum(math.units, 1)} units</b> ({fmtNum(math.vol, 3)} mL) on a U-100 syringe, about {fmtNum(Math.floor(math.perVial), 0)} doses per vial.</>
+              : volume ? 'Enter the mg of drug in the vial and the mL of liquid in it. If you mixed it yourself, that\'s the powder and the water you added.'
+              : 'Enter the dose in mcg or mg plus the vial details.'}
           </p>
         </details>
         <label className="field"><span>Notes <small>(optional)</small></span><textarea id="r-notes" maxLength={500} value={r.notes} onChange={set('notes')} /></label>

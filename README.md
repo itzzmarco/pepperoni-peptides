@@ -93,7 +93,9 @@ The library and safety content were built from a research pass over the original
 
 ### Keeping it current
 
-US peptide rules are moving quickly. As of October 26, 2026, an HHS "Interim Access Policy for Compounding Using Certain Peptides" is under White House review, and FDA's advisory committee is due to review LL-37, injectable GHK-Cu, dihexa, Melanotan II and PEG-MGF by the end of February 2027. When something changes:
+US peptide rules are moving quickly. Since October 28, 2026, an HHS interim policy lets licensed pharmacies compound BPC-157, TB-500, KPV, MOTS-c, Semax and Epitalon for a prescription, by listed routes only (these entries use the `interim` legal bucket). FDA's advisory committee is due to review LL-37, injectable GHK-Cu, dihexa, Melanotan II and PEG-MGF by the end of February 2027.
+
+A scheduled Claude check runs every morning: it looks at FDA, HHS, the Federal Register, WADA, PubMed and trial news, and when something has changed it opens (or adds to) a pull request with the edits and their sources. Nothing reaches the live site until that PR is merged. To make an update by hand, or to check what the scheduled run did:
 
 1. Update the affected entries' `legal` and `status` fields and add the source.
 2. Add an event to `TIMELINE` in `src/data/reference.ts`.

@@ -47,6 +47,14 @@ describe('peptide library', () => {
     strings(p).forEach(s => expect(s, 'no em-dashes').not.toMatch(/—/));
   });
 
+  it('uses the interim bucket only for the peptides the HHS policy lists', () => {
+    // HHS interim 503A policy, Oct 28, 2026, Appendix A. Change this list only when HHS changes it.
+    const HHS_INTERIM = ['bpc-157', 'epitalon', 'kpv', 'mots-c', 'semax', 'tb-500'];
+    const interim = PEPTIDES.filter(p => p.legal === 'interim');
+    expect(interim.map(p => p.id).sort()).toEqual(HHS_INTERIM);
+    interim.forEach(p => expect(p.status, `${p.id} names its allowed routes`).toMatch(/inject|oral|topical|nose|nasal/i));
+  });
+
   it('gives every unapproved or risky compound red flags to watch for', () => {
     const risky = PEPTIDES.filter(p => p.tier >= 3 && p.legal !== 'cosmetic' && p.legal !== 'supplement');
     risky.forEach(p => expect(p.redFlags?.length ?? 0, p.id).toBeGreaterThan(0));

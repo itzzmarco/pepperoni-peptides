@@ -1,6 +1,6 @@
 import type { Peptide } from '../../lib/types';
 
-// Longevity and mitochondria compounds. US status as of Oct 26, 2026.
+// Longevity and mitochondria compounds. US status as of Oct 28, 2026.
 // Built only from research notes: longevity_peptides.md and regulation_and_safety.md.
 
 export const LONGEVITY: Peptide[] = [
@@ -151,9 +151,9 @@ export const LONGEVITY: Peptide[] = [
     name: 'MOTS-c',
     family: 'longevity',
     tier: 4,
-    legal: 'pending',
+    legal: 'interim',
     status:
-      'Off Category 2 on Apr 15, 2026. PCAC voted 7-5-2 to recommend it (obesity, osteoporosis) on Jul 23, 2026, against FDA staff advice. Not yet lawful to compound.',
+      'Pharmacies may compound it with an Rx as an injection under the skin or into muscle, under an HHS interim policy since Oct 28, 2026. Not FDA-approved. PCAC backed it 7-5-2.',
     wada: 'Prohibited at all times (S4.4)',
     seq: 'MRWQEMGYIFYPRKLR',
     seqNote: '16 amino acids',
@@ -174,7 +174,7 @@ export const LONGEVITY: Peptide[] = [
     ],
     halfLife: 'Unknown in humans and animals. It broke down quickly in human blood in lab tests (FDA).',
     routes:
-      'No human route has been studied. Rodent studies mostly used injections into the belly cavity. Sold online as injectable vials.',
+      'No human route has been studied. Rodent studies mostly used injections into the belly cavity. Sold online as injectable vials. The HHS interim policy allows compounding only as an injection under the skin or into muscle.',
     sideEffects: [
       'No human side-effect data exist for MOTS-c itself',
       'Immune reactions are a concern, especially with injection under the skin, because of clumping and impurities (FDA)',
@@ -201,6 +201,7 @@ export const LONGEVITY: Peptide[] = [
     defaultUnit: 'mg',
     sources: [
       { t: 'FDA PCAC briefing document: MOTS-c (July 2026)', u: 'https://www.fda.gov/media/193347/download' },
+      { t: 'HHS: interim peptide compounding policy and route limits (Oct 28, 2026)', u: 'https://www.hhs.gov/sites/default/files/hhs-503a-peptide-enforcement-discretion-policy-appendix-b.pdf' },
       { t: 'FDA: July 23-24, 2026 Pharmacy Compounding Advisory Committee meeting', u: 'https://www.fda.gov/advisory-committees/advisory-committee-calendar/july-23-24-2026-meeting-pharmacy-compounding-advisory-committee-07232026' },
       { t: 'McDermott: PCAC backs majority of peptides in two-day public meeting', u: 'https://www.mcdermottlaw.com/insights/bulk-list-bound-pcac-backs-majority-of-peptides-in-two-day-public-meeting/' },
       { t: 'FDA Law Blog: FDA\'s peptide rally (Apr 21, 2026)', u: 'https://www.thefdalawblog.com/2026/04/fdas-peptide-rally-what-compounders-and-industry-need-to-know-post-1-of-2/' },
@@ -214,9 +215,9 @@ export const LONGEVITY: Peptide[] = [
     aka: ['Epithalon', 'AEDG'],
     family: 'longevity',
     tier: 3,
-    legal: 'pending',
+    legal: 'interim',
     status:
-      'Off Category 2 on Apr 15, 2026. PCAC voted 7-4-1 to recommend it (insomnia) on Jul 24, 2026, against FDA staff advice. Not yet lawful to compound. Not approved anywhere.',
+      'Pharmacies may compound it with an Rx as an injection given in intermittent courses, under an HHS interim policy since Oct 28, 2026. Not approved anywhere. PCAC backed it 7-4-1.',
     wada: 'Not named; likely S0',
     seq: 'AEDG',
     seqNote: '4 amino acids (Ala-Glu-Asp-Gly)',
@@ -236,7 +237,7 @@ export const LONGEVITY: Peptide[] = [
     ],
     halfLife: 'Unknown in humans (no human PK data, per FDA)',
     routes:
-      'Spray under the tongue in one small trial; one Russian study injected it near the eye. It was nominated for compounding as an injection under the skin, a route FDA found no studies of.',
+      'Spray under the tongue in one small trial; one Russian study injected it near the eye. It was nominated for compounding as an injection under the skin, a route FDA found no studies of. The HHS interim policy allows injections under the skin or into muscle, in intermittent courses.',
     studied:
       '0.5 mg/day as a spray under the tongue for 20 days (Ivko 2021, women working night shifts). FDA identified no published trial of injection under the skin.',
     sideEffects: [
@@ -266,6 +267,7 @@ export const LONGEVITY: Peptide[] = [
     defaultUnit: 'mg',
     sources: [
       { t: 'FDA PCAC briefing document: Epitalon (July 2026)', u: 'https://www.fda.gov/media/193345/download' },
+      { t: 'HHS: interim peptide compounding policy and route limits (Oct 28, 2026)', u: 'https://www.hhs.gov/sites/default/files/hhs-503a-peptide-enforcement-discretion-policy-appendix-b.pdf' },
       { t: 'FDA: July 23-24, 2026 Pharmacy Compounding Advisory Committee meeting', u: 'https://www.fda.gov/advisory-committees/advisory-committee-calendar/july-23-24-2026-meeting-pharmacy-compounding-advisory-committee-07232026' },
       { t: 'McDermott: PCAC backs majority of peptides in two-day public meeting', u: 'https://www.mcdermottlaw.com/insights/bulk-list-bound-pcac-backs-majority-of-peptides-in-two-day-public-meeting/' },
       { t: 'FDA 503A categories update, September 2023 (A4PC copy)', u: 'https://join.a4pc.org/hubfs/PDFs/503A-Categories-Update-for-September-2023-FINAL.docx.pdf' },

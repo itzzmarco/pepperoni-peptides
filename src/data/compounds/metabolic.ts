@@ -1,7 +1,7 @@
 import type { Peptide } from '../../lib/types';
 
 /**
- * Weight and metabolic compounds, plus lipotropic shots. US status as of Oct 26, 2026.
+ * Weight and metabolic compounds, plus lipotropic shots. US status as of Nov 4, 2026.
  * Built from research_notes/metabolic_peptides.md and regulation_and_safety.md. See AUTHORING.md.
  */
 export const METABOLIC: Peptide[] = [
@@ -169,8 +169,8 @@ export const METABOLIC: Peptide[] = [
       'TRIUMPH-1 (company topline, May 2026): 2,339 adults without diabetes, 80 weeks. 12 mg: 28.3% vs 2.2% on placebo assuming people stayed on treatment; 25.0% vs 3.9% regardless of stopping.',
       'TRIUMPH-4 (company topline, Dec 2025): 445 adults with obesity and knee arthritis, 68 weeks. 12 mg: 28.7% weight loss (23.7% regardless of stopping) vs 2.1%. 18.2% quit for side effects.',
       'TRIUMPH-2 and 3 (company toplines, Jul 2026): 1,152 adults with type 2 diabetes and 1,949 with heart disease. Up to 20.8% and 22.6% weight loss. Heart-event differences were not significant.',
+      'TRIUMPH-1-OSA and 2-OSA (NEJM, Oct 2026): 691 adults with moderate to severe sleep apnea, 80 weeks. 9 mg cut breathing events by 25 to 34 an hour vs about 10 on placebo. Weight loss: up to 22% vs 5 to 6%.',
       'Phase 2: heart rate rose with dose, peaking at 24 weeks. Heart rhythm events: 11% on 12 mg vs 3% on placebo.',
-      "FDA says retatrutide cannot be used in compounding. It has warned telehealth firms, ingredient distributors, outsourcing facilities and 'research use' sellers.",
     ],
     routes: "Weekly injection under the skin in trials. Vials sold online as 'research' peptides are not the trial product.",
     studied: 'Phase 3 trials only: started at 2 mg weekly and raised every 4 weeks. 4 mg target: 2 then 4 mg. 9 mg target: 2, 4, 6, then 9 mg. 12 mg target: 2, 4, 6, 9, then 12 mg. Phase 2 also tested a 4 mg start, which caused more nausea.',
@@ -202,7 +202,7 @@ export const METABOLIC: Peptide[] = [
       'In Phase 2, one severe heart rhythm problem (prolonged QT) occurred with the anti-nausea drug ondansetron.',
     ],
     unknowns: [
-      'Full peer-reviewed Phase 3 results, including liver test data',
+      'Full peer-reviewed results of the main weight-loss trials, including liver test data',
       'How much heart rate rises in Phase 3 (not reported in company releases)',
       'Long-term safety',
       'What is actually in products sold online',
@@ -217,7 +217,7 @@ export const METABOLIC: Peptide[] = [
       { t: 'Lilly: TRIUMPH-4 topline (Dec 11, 2025)', u: 'https://investor.lilly.com/node/53536/pdf' },
       { t: 'Lilly: TRIUMPH-2 and TRIUMPH-3 toplines (Jul 23, 2026)', u: 'https://www.prnewswire.com/news-releases/lillys-triple-agonist-retatrutide-successful-in-two-additional-phase-3-obesity-trials-delivering-significant-improvements-in-weight-and-a1c-302832674.html' },
       { t: 'FDA: concerns with unapproved GLP-1 drugs', u: 'https://www.fda.gov/drugs/drug-alerts-and-statements/fdas-concerns-unapproved-glp-1-drugs-used-weight-loss' },
-      { t: 'FDA warning letter, Gram Peptides (Mar 31, 2026)', u: 'https://www.fda.gov/inspections-compliance-enforcement-and-criminal-investigations/warning-letters/gram-peptides-721806-03312026' },
+      { t: 'Grunstein et al., retatrutide for obstructive sleep apnea, NEJM 2026', u: 'https://www.nejm.org/doi/full/10.1056/NEJMoa2611477' },
       { t: 'Pharmacy Times: retatrutide TRIUMPH-1 results', u: 'https://www.pharmacytimes.com/view/what-pharmacists-need-to-know-about-retatrutide-s-triumph-1-phase-3-results' },
       { t: 'WADA 2026 Prohibited List', u: 'https://www.segas.gr/wp-content/uploads/2025/11/2026list_en_final_clean_september_2025.pdf' },
     ],

@@ -2,14 +2,17 @@ import { useMemo, useState } from 'react';
 import type { Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { freqText } from '../lib/schedule';
-import { doseMath } from '../lib/doseMath';
+import { drugAmount, isVolumeUnit } from '../lib/doseMath';
+import { checkDose } from '../lib/vial';
 import { DAY, fmtNum, fmtTime, newId, toLocalInput } from '../lib/format';
-import { BELLY, SITE_LABEL, bellyHour, lastUsedBySite, nextBellyHour } from '../lib/sites';
-import { INJECTABLE, ROUTES, UNITS } from '../data/options';
+import { BELLY, bellyHour, lastUsedBySite, nextBellyHour, siteLabel, sitePlan } from '../lib/sites';
+import { INJECTABLE, ROUTES } from '../data/options';
+import { PEP } from '../data/peptides';
 import { BodyMap } from '../components/BodyMap';
 import { BellyClock } from '../components/BellyClock';
 import { Sheet } from '../components/Sheet';
 import { Syringe } from '../components/Syringe';
+import { UnitOptions } from '../components/UnitPicker';
 import { useToast } from '../components/Toast';
 import { regName } from '../views/PeptidesView';
 
@@ -19,7 +22,8 @@ const ago = (t: Date) => {
   return d <= 0 ? 'today' : d === 1 ? 'yesterday' : `${d} days ago`;
 };
 
-export function DoseSheet({ r: initial, onClose }: { r: Regimen; onClose: () => void }) {
+/** `onFix` opens the regimen's settings, for vial details that don't add up. */
+export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose: () => void; onFix?: (r: Regimen) => void }) {
   const toast = useToast();
   const { doses, regimens } = useLedger();
   const active = regimens.filter(x => !x.paused);
@@ -37,7 +41,11 @@ export function DoseSheet({ r: initial, onClose }: { r: Regimen; onClose: () => 
   const unitDiffers = d.unit !== r.unit;
   const amountDiffers = !unitDiffers && Number(r.dose) > 0 && amt > 0 && Math.abs(amt / Number(r.dose) - 1) > 0.01;
   const injectable = INJECTABLE.has(d.route);
-  const math = doseMath(d.amount, d.unit, r.vialMg, r.diluentMl);
+  // Sites that fit how it's given (under the skin or into the muscle) and the drug's label.
+  const plan = sitePlan(d.route, r.compoundId);
+  const clock = view === 'clock' && !!plan?.belly;
+  const siteFits = !d.site || !plan || plan.sites.includes(d.site) || (plan.belly && !!bellyHour(d.site));
+  const { math, checks } = checkDose(r, d.amount, d.unit);
   const hour = bellyHour(d.site);
 
   const switchTo = (x: Regimen) => {
@@ -51,7 +59,7 @@ export function DoseSheet({ r: initial, onClose }: { r: Regimen; onClose: () => 
     const at = new Date(d.at || Date.now());
     if (isNaN(at.getTime())) { toast('Enter a valid date and time.'); return; }
     if (!(amt > 0)) { toast('Enter the amount you took.'); return; }
-    store.addDose({ id: newId(), rid: r.id, name: regName(r), at: at.toISOString(), amount: d.amount, unit: d.unit, route: d.route, site: injectable ? d.site : '', notes: d.notes.trim() });
+    store.addDose({ id: newId(), rid: r.id, name: regName(r), at: at.toISOString(), amount: d.amount, unit: d.unit, route: d.route, site: injectable && siteFits ? d.site : '', notes: d.notes.trim() });
     toast(`Logged ${regName(r)} at ${fmtTime(at)}.`);
     onClose();
   };
@@ -89,9 +97,18 @@ export function DoseSheet({ r: initial, onClose }: { r: Regimen; onClose: () => 
           <span style={{ fontSize: '2.25rem', fontWeight: 600, letterSpacing: '-.02em', lineHeight: 1 }}>{fmtNum(Number(r.dose), 3)} <span className="sub" style={{ fontSize: '1.125rem' }}>{r.unit}</span></span>
           {math && injectable && (
             <div className="white-inset stack" style={{ gap: 8 }}>
-              <p className="small">Draw to <b className="mono" style={{ color: 'var(--lilac-ink)' }}>{fmtNum(math.units, 1)} units</b> ({fmtNum(math.vol, 2)} mL) on a U-100 syringe. {fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL water.</p>
+              {isVolumeUnit(d.unit)
+                ? <p className="small">That's <b className="mono" style={{ color: 'var(--lilac-ink)' }}>{drugAmount(math.doseMg, PEP[r.compoundId]?.defaultUnit)}</b> ({fmtNum(math.vol, 2)} mL) from a vial with {fmtNum(Number(r.vialMg))} mg in {fmtNum(Number(r.diluentMl))} mL.</p>
+                : <p className="small">Draw to <b className="mono" style={{ color: 'var(--lilac-ink)' }}>{fmtNum(math.units, 1)} units</b> ({fmtNum(math.vol, 2)} mL) on a U-100 syringe. {fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL water.</p>}
               <div className="syringe-wrap"><Syringe units={math.units} cap={math.units > 50 ? 100 : 50} /></div>
               <a className="small" href="#calculator">How this is calculated</a>
+            </div>
+          )}
+          {checks.length > 0 && injectable && (
+            <div className="alert danger" role="alert">
+              <b>These numbers don't add up, so there's no draw to show.</b>
+              {checks.map(c => <span key={c.title}>{c.title} {c.body}</span>)}
+              {onFix && <div style={{ marginTop: 6 }}><button type="button" className="btn sm" onClick={() => onFix(r)}>Fix {regName(r)}'s details</button></div>}
             </div>
           )}
         </section>
@@ -99,7 +116,7 @@ export function DoseSheet({ r: initial, onClose }: { r: Regimen; onClose: () => 
         <section className="tile" aria-label="What you took">
           <div className="grid-3">
             <label className="field"><span>Amount</span><input type="number" id="d-amount" step="any" min="0" inputMode="decimal" value={d.amount} onChange={set('amount')} /></label>
-            <label className="field"><span>Unit</span><select id="d-unit" value={d.unit} onChange={set('unit')}>{UNITS.map(u => <option key={u}>{u}</option>)}</select></label>
+            <label className="field"><span>Unit</span><select id="d-unit" value={d.unit} onChange={set('unit')}><UnitOptions compoundId={r.compoundId} /></select></label>
           </div>
           {(amountDiffers || unitDiffers) && (
             <p className="alert warn" role="status">
@@ -114,14 +131,16 @@ export function DoseSheet({ r: initial, onClose }: { r: Regimen; onClose: () => 
           </div>
         </section>
 
-        {injectable && (
+        {injectable && plan && (
           <section className="tile sky" aria-labelledby="site-h">
             <h3 id="site-h" className="eyebrow" style={{ color: 'var(--sky-ink)' }}>Injection site</h3>
-            <div className="seg" role="group" aria-label="Site view">
-              <button type="button" aria-pressed={view === 'clock'} onClick={() => setView('clock')}>Belly clock</button>
-              <button type="button" aria-pressed={view === 'body'} onClick={() => setView('body')}>Body map</button>
-            </div>
-            {view === 'clock' ? (
+            {plan.belly && (
+              <div className="seg" role="group" aria-label="Site view">
+                <button type="button" aria-pressed={clock} onClick={() => setView('clock')}>Belly clock</button>
+                <button type="button" aria-pressed={!clock} onClick={() => setView('body')}>Body map</button>
+              </div>
+            )}
+            {clock ? (
               <>
                 <BellyClock key={r.id} selected={hour} next={next} recent={recent} onSelect={h => setD({ ...d, site: hour === h ? '' : `belly-${h}` })} />
                 <p className="small" style={{ color: 'var(--ink-2)' }}>Looking down at your belly, 12 is toward your chest. Move one hour clockwise each injection and stay about 2 in (5 cm) from your navel, or use the spacing your nurse gave you.</p>
@@ -137,11 +156,11 @@ export function DoseSheet({ r: initial, onClose }: { r: Regimen; onClose: () => 
                 )}
               </>
             ) : (
-              <BodyMap selected={hour ? '' : d.site} onSelect={site => setD({ ...d, site })} last={last} />
+              <BodyMap selected={hour ? '' : d.site} onSelect={site => setD({ ...d, site })} last={last} plan={plan} route={d.route} />
             )}
             <div style={{ borderTop: '1px solid color-mix(in srgb, var(--sky-ink) 15%, transparent)', paddingTop: 12 }}>
-              <p style={{ fontWeight: 600, fontSize: '1.125rem' }}>{d.site ? SITE_LABEL[d.site] : view === 'clock' ? `Suggested: ${BELLY.find(b => b.h === next)!.label}` : 'Tap where you injected'}</p>
-              <p className="small" style={{ color: siteNote.startsWith('Used') ? 'var(--peach-ink)' : 'var(--ink-2)' }}>{d.site ? siteNote : view === 'clock' ? (recent[0] ? `One hour clockwise from ${recent[0]} o'clock. Tap the spot you used.` : 'Start anywhere, then move one hour clockwise each time.') : 'Optional, but it powers site rotation.'}</p>
+              <p style={{ fontWeight: 600, fontSize: '1.125rem' }}>{d.site && siteFits ? siteLabel(d.site, d.route) : clock ? `Suggested: ${BELLY.find(b => b.h === next)!.label}` : 'Tap where you injected'}</p>
+              <p className="small" style={{ color: siteNote.startsWith('Used') ? 'var(--peach-ink)' : 'var(--ink-2)' }}>{d.site && siteFits ? siteNote : clock ? (recent[0] ? `One hour clockwise from ${recent[0]} o'clock. Tap the spot you used.` : 'Start anywhere, then move one hour clockwise each time.') : 'Optional, but it powers site rotation.'}</p>
             </div>
           </section>
         )}

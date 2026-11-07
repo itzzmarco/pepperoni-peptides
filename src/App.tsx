@@ -11,13 +11,18 @@ import { LibraryView } from './views/LibraryView';
 import { PeptideDetail } from './views/PeptideDetail';
 import { CalculatorView } from './views/CalculatorView';
 import { SafetyView } from './views/SafetyView';
+import { PartnerView } from './views/PartnerView';
 import { RegimenSheet, blankRegimen } from './sheets/RegimenSheet';
 import { DoseSheet } from './sheets/DoseSheet';
 import { CheckinSheet } from './sheets/CheckinSheet';
+import { BackfillSheet } from './sheets/BackfillSheet';
+import { AccountSheet } from './sheets/AccountSheet';
+import { useAccount } from './lib/account';
+import { AccountButton } from './components/AccountButton';
 import { ThemeToggle } from './components/ThemeToggle';
 import { TabBar } from './components/TabBar';
 
-const ROUTES = ['today', 'trends', 'learn', 'peptides', 'calculator', 'safety'] as const;
+const ROUTES = ['today', 'trends', 'learn', 'peptides', 'calculator', 'safety', 'partner'] as const;
 export type Route = (typeof ROUTES)[number];
 /** Links from before the redesign keep working. */
 const ALIASES: Record<string, Route> = { log: 'today', library: 'learn' };
@@ -31,15 +36,23 @@ function parseHash(): { tab: Route; id: string | null } {
 }
 
 type SheetState =
-  | { kind: 'regimen'; r: Regimen; isNew: boolean }
+  // `back` reopens that regimen's dose sheet when the edit started there.
+  | { kind: 'regimen'; r: Regimen; isNew: boolean; back?: boolean }
   | { kind: 'dose'; r: Regimen }
   | { kind: 'checkin' }
+  | { kind: 'backfill' }
+  | { kind: 'account' }
   | null;
 
 export function App() {
   const [route, setRoute] = useState(parseHash);
   const [sheet, setSheet] = useState<SheetState>(null);
   const { regimens, doses } = useLedger();
+  const { recovering, linkError } = useAccount();
+  // A password-reset link, or an email link that failed, lands here: open the account sheet to finish.
+  useEffect(() => {
+    if (recovering || linkError) setSheet({ kind: 'account' });
+  }, [recovering, linkError]);
   useEffect(() => {
     const onHash = () => { setRoute(parseHash()); setSheet(null); window.scrollTo(0, 0); };
     window.addEventListener('hashchange', onHash);
@@ -66,16 +79,17 @@ export function App() {
 
   let view;
   if (route.id) view = <PeptideDetail p={PEP[route.id]} onTrack={id => setSheet({ kind: 'regimen', r: blankRegimen(id), isNew: true })} onLog={actions.logDose} />;
-  else if (route.tab === 'trends') view = <TrendsView />;
+  else if (route.tab === 'trends') view = <TrendsView onBackfill={() => setSheet({ kind: 'backfill' })} />;
   else if (route.tab === 'learn') view = <LibraryView />;
   else if (route.tab === 'peptides') view = <PeptidesView {...actions} />;
   else if (route.tab === 'calculator') view = <CalculatorView />;
   else if (route.tab === 'safety') view = <SafetyView />;
+  else if (route.tab === 'partner') view = <PartnerView onAccount={() => setSheet({ kind: 'account' })} />;
   else view = <TodayView {...actions} />;
 
   // While a sheet is open, the page behind it is inert: not focusable and hidden from screen readers.
   const bg = sheet ? true : undefined;
-  const tab = route.tab === 'calculator' || route.tab === 'safety' ? 'learn' : route.tab;
+  const tab = route.tab === 'calculator' || route.tab === 'safety' ? 'learn' : route.tab === 'partner' ? 'today' : route.tab;
   return (
     <>
       <header className="topbar gutter" inert={bg}>
@@ -90,9 +104,7 @@ export function App() {
               </svg>
               Peptide Ledger
             </a>
-            <span className="sync" title="Your log is saved only in this browser. Nothing is sent to a server.">
-              <i /><span className="hide-sm">Saved on this device</span><span className="show-sm">On device</span>
-            </span>
+            <AccountButton onOpen={() => setSheet({ kind: 'account' })} />
             <ThemeToggle />
           </div>
           <p className="notice" role="note">
@@ -112,9 +124,13 @@ export function App() {
       </footer>
       <div className="app-end" />
       <TabBar current={route.id ? 'learn' : tab} onLog={logNext} inert={bg} />
-      {sheet?.kind === 'regimen' && <RegimenSheet initial={sheet.r} isNew={sheet.isNew} onClose={close} onSaved={goPeptides} />}
-      {sheet?.kind === 'dose' && <DoseSheet r={sheet.r} onClose={close} />}
-      {sheet?.kind === 'checkin' && <CheckinSheet onClose={close} />}
+      {sheet?.kind === 'regimen' && (sheet.back
+        ? <RegimenSheet initial={sheet.r} isNew={false} onClose={() => setSheet({ kind: 'dose', r: sheet.r })} onSaved={x => setSheet(x ? { kind: 'dose', r: x } : null)} />
+        : <RegimenSheet initial={sheet.r} isNew={sheet.isNew} onClose={close} onSaved={goPeptides} />)}
+      {sheet?.kind === 'dose' && <DoseSheet r={sheet.r} onClose={close} onFix={r => setSheet({ kind: 'regimen', r, isNew: false, back: true })} />}
+      {sheet?.kind === 'checkin' && <CheckinSheet onClose={close} onBackfill={() => setSheet({ kind: 'backfill' })} />}
+      {sheet?.kind === 'backfill' && <BackfillSheet onClose={close} />}
+      {sheet?.kind === 'account' && <AccountSheet onClose={close} />}
     </>
   );
 }

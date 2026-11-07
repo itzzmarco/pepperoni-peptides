@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import type { DoseEntry, Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
+import { configured, useAccount } from '../lib/account';
 import { adherenceDays, freqText, regimenStatus } from '../lib/schedule';
-import { doseMath } from '../lib/doseMath';
+import { drugAmount, isVolumeUnit } from '../lib/doseMath';
+import { checkRegimen } from '../lib/vial';
 import { fmtDay, fmtNum } from '../lib/format';
 import { glp1Overlap } from '../lib/insights';
 import { PEP } from '../data/peptides';
@@ -51,7 +53,7 @@ function RegimenCard({ r, doses, actions, example, i = 0 }: { r: Regimen; doses:
   const toast = useToast();
   const p = PEP[r.compoundId];
   const st = example ? { s: 'due', text: 'Due today' } : regimenStatus(r, doses);
-  const math = doseMath(r.dose, r.unit, r.vialMg, r.diluentMl);
+  const { math, checks } = checkRegimen(r);
   return (
     <article className={`tile regimen rise${r.paused ? ' paused' : ''}${example ? ' example' : ''}`} style={{ ['--i' as string]: i + 2 }} aria-hidden={example || undefined}>
       <div className="top">
@@ -63,8 +65,13 @@ function RegimenCard({ r, doses, actions, example, i = 0 }: { r: Regimen; doses:
       </div>
       {math && (
         <div className="inset small" style={{ background: 'var(--lilac)' }}>
-          Draw <b className="mono">{fmtNum(math.units, 1)} units</b> on a U-100 syringe ({fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL). Confirm with your pharmacist.
+          {isVolumeUnit(r.unit)
+            ? <>Each dose is about <b className="mono">{drugAmount(math.doseMg, p?.defaultUnit)}</b> ({fmtNum(Number(r.vialMg))} mg in {fmtNum(Number(r.diluentMl))} mL). Confirm with your pharmacist.</>
+            : <>Draw <b className="mono">{fmtNum(math.units, 1)} units</b> on a U-100 syringe ({fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL). Confirm with your pharmacist.</>}
         </div>
+      )}
+      {checks.length > 0 && (
+        <div className="alert danger"><b>The dose and vial numbers don't add up.</b><span>{checks[0].title} Tap Edit to check them.</span></div>
       )}
       {p && <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /></div>}
       {r.prescriber && <div className="small muted">Prescribed by {r.prescriber}</div>}
@@ -91,6 +98,7 @@ const lsSet = (k: string, v: string) => { try { localStorage.setItem(k, v); } ca
 
 export function PeptidesView(actions: Actions) {
   const { regimens, doses } = useLedger();
+  const signedIn = !!useAccount().user;
   const [introHidden, setIntroHidden] = useState(() => lsGet('pl-intro-hidden') === '1');
   const active = regimens.filter(r => !r.paused);
   const paused = regimens.filter(r => r.paused);
@@ -123,7 +131,11 @@ export function PeptidesView(actions: Actions) {
           </div>
           <ul className="small" style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 6 }}>
             <li>This is a journal for doses and symptoms, built to share with your clinician. It never suggests a dose; enter the one you were prescribed.</li>
-            <li>Everything you enter stays in this browser on this device. There's no account and no server. Use Export on Trends to keep a copy.</li>
+            <li>{signedIn
+              ? 'Your log syncs to your account, so it follows you to any device you sign in on. Only you can see it. Use Export on Trends to keep a copy.'
+              : configured
+                ? "Signed out, everything you enter stays in this browser on this device. Sign in (top right) to sync it across your devices; each person in your home can have their own account. Use Export on Trends to keep a copy."
+                : "Everything you enter stays in this browser on this device. There's no account and no server. Use Export on Trends to keep a copy."}</li>
             <li>Most peptides promoted online are unapproved, and products sold as "research use only" aren't tested for what's in the vial. Check the library before you log something new.</li>
             <li>If you feel seriously unwell, stop and get help. The daily check-in flags emergency symptoms.</li>
           </ul>

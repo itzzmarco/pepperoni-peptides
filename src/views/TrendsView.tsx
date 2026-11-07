@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import type { Checkin, DoseEntry, Ledger } from '../lib/types';
 import { store, useLedger } from '../lib/store';
+import { useAccount } from '../lib/account';
 import { intervalDays } from '../lib/schedule';
 import { DAY, dayKey, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
 import { adherence, doseDays, effectDays, effectsNearDoses, patternWeeks, siteCounts, topEffects } from '../lib/insights';
@@ -44,6 +45,7 @@ function ExportPanel({ ledger }: { ledger: Ledger }) {
   const toast = useToast();
   const file = useRef<HTMLInputElement>(null);
   const [wipe, setWipe] = useState(false);
+  const signedIn = !!useAccount().user;
   const stamp = dayKey(new Date());
   const empty = !ledger.regimens.length && !ledger.doses.length && !ledger.checkins.length;
   const onImport = async (f: File | undefined) => {
@@ -65,7 +67,7 @@ function ExportPanel({ ledger }: { ledger: Ledger }) {
         <h3 id="share-h">Share with your clinician</h3>
       </div>
       <div className="stack">
-        <p className="small muted">Your log lives only in this browser. Export a CSV of doses, sites, side effects and weight for an appointment, or a backup you can restore on another device.</p>
+        <p className="small muted">{signedIn ? 'Your log syncs to your account.' : 'Your log lives only in this browser.'} Export a CSV of doses, sites, side effects and weight for an appointment, or a backup you can restore on another device.</p>
         <div className="row-wrap">
           <button className="btn sm" disabled={empty} onClick={() => download(`peptide-log-${stamp}.csv`, ledgerToCsv(ledger, id => PEP[id]?.name), 'text/csv')}>Export CSV</button>
           <button className="btn ghost sm" disabled={empty} onClick={() => download(`peptide-ledger-backup-${stamp}.json`, JSON.stringify(ledger, null, 2), 'application/json')}>Download backup</button>
@@ -76,8 +78,8 @@ function ExportPanel({ ledger }: { ledger: Ledger }) {
           <div className="row-wrap">
             {wipe ? (
               <>
-                <span className="small">Erase every regimen, dose, and check-in on this device?</span>
-                <button className="btn danger sm" onClick={() => { store.clearAll(); setWipe(false); toast('Your log was erased from this device.'); }}>Erase everything</button>
+                <span className="small">{signedIn ? 'Erase every regimen, dose, and check-in from your account, on all your devices?' : 'Erase every regimen, dose, and check-in on this device?'}</span>
+                <button className="btn danger sm" onClick={() => { store.clearAll(); setWipe(false); toast(signedIn ? 'Your log was erased from your account.' : 'Your log was erased from this device.'); }}>Erase everything</button>
                 <button className="btn quiet sm" onClick={() => setWipe(false)}>Keep my log</button>
               </>
             ) : (
@@ -93,7 +95,7 @@ function ExportPanel({ ledger }: { ledger: Ledger }) {
 /** How many timeline entries show before "Show all". */
 const RECENT = 12;
 
-function History({ doses, checkins }: { doses: DoseEntry[]; checkins: Checkin[] }) {
+function History({ doses, checkins, onBackfill }: { doses: DoseEntry[]; checkins: Checkin[]; onBackfill: () => void }) {
   const toast = useToast();
   const [showAll, setShowAll] = useState(false);
   type Item = { kind: 'dose'; at: string; e: DoseEntry } | { kind: 'check'; at: string; e: Checkin };
@@ -104,7 +106,10 @@ function History({ doses, checkins }: { doses: DoseEntry[]; checkins: Checkin[] 
   let lastDay = '';
   return (
     <section className="tile" aria-labelledby="hist-h">
-      <div className="spread"><h3 id="hist-h">History</h3><span className="count">{items.length} recent</span></div>
+      <div className="spread" style={{ alignItems: 'center' }}>
+        <h3 id="hist-h">History</h3>
+        <button type="button" className="btn soft sm" onClick={onBackfill}>Fill in past days</button>
+      </div>
       {items.length ? (
         <div className="timeline">
           {(showAll ? items : items.slice(0, RECENT)).map(it => {
@@ -140,7 +145,7 @@ function History({ doses, checkins }: { doses: DoseEntry[]; checkins: Checkin[] 
           )}
         </div>
       ) : (
-        <p className="small muted">Logged doses and check-ins appear here.</p>
+        <p className="small muted">Logged doses and check-ins appear here. Kept a paper log before? Fill in past days to bring it in.</p>
       )}
     </section>
   );
@@ -221,7 +226,7 @@ function Pattern({ doses, checkins, now }: { doses: DoseEntry[]; checkins: Check
   );
 }
 
-export function TrendsView() {
+export function TrendsView({ onBackfill }: { onBackfill: () => void }) {
   const ledger = useLedger();
   const { regimens, doses, checkins } = ledger;
   const [days, setDays] = useState<7 | 30 | 90>(30);
@@ -282,6 +287,7 @@ export function TrendsView() {
               ? <span className="big" style={{ fontSize: '2.75rem' }}>{changeShown < 0 ? '−' : '+'}{Math.abs(changeShown).toFixed(1)}<small> {wUnit} {weeksSpan >= 1.5 ? `in ${Math.round(weeksSpan)} weeks` : ''}</small></span>
               : <span className="sub">{weights.length ? 'Add another weigh-in to see a trend.' : 'No weights logged in this range. Add one in a daily check-in.'}</span>}
           </div>
+          <button type="button" className="btn soft sm" onClick={onBackfill}>Add past days</button>
         </div>
         {weights.length >= 2 && (() => {
           const ys = weights.map(w => w.y);
@@ -338,7 +344,7 @@ export function TrendsView() {
       </section>
 
       <ExportPanel ledger={ledger} />
-      <History doses={doses} checkins={checkins} />
+      <History doses={doses} checkins={checkins} onBackfill={onBackfill} />
     </section>
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  clearLinkError, keepDeviceLog, moveDeviceLog, sendReset, setPassword, signIn, signInWithGoogle, signOut, signUp, syncNow, useAccount, warmUp,
+  clearLinkError, inAppBrowser, keepDeviceLog, moveDeviceLog, sendReset, setPassword, signIn, signInWithGoogle, signOut, signUp, syncNow, useAccount, warmUp,
   type AccountState,
 } from '../lib/account';
 import { fmtDay, fmtShort, fmtTime } from '../lib/format';
@@ -96,6 +96,12 @@ function SignedOut({ acct, onClose }: { acct: AccountState; onClose: () => void 
         <Close onClose={onClose} />
       </div>
       {acct.linkError && <div className="alert caution" role="alert"><b>That sign-in didn't work.</b><span>{acct.linkError}</span></div>}
+      {inAppBrowser() && mode !== 'reset' && (
+        <div className="alert caution" role="note">
+          <b>Open this page in Chrome or Samsung Internet first.</b>
+          <span>It's open inside another app's built-in browser, where Google won't sign you in and your log may not be kept. Tap the menu (⋮ or ···) and choose Open in browser.</span>
+        </div>
+      )}
       {acct.google && mode !== 'reset' && (
         <>
           <GoogleButton onError={setErr} />
@@ -169,7 +175,7 @@ export function DeviceLogPrompt({ onToday = false }: { onToday?: boolean }) {
   return (
     <div className="alert info">
       <b>{plural(acct.deviceItems, 'entry', 'entries')} saved on this device before you signed in</b>
-      <span>Move them into your account so they sync with the rest of your log. If you leave them here, you'll only see them when you're signed out.</span>
+      <span>Move them into your account so they sync with the rest of your log. A peptide your account already tracks isn't added twice; its doses join the one you have. If you leave them here, you'll only see them when you're signed out.</span>
       <div className="row-wrap" style={{ marginTop: 6 }}>
         <button className="btn sm" onClick={() => { const n = moveDeviceLog(); toast(`Moved ${plural(n, 'entry', 'entries')} into your account.`); }}>Move into my account</button>
         {!acct.deviceKept && <button className="btn quiet sm" onClick={keepDeviceLog}>Leave on this device</button>}

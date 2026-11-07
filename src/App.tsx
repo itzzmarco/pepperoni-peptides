@@ -69,6 +69,7 @@ export function App() {
     editRegimen: (r: Regimen) => setSheet({ kind: 'regimen', r, isNew: false }),
     logDose: (r: Regimen) => setSheet({ kind: 'dose', r }),
     checkin: () => setSheet({ kind: 'checkin' }),
+    signIn: () => setSheet({ kind: 'account' }),
   };
   // The middle tab-bar button logs whatever is overdue or due first, else the next dose coming up.
   const logNext = () => {
@@ -126,7 +127,7 @@ export function App() {
       <TabBar current={route.id ? 'learn' : tab} onLog={logNext} inert={bg} />
       {sheet?.kind === 'regimen' && (sheet.back
         ? <RegimenSheet initial={sheet.r} isNew={false} onClose={() => setSheet({ kind: 'dose', r: sheet.r })} onSaved={x => setSheet(x ? { kind: 'dose', r: x } : null)} />
-        : <RegimenSheet initial={sheet.r} isNew={sheet.isNew} onClose={close} onSaved={goPeptides} />)}
+        : <RegimenSheet initial={sheet.r} isNew={sheet.isNew} onClose={close} onSaved={goPeptides} onLog={actions.logDose} onSignIn={actions.signIn} />)}
       {sheet?.kind === 'dose' && <DoseSheet r={sheet.r} onClose={close} onFix={r => setSheet({ kind: 'regimen', r, isNew: false, back: true })} />}
       {sheet?.kind === 'checkin' && <CheckinSheet onClose={close} onBackfill={() => setSheet({ kind: 'backfill' })} />}
       {sheet?.kind === 'backfill' && <BackfillSheet onClose={close} />}

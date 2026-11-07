@@ -101,3 +101,52 @@ export function siteLabel(k: string, route?: string): string {
 export function suggestSite(last: Record<string, Date>, allowed: readonly string[] = SITES.map(s => s.k)): string {
   return allowed.slice().sort((a, b) => (last[a]?.getTime() ?? 0) - (last[b]?.getTime() ?? 0))[0];
 }
+
+/** The body area a site belongs to: belly-clock hours and the four abdomen spots are all the belly. */
+export const siteArea = (k: string) => (k.startsWith('belly-') || k.startsWith('abd-') ? 'belly' : k.split('-')[0]);
+const AREA_NAME: Record<string, string> = { belly: 'belly', arm: 'arm', thigh: 'thigh', glute: 'buttock' };
+
+export interface NextSite {
+  /** Site key to log: a body-map site, or `belly-<hour>` on the belly clock. */
+  site: string;
+  /** The belly-clock hour when the suggestion is on the clock. */
+  hour: number | null;
+  /** The clock hour this regimen used last, which the arrow starts from. */
+  fromHour: number | null;
+  /** Why this spot, in a few words. */
+  why: string;
+}
+
+/**
+ * Where this regimen's next shot goes. Each peptide keeps its own rotation:
+ * - If its last shot was on the belly clock, one hour clockwise from there.
+ * - Otherwise the spot rested longest (across all shots, so the skin gets a break), among the areas
+ *   this peptide has been going into. With no history, among every site that fits how it's given.
+ * `prefer` asks for a clock or a body-map suggestion, for when the person switches views.
+ * `doses` is newest first, as the store keeps it. Null when the regimen isn't injected.
+ */
+export function nextSite(
+  r: { id: string; route: string; compoundId: string },
+  doses: { rid: string; site: string; at: string }[],
+  prefer?: 'clock' | 'map',
+): NextSite | null {
+  const plan = sitePlan(r.route, r.compoundId);
+  if (!plan) return null;
+  const last = lastUsedBySite(doses);
+  const fits = (k: string) => plan.sites.includes(k) || (plan.belly && !!bellyHour(k));
+  const mine = doses.filter(d => d.rid === r.id && d.site && fits(d.site));
+  const lastHour = lastBellyHour(r.id, mine);
+  if (plan.belly && (prefer === 'clock' || (!prefer && mine[0] && bellyHour(mine[0].site)))) {
+    const h = nextBellyHour(lastHour, last);
+    return { site: `belly-${h}`, hour: h, fromHour: lastHour, why: lastHour ? `One hour clockwise from ${lastHour} o'clock` : 'Start here, then go one hour clockwise each shot' };
+  }
+  const areas = new Set(mine.slice(0, 6).map(d => siteArea(d.site)));
+  const pool = plan.sites.filter(k => areas.has(siteArea(k)));
+  const site = suggestSite(last, pool.length ? pool : plan.sites);
+  const used = last[site];
+  const one = areas.size === 1 ? AREA_NAME[[...areas][0]] : '';
+  const why = !mine.length ? plan.short
+    : used ? `Rested longest of your ${one ? `${one} spots` : 'usual spots'}`
+    : one ? `A ${one} spot you haven't used yet` : "A spot you haven't used yet";
+  return { site, hour: null, fromHour: lastHour, why };
+}

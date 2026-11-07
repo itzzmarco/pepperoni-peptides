@@ -5,7 +5,7 @@ import { freqText } from '../lib/schedule';
 import { drugAmount, isVolumeUnit } from '../lib/doseMath';
 import { checkDose } from '../lib/vial';
 import { DAY, fmtNum, fmtTime, newId, toLocalInput } from '../lib/format';
-import { BELLY, bellyHour, lastUsedBySite, nextBellyHour, siteLabel, sitePlan } from '../lib/sites';
+import { BELLY, bellyHour, lastUsedBySite, nextBellyHour, nextSite, siteLabel, sitePlan } from '../lib/sites';
 import { INJECTABLE, ROUTES } from '../data/options';
 import { PEP } from '../data/peptides';
 import { BodyMap } from '../components/BodyMap';
@@ -16,7 +16,7 @@ import { UnitOptions } from '../components/UnitPicker';
 import { useToast } from '../components/Toast';
 import { regName } from '../views/PeptidesView';
 
-const blank = (r: Regimen) => ({ amount: r.dose, unit: r.unit, at: toLocalInput(new Date()), route: r.route, site: '', notes: '' });
+const blank = (r: Regimen, site = '') => ({ amount: r.dose, unit: r.unit, at: toLocalInput(new Date()), route: r.route, site, notes: '' });
 const ago = (t: Date) => {
   const d = Math.round((Date.now() - t.getTime()) / DAY);
   return d <= 0 ? 'today' : d === 1 ? 'yesterday' : `${d} days ago`;
@@ -28,15 +28,34 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
   const { doses, regimens } = useLedger();
   const active = regimens.filter(x => !x.paused);
   const [r, setR] = useState(initial);
-  const [d, setD] = useState(() => blank(initial));
+  // This peptide's next spot in its own rotation starts out picked. `auto` stays true until the person taps a spot.
+  const [first] = useState(() => nextSite(initial, doses));
+  const [d, setD] = useState(() => blank(initial, first?.site));
+  const [auto, setAuto] = useState(!!first);
   const last = useMemo(() => lastUsedBySite(doses), [doses]);
   // This regimen's belly-clock history, newest first.
   const bellyDoses = useMemo(() => doses.filter(x => x.rid === r.id && bellyHour(x.site)).slice(0, 3), [doses, r.id]);
   const recent = bellyDoses.map(x => bellyHour(x.site)!);
-  const [view, setView] = useState<'clock' | 'body'>(() => (doses.some(x => x.rid === initial.id && bellyHour(x.site)) ? 'clock' : 'body'));
+  const [view, setView] = useState<'clock' | 'body'>(first?.hour ? 'clock' : 'body');
   const next = nextBellyHour(recent[0] ?? null, last);
 
   const set = (k: keyof typeof d) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setD({ ...d, [k]: e.target.value });
+  /** Picks the suggested spot for `x` given this way, and the view it's shown in. */
+  const suggest = (x: Regimen, route: string, prefer?: 'clock' | 'map') => {
+    const s = nextSite({ ...x, route }, doses, prefer);
+    setAuto(!!s);
+    if (!prefer) setView(s?.hour ? 'clock' : 'body');
+    return s?.site ?? '';
+  };
+  const setRoute = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const route = e.target.value;
+    setD({ ...d, route, site: auto || !d.site ? suggest(r, route) : d.site });
+  };
+  const showView = (v: 'clock' | 'body') => {
+    setView(v);
+    if (auto) setD({ ...d, site: suggest(r, d.route, v === 'clock' ? 'clock' : 'map') });
+  };
+  const pickSite = (site: string) => { setAuto(false); setD({ ...d, site }); };
   const amt = Number(d.amount);
   const unitDiffers = d.unit !== r.unit;
   const amountDiffers = !unitDiffers && Number(r.dose) > 0 && amt > 0 && Math.abs(amt / Number(r.dose) - 1) > 0.01;
@@ -50,8 +69,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
 
   const switchTo = (x: Regimen) => {
     setR(x);
-    setD(blank(x));
-    setView(doses.some(y => y.rid === x.id && bellyHour(y.site)) ? 'clock' : 'body');
+    setD(blank(x, suggest(x, x.route)));
   };
 
   const submit = (e: React.FormEvent) => {
@@ -64,8 +82,12 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
     onClose();
   };
 
+  // Why the picked spot was suggested, for this peptide and this view.
+  const why = auto && d.site ? nextSite({ ...r, route: d.route }, doses, clock ? 'clock' : 'map')?.why ?? '' : '';
   let siteNote = '';
-  if (hour) {
+  if (auto && why) {
+    siteNote = `${why}. Tap another spot if you use a different one.`;
+  } else if (hour) {
     const ri = recent.indexOf(hour);
     siteNote = hour === next ? `One hour clockwise from ${recent[0] ?? 12} o'clock.` : ri >= 0 ? `Used ${ago(new Date(bellyDoses[ri].at))}. Try ${next} o'clock, the next hour clockwise.` : 'Not used recently.';
   } else if (d.site) {
@@ -127,7 +149,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
           )}
           <div className="grid-2">
             <label className="field"><span>When</span><input type="datetime-local" id="d-at" value={d.at} onChange={set('at')} /></label>
-            <label className="field"><span>How it was taken</span><select id="d-route" value={d.route} onChange={set('route')}>{ROUTES.map(x => <option key={x}>{x}</option>)}</select></label>
+            <label className="field"><span>How it was taken</span><select id="d-route" value={d.route} onChange={setRoute}>{ROUTES.map(x => <option key={x}>{x}</option>)}</select></label>
           </div>
         </section>
 
@@ -136,13 +158,13 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
             <h3 id="site-h" className="eyebrow" style={{ color: 'var(--sky-ink)' }}>Injection site</h3>
             {plan.belly && (
               <div className="seg" role="group" aria-label="Site view">
-                <button type="button" aria-pressed={clock} onClick={() => setView('clock')}>Belly clock</button>
-                <button type="button" aria-pressed={!clock} onClick={() => setView('body')}>Body map</button>
+                <button type="button" aria-pressed={clock} onClick={() => showView('clock')}>Belly clock</button>
+                <button type="button" aria-pressed={!clock} onClick={() => showView('body')}>Body map</button>
               </div>
             )}
             {clock ? (
               <>
-                <BellyClock key={r.id} selected={hour} next={next} recent={recent} onSelect={h => setD({ ...d, site: hour === h ? '' : `belly-${h}` })} />
+                <BellyClock key={r.id} selected={hour} next={next} recent={recent} onSelect={h => pickSite(hour === h ? '' : `belly-${h}`)} />
                 <p className="small" style={{ color: 'var(--ink-2)' }}>Looking down at your belly, 12 is toward your chest. Move one hour clockwise each injection and stay about 2 in (5 cm) from your navel, or use the spacing your nurse gave you.</p>
                 <div className="site-legend" style={{ justifyContent: 'flex-start' }}>
                   <span><i style={{ background: 'var(--sky-ink)' }} />Selected</span>
@@ -156,10 +178,14 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
                 )}
               </>
             ) : (
-              <BodyMap selected={hour ? '' : d.site} onSelect={site => setD({ ...d, site })} last={last} plan={plan} route={d.route} />
+              <BodyMap selected={hour ? '' : d.site} onSelect={pickSite} last={last} plan={plan} route={d.route}
+                suggested={nextSite({ ...r, route: d.route }, doses, 'map')?.site} />
             )}
             <div style={{ borderTop: '1px solid color-mix(in srgb, var(--sky-ink) 15%, transparent)', paddingTop: 12 }}>
-              <p style={{ fontWeight: 600, fontSize: '1.125rem' }}>{d.site && siteFits ? siteLabel(d.site, d.route) : clock ? `Suggested: ${BELLY.find(b => b.h === next)!.label}` : 'Tap where you injected'}</p>
+              <p className="spread" style={{ fontWeight: 600, fontSize: '1.125rem', justifyContent: 'flex-start', gap: 8 }}>
+                {d.site && siteFits ? siteLabel(d.site, d.route) : clock ? `Suggested: ${BELLY.find(b => b.h === next)!.label}` : 'Tap where you injected'}
+                {auto && d.site && siteFits && <span className="chip" style={{ background: 'var(--surface)', color: 'var(--sky-ink)' }}>Next in rotation</span>}
+              </p>
               <p className="small" style={{ color: siteNote.startsWith('Used') ? 'var(--peach-ink)' : 'var(--ink-2)' }}>{d.site && siteFits ? siteNote : clock ? (recent[0] ? `One hour clockwise from ${recent[0]} o'clock. Tap the spot you used.` : 'Start anywhere, then move one hour clockwise each time.') : 'Optional, but it powers site rotation.'}</p>
             </div>
           </section>

@@ -1,6 +1,6 @@
 import type { FamilyKey, LegalKey, SafetyCard, Source, Tier, TimelineEvent } from '../lib/types';
 
-export const AS_OF = 'November 4, 2026';
+export const AS_OF = 'November 7, 2026';
 export const AS_OF_SHORT = 'Nov 2026';
 
 export const TIERS: Record<Tier, { label: string; long: string }> = {
@@ -26,7 +26,7 @@ export const FAMILIES: Record<FamilyKey, { name: string }> = {
 export const LEGAL: Record<LegalKey, { label: string; long: string }> = {
   approved: { label: 'FDA-approved', long: 'An FDA-approved prescription drug for a specific condition. Other uses are off-label, and compounded copies are generally not allowed.' },
   compoundable: { label: 'Compoundable with Rx', long: 'A licensed pharmacy may compound it for an individual prescription while FDA evaluates it (503A Category 1). Compounded drugs are not FDA-approved or checked for safety and effectiveness.' },
-  interim: { label: 'Rx compounding, interim', long: 'Since Oct 28, 2026, an HHS interim policy lets licensed pharmacies and doctors compound it for one patient\'s prescription, only by the routes HHS lists, from an FDA-registered maker, with no other peptide in the product. It is not FDA approval, HHS can withdraw it, and "research" products sold online are not covered.' },
+  interim: { label: 'Rx compounding, interim', long: 'Since Oct 28, 2026, a draft HHS policy says HHS won\'t act against licensed pharmacies or doctors who compound it for one patient\'s prescription, only by the routes HHS lists, from an FDA-registered maker, with no other peptide in the product. State pharmacy rules still apply. It is not FDA approval, HHS can change or withdraw it, and "research" products sold online are not covered.' },
   pending: { label: 'Under FDA review', long: "Taken off FDA's safety-risk list in April 2026 and due before FDA's advisory committee by February 2027. Pharmacies can't legally compound it yet: that needs an FDA rule or an HHS policy that names it, and neither exists." },
   restricted: { label: 'FDA restricted', long: "On FDA's Category 2 list of compounding ingredients with significant safety risks. Pharmacies may not compound it, even with a prescription." },
   investigational: { label: 'In clinical trials', long: "An investigational drug still in company-run trials. It isn't approved, and anything sold online is not the trial product." },
@@ -63,6 +63,7 @@ const S = {
   hhsPolicy: { t: 'HHS: interim peptide compounding policy (Oct 28, 2026)', u: 'https://www.hhs.gov/sites/default/files/hhs-503a-peptide-enforcement-discretion-policy.pdf' },
   hhsRoutes: { t: 'HHS policy appendices: peptides, forms and routes', u: 'https://www.hhs.gov/sites/default/files/hhs-503a-peptide-enforcement-discretion-policy-appendix-b.pdf' },
   raps: { t: 'RAPS (Oct 29, 2026)', u: 'https://www.raps.org/resource/hhs-will-permit-compounding-of-six-peptides-ahead-of-formal-rulemaking.html' },
+  arnold: { t: 'Arnold & Porter: HHS draft peptide policy (Nov 2, 2026)', u: 'https://www.arnoldporter.com/en/perspectives/advisories/2026/11/hhs-announces-draft-enforcement-discretion-policy-paving-way-for-pharmacies' },
   pcacPage: { t: 'FDA PCAC meeting page', u: 'https://www.fda.gov/advisory-committees/pharmacy-compounding-advisory-committee/meeting-pharmacy-compounding-advisory-committee' },
   wada: { t: 'WADA 2026 Prohibited List', u: 'https://www.segas.gr/wp-content/uploads/2025/11/2026list_en_final_clean_september_2025.pdf' },
   usada: { t: 'USADA on BPC-157', u: 'https://www.usada.org/spirit-of-sport/bpc-157-peptide-prohibited/' },
@@ -97,12 +98,13 @@ export const TIMELINE: TimelineEvent[] = [
   { date: 'Jul 23, 2026', k: 'tighten', title: 'Prison sentence for a "research" peptide seller', body: 'A Michigan seller of imported semaglutide and tirzepatide labeled "for research purposes only" was sentenced to 21 months.' },
   { date: 'Aug 27, 2026', k: 'tighten', title: 'Endotoxin reactions from compounded IV glutathione', body: 'FDA reported at least 30 patients with fever, chills, dizziness and shock-like symptoms after glutathione made from a supplement-grade ingredient. Two Texas pharmacies recalled product. The same day, a federal appeals court upheld FDA\'s GLP-1 shortage decisions.' },
   { date: 'Oct 14, 2026', k: '', title: 'Interim peptide access policy goes to the White House', body: 'HHS sent an "Interim Access Policy for Compounding Using Certain Peptides" for White House review. Its text was not public until it was issued two weeks later.' },
-  { date: 'Oct 28, 2026', k: 'loosen', title: 'HHS lets pharmacies compound six peptides for now', body: 'HHS said it will not act against licensed pharmacies or doctors who compound BPC-157, TB-500, KPV, MOTS-c, Semax or Epitalon for one patient\'s prescription. The ingredient must come from an FDA-registered maker with a test certificate, each product may contain only one of these peptides, and only listed routes are allowed (for example, KPV only as a cream or by mouth, Semax only in the nose). It is not FDA approval, does not cover "research" products sold online, and lasts until FDA decides on its 503A list. FDA staff had opposed all six.' },
+  { date: 'Oct 28, 2026', k: 'loosen', title: 'HHS lets pharmacies compound six peptides for now', body: 'In a draft policy, HHS said it will not act against licensed pharmacies or doctors who compound BPC-157, TB-500, KPV, MOTS-c, Semax or Epitalon for one patient\'s prescription. The ingredient must come from an FDA-registered maker with a test certificate, each product may contain only one of these peptides, and only listed routes are allowed (for example, KPV only as a cream or by mouth, Semax only in the nose). It is not FDA approval, does not cover "research" products sold online, and lasts until FDA decides on its 503A list. It does not bind state pharmacy boards. FDA staff had opposed all six.' },
+  { date: 'Nov 13, 2026', k: 'next', title: 'Comments close on the HHS peptide policy', body: 'The public can comment on the draft policy until two weeks after its Oct 30 Federal Register notice. HHS can change it afterward, or at any time if a safety or quality problem appears.' },
   { date: 'Jan 1, 2027', k: 'next', title: 'WADA 2027 Prohibited List takes effect', body: 'Peptides stay banned at all times for tested athletes. The status of GLP-1 drugs is unchanged.' },
   { date: 'By end of Feb 2027', k: 'next', title: 'Second advisory committee meeting', body: 'Scheduled to review LL-37, injectable GHK-Cu, dihexa, Melanotan II and PEG-MGF. No date set yet.' },
 ];
 
-export const TIMELINE_SOURCES: Source[] = [S.cat2, S.reed, S.pcacOct24, S.pcacDec24, S.glp1Policy, S.greenList, S.npr, S.wlMileHigh, S.orrick, S.fedReg, S.ex503b, S.noms, S.ajmc, S.doj, S.glut, S.ca5, S.becker, S.hhsPolicy, S.hhsRoutes, S.raps, S.pcacPage, S.wada27];
+export const TIMELINE_SOURCES: Source[] = [S.cat2, S.reed, S.pcacOct24, S.pcacDec24, S.glp1Policy, S.greenList, S.npr, S.wlMileHigh, S.orrick, S.fedReg, S.ex503b, S.noms, S.ajmc, S.doj, S.glut, S.ca5, S.becker, S.hhsPolicy, S.hhsRoutes, S.raps, S.arnold, S.pcacPage, S.wada27];
 
 export const SAFETY: { cards: SafetyCard[]; legalIntro: string; questions: string[]; about: string } = {
   cards: [

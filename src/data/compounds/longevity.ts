@@ -1,6 +1,6 @@
 import type { Peptide } from '../../lib/types';
 
-// Longevity and mitochondria compounds. US status as of Oct 28, 2026.
+// Longevity and mitochondria compounds. US status as of Nov 7, 2026.
 // Built only from research notes: longevity_peptides.md and regulation_and_safety.md.
 
 export const LONGEVITY: Peptide[] = [
@@ -353,6 +353,7 @@ export const LONGEVITY: Peptide[] = [
       'Reyna 2026, retrospective, 14 people, no placebo (6 NAD+, 8 NR): four 500 mg IV infusions. All NAD+ recipients had moderate to severe stomach symptoms, faster heart rate and chest pressure, which resolved afterward.',
       'In the same study, liver, kidney, thyroid and inflammation tests and blood pressure did not change significantly. It was funded by a wellness company.',
       'No randomized trial shows IV NAD+ improves energy, thinking, aging or any health outcome.',
+      'Recalls: compounded NAD+ injection vials were recalled in 2025 for high endotoxin (FDA Class I, its most serious level) and in Sept 2026 because sterility could not be assured. No illnesses were reported.',
       'Context, oral nicotinamide riboside (NR): 6-week crossover RCT, 24 adults aged 55 to 79 finished. 1,000 mg/day raised NAD+ in blood cells about 60%. Blood pressure changes were not significant.',
     ],
     halfLife: 'No published half-life found. In one slow-drip study, blood levels did not rise for the first 2 hours.',
@@ -374,7 +375,7 @@ export const LONGEVITY: Peptide[] = [
     ],
     avoid: [
       'Anyone with a heart condition: ask a doctor first, since chest pressure and a faster heart rate were common during infusions.',
-      'Anyone offered a compounded drip: ask where the ingredient came from. Compounded IV products can carry the kind of endotoxin risk FDA found with glutathione in 2026.',
+      'Anyone offered a compounded drip or shot: ask where the ingredient came from. Compounded NAD+ vials have been recalled for endotoxin and sterility problems, and FDA found the same endotoxin risk with glutathione in 2026.',
       'Drug-tested athletes: the IV route itself may be restricted under WADA infusion rules. Check with USADA first.',
     ],
     unknowns: [
@@ -393,6 +394,8 @@ export const LONGEVITY: Peptide[] = [
       { t: 'FDA: Bulk drug substances nominated for use in compounding under Section 503A (updated May 14, 2026)', u: 'https://www.fda.gov/media/94155/download' },
       { t: 'FDA 503A categories update, September 2023 (A4PC copy)', u: 'https://join.a4pc.org/hubfs/PDFs/503A-Categories-Update-for-September-2023-FINAL.docx.pdf' },
       { t: 'FDA: FDA reminds compounders not to use dietary supplement grade glutathione for injectables (Aug 27, 2026)', u: 'https://www.fda.gov/drugs/human-drug-compounding/fda-reminds-compounders-not-use-dietary-supplement-grade-glutathione-injectables' },
+      { t: 'Pharmacy Learning Network: Class I recall of NAD+ injection for endotoxin (Oct 2025)', u: 'https://www.hmpgloballearningnetwork.com/site/pln/news/fda-issues-class-i-recall-nad-injection-due-elevated-endotoxin-levels' },
+      { t: 'American Med Spa Association: compounded tirzepatide and NAD+ recall (Oct 22, 2026)', u: 'https://www.americanmedspa.org/?p=21525' },
     ],
   },
 ];

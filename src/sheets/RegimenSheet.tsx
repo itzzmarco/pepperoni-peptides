@@ -17,7 +17,7 @@ import { regName } from '../views/PeptidesView';
 
 const OTHER = '__other';
 
-export const isRisky = (p?: Peptide) => !!p && (p.tier >= 3 || ['restricted', 'unapproved', 'investigational', 'pending'].includes(p.legal));
+export const isRisky = (p?: Peptide) => !!p && (p.tier >= 3 || ['restricted', 'unapproved', 'investigational', 'pending', 'interim'].includes(p.legal));
 
 function Caution({ p }: { p?: Peptide }) {
   if (!p || !isRisky(p)) return null;

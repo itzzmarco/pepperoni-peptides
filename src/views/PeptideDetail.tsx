@@ -17,7 +17,7 @@ function ListSec({ title, items, tone = '' }: { title: string; items?: string[];
 }
 
 /** Legal buckets where what people can actually buy is unregulated product. */
-const GREY_MARKET = new Set<LegalKey>(['pending', 'restricted', 'investigational', 'unapproved']);
+const GREY_MARKET = new Set<LegalKey>(['interim', 'pending', 'restricted', 'investigational', 'unapproved']);
 
 /** The warning shown under the header, graded by evidence and legal status. */
 function cautionBanner(p: Peptide): { tone: 'danger' | 'caution'; title: string } | null {

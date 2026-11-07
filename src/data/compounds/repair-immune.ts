@@ -1,6 +1,6 @@
 import type { Peptide } from '../../lib/types';
 
-// Repair and immune peptides. US status as of Oct 26, 2026.
+// Repair and immune peptides. US status as of Oct 28, 2026.
 // Sources: research notes "repair_immune_peptides.md" and "regulation_and_safety.md".
 
 const WADA_LIST = {
@@ -31,6 +31,10 @@ const MCGUIRE_REVIEW = {
   t: 'McGuire et al., thymosin beta-4 and TB-500 scoping review, 2026 (preprint)',
   u: 'https://www.preprints.org/manuscript/202605.1124/v1',
 };
+const HHS_POLICY = {
+  t: 'HHS: interim peptide compounding policy and route limits (Oct 28, 2026)',
+  u: 'https://www.hhs.gov/sites/default/files/hhs-503a-peptide-enforcement-discretion-policy-appendix-b.pdf',
+};
 const AJMC_VOTES = {
   t: 'AJMC: FDA panel backs 6 peptides for compounding (Jul 2026)',
   u: 'https://www.ajmc.com/view/fda-panel-backs-6-peptides-for-compounding',
@@ -48,9 +52,9 @@ export const REPAIR_IMMUNE: Peptide[] = [
     aka: ['Body Protection Compound-157', 'PL 14736', 'PL10', 'Bepecin', 'pentadecapeptide BPC 157'],
     family: 'repair',
     tier: 3,
-    legal: 'pending',
+    legal: 'interim',
     status:
-      'Off FDA Category 2 since Apr 2026. PCAC voted 8-6-1 on Jul 23, 2026 to recommend it, against FDA staff advice. Not yet lawful to compound. No approval found in any country.',
+      'Pharmacies may compound it with an Rx under an HHS interim policy since Oct 28, 2026, as an injection or an oral or topical form. Not approved in any country.',
     wada: 'Prohibited at all times (S0)',
     seq: 'GEPPPGKPADDAGLV',
     seqNote: '15 amino acids',
@@ -71,7 +75,7 @@ export const REPAIR_IMMUNE: Peptide[] = [
     ],
     halfLife: 'Under 30 minutes in rats and dogs; unknown in humans',
     routes:
-      'Human studies gave it by enema, into the knee joint, into the bladder, or into a vein. Most people inject it under the skin, a route never tested in humans. Capsules, nasal sprays and creams were proposed for compounding but not studied.',
+      'Human studies gave it by enema, into the knee joint, into the bladder, or into a vein. Most people inject it under the skin, a route never tested in humans. The HHS interim policy allows compounded injections under the skin or into muscle, oral forms and topical forms, but not nasal sprays.',
     studied:
       'No trial has tested injection under the skin. Ulcerative colitis RCT abstract (53 adults): 80 mg enema or placebo for 2 weeks. Healthy-volunteer study (24 adults): enema up to 2 mg/kg once daily for 8 days.',
     sideEffects: [
@@ -102,7 +106,7 @@ export const REPAIR_IMMUNE: Peptide[] = [
       'Whether it helps any tendon, ligament or muscle injury in people',
       'Its safety when injected under the skin, the way most people use it',
       'Whether long-term use changes cancer risk',
-      'Whether an HHS interim access policy, under White House review since Oct 14, 2026 and not in effect, will cover it',
+      'Whether FDA will add it to the 503A list, or HHS will withdraw its interim policy',
     ],
     popularity: 899,
     goals: ['tendon', 'injury recovery', 'gut', 'joint pain'],
@@ -119,6 +123,7 @@ export const REPAIR_IMMUNE: Peptide[] = [
         t: 'RAPS: FDA advisory committee backs two controversial peptides (Jul 23, 2026)',
         u: 'https://www.raps.org/resource/fda-advisory-committee-backs-two-controversial-peptides.html',
       },
+      HHS_POLICY,
       HOLLAND_KNIGHT,
       WADA_LIST,
       {
@@ -133,9 +138,9 @@ export const REPAIR_IMMUNE: Peptide[] = [
     aka: ['TB500', 'Thymosin beta-4 fragment 17-23'],
     family: 'repair',
     tier: 4,
-    legal: 'pending',
+    legal: 'interim',
     status:
-      'Off FDA Category 2 since Apr 2026. PCAC voted 8-6-1 on Jul 23, 2026 to recommend it, against FDA staff advice. Not yet lawful to compound.',
+      'Pharmacies may compound it with an Rx as an injection under the skin or into muscle, under an HHS interim policy since Oct 28, 2026. Not FDA-approved. PCAC backed it 8-6-1 in Jul 2026.',
     wada: 'Prohibited at all times (S2.3)',
     seq: ['Ac', 'L', 'K', 'K', 'T', 'E', 'T', 'Q'],
     seqNote: '7 amino acids, N-acetylated; residues 17 to 23 of thymosin beta-4',
@@ -155,7 +160,7 @@ export const REPAIR_IMMUNE: Peptide[] = [
     ],
     halfLife: 'Unknown; no human data and no published half-life',
     routes:
-      'Never tested in people by any route. Proposed for compounding as an injection under the skin or into muscle.',
+      'Never tested in people by any route. The HHS interim policy allows compounding only as an injection under the skin or into muscle.',
     sideEffects: [
       'No human side-effect data exist; FDA found no adverse event reports for TB-500 alone',
       'Possible immune reaction to the injected peptide (FDA concern, which clumping may raise)',
@@ -173,7 +178,7 @@ export const REPAIR_IMMUNE: Peptide[] = [
       'Whether it does anything in people',
       'Its half-life, safe dose range and long-term safety',
       'Whether any effect comes from its breakdown products rather than TB-500 itself',
-      'Whether an HHS interim access policy, under White House review since Oct 14, 2026 and not in effect, will cover it',
+      'Whether FDA will add it to the 503A list, or HHS will withdraw its interim policy',
     ],
     goals: ['tendon', 'injury recovery', 'wound healing', 'muscle'],
     defaultRoute: 'Subcutaneous injection',
@@ -187,6 +192,7 @@ export const REPAIR_IMMUNE: Peptide[] = [
       },
       FDA_BULKS_RISK_PAGE,
       AJMC_VOTES,
+      HHS_POLICY,
       HOLLAND_KNIGHT,
       WADA_LIST,
     ],
@@ -197,9 +203,9 @@ export const REPAIR_IMMUNE: Peptide[] = [
     aka: ['BPC-157/TB-500 blend'],
     family: 'repair',
     tier: 5,
-    legal: 'pending',
+    legal: 'unapproved',
     status:
-      'Neither part is lawful to compound yet. Both left Category 2 in Apr 2026 and got 8-6-1 PCAC votes to recommend in Jul 2026. The blend itself has never been reviewed.',
+      'The blend cannot be compounded: the Oct 28, 2026 HHS interim policy allows only one of its listed peptides per product. BPC-157 and TB-500 can each be compounded alone with an Rx.',
     wada: 'Prohibited at all times (S0 and S2.3)',
     summary:
       'A blend of BPC-157 and TB-500, injected separately or premixed in one vial, sold online for injury recovery. The combination has never been studied in any way.',
@@ -241,7 +247,7 @@ export const REPAIR_IMMUNE: Peptide[] = [
     goals: ['tendon', 'injury recovery', 'healing'],
     defaultRoute: 'Subcutaneous injection',
     defaultUnit: 'mg',
-    sources: [FDA_BPC157_BRIEFING, FDA_TB500_BRIEFING, HSS_REVIEW, MCGUIRE_REVIEW, HOLLAND_KNIGHT, WADA_LIST],
+    sources: [FDA_BPC157_BRIEFING, FDA_TB500_BRIEFING, HSS_REVIEW, MCGUIRE_REVIEW, HHS_POLICY, HOLLAND_KNIGHT, WADA_LIST],
   },
   {
     id: 'ara-290',
@@ -322,9 +328,9 @@ export const REPAIR_IMMUNE: Peptide[] = [
     aka: ['Lys-Pro-Val', 'alpha-MSH 11-13'],
     family: 'immune',
     tier: 4,
-    legal: 'pending',
+    legal: 'interim',
     status:
-      'Off FDA Category 2 since Apr 2026. PCAC voted 8-6-1 on Jul 23, 2026 to recommend it, against FDA staff advice. Not yet lawful to compound. No USP monograph.',
+      'Pharmacies may compound it with an Rx in topical or oral forms only, not injections, under an HHS interim policy since Oct 28, 2026. Not FDA-approved. PCAC backed it 8-6-1.',
     wada: 'Not named; likely S0',
     seq: 'KPV',
     seqNote: '3 amino acids (positions 11 to 13 of alpha-MSH)',
@@ -343,7 +349,7 @@ export const REPAIR_IMMUNE: Peptide[] = [
     ],
     halfLife: 'Unknown; no studies in people or animals',
     routes:
-      'Proposed for compounding as a 0.1% cream or gel for the skin. Injectable forms are also sold. No route has been tested in people.',
+      'Proposed for compounding as a 0.1% cream or gel for the skin. The HHS interim policy allows only topical and oral forms. Injectable forms are sold online. No route has been tested in people.',
     sideEffects: [
       'No side-effect reports exist, but FDA found no documented human use, so this does not mean it is safe',
       'Possible immune reaction (FDA could not rule it out)',
@@ -363,7 +369,7 @@ export const REPAIR_IMMUNE: Peptide[] = [
       'Whether it does anything in people',
       'Its safety in people by any route',
       'Whether it reaches the gut or skin in useful amounts',
-      'Whether an HHS interim access policy, under White House review since Oct 14, 2026 and not in effect, will cover it',
+      'Whether FDA will add it to the 503A list, or HHS will withdraw its interim policy',
     ],
     goals: ['gut', 'inflammation', 'eczema', 'skin'],
     defaultRoute: 'Topical',
@@ -383,6 +389,7 @@ export const REPAIR_IMMUNE: Peptide[] = [
         u: 'https://www.raps.org/resource/fda-advisory-committee-backs-two-controversial-peptides.html',
       },
       AJMC_VOTES,
+      HHS_POLICY,
       HOLLAND_KNIGHT,
       WADA_LIST,
     ],

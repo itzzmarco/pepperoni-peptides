@@ -53,13 +53,13 @@ export function BellyClock({ selected, next, recent, onSelect }: {
 }
 
 /** A small read-only clock face for the Today tile, with the suggested hour filled in. */
-export function MiniClock({ hour }: { hour: number }) {
+export function MiniClock({ hour, size = 72 }: { hour: number; size?: number }) {
   const dot = (h: number) => {
     const a = ((h % 12) * Math.PI) / 6;
     return { cx: 27 + 20 * Math.sin(a), cy: 27 - 20 * Math.cos(a) };
   };
   return (
-    <svg className="miniclock" width="72" height="72" viewBox="0 0 54 54" aria-hidden="true">
+    <svg className="miniclock" width={size} height={size} viewBox="0 0 54 54" aria-hidden="true">
       <circle className="face" cx="27" cy="27" r="26" />
       {BELLY.filter(b => b.h !== hour).map(b => <circle key={b.h} className="h" r="3" {...dot(b.h)} />)}
       <circle className="navel" cx="27" cy="27" r="3" />

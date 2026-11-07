@@ -3,17 +3,18 @@ import { SITES, siteLabel, suggestSite, type SitePlan } from '../lib/sites';
 
 /**
  * Front-facing figure with tappable injection sites: peach if used in the last 3 days, dashed ring on the suggested one.
- * Only the sites that fit this kind of injection (`plan`) are shown.
+ * Only the sites that fit this kind of injection (`plan`) are shown. `suggested` is this peptide's
+ * next spot in its own rotation; without it, the allowed site rested longest.
  */
-export function BodyMap({ selected, onSelect, last, plan, route }: {
-  selected: string; onSelect: (k: string) => void; last: Record<string, Date>; plan: SitePlan; route: string;
+export function BodyMap({ selected, onSelect, last, plan, route, suggested }: {
+  selected: string; onSelect: (k: string) => void; last: Record<string, Date>; plan: SitePlan; route: string; suggested?: string;
 }) {
   const shown = SITES.filter(s => plan.sites.includes(s.k));
   const label = (k: string) => siteLabel(k, route);
   const age = (k: string) => (!last[k] ? 'never' : Date.now() - last[k].getTime() < 3 * DAY ? 'fresh' : 'rested');
   const lastTxt = (k: string) => (last[k] ? `last used ${fmtShort(last[k])}` : 'not used yet');
   const pick = (k: string) => onSelect(selected === k ? '' : k);
-  const next = suggestSite(last, plan.sites);
+  const next = suggested && plan.sites.includes(suggested) ? suggested : suggestSite(last, plan.sites);
   return (
     <div className="stack" style={{ gap: 10 }}>
       <div className="bodymap">

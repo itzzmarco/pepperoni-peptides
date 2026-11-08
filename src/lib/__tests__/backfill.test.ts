@@ -69,6 +69,15 @@ describe('dueDayKeys', () => {
     expect(dueDayKeys(r, [], monthGrid(2026, 9, NOW)).has('2026-10-05')).toBe(true);
     expect(dueDayKeys({ ...r, freq: '3w' }, [], monthGrid(2026, 9, NOW)).size).toBe(0);
   });
+
+  it('marks every chosen weekday for set-weekday schedules, up to today', () => {
+    const r = { ...reg('r1'), freq: 'days', weekdays: [1, 5] }; // Mon and Fri
+    const keys = [...dueDayKeys(r, [], monthGrid(2026, 10, NOW))];
+    expect(keys).toEqual([]); // Nov 1 is a Sunday: nothing scheduled yet this month
+    const oct = [...dueDayKeys(r, [], monthGrid(2026, 9, NOW))];
+    expect(oct.slice(0, 3)).toEqual(['2026-10-02', '2026-10-05', '2026-10-09']);
+    expect(oct).toHaveLength(9);
+  });
 });
 
 describe('planBackfill', () => {

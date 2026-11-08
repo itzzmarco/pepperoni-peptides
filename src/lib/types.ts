@@ -95,6 +95,8 @@ export interface Regimen {
   vialMg: string;
   diluentMl: string;
   notes: string;
+  /** For freq 'days': the days of the week it's taken, 0 = Sunday to 6 = Saturday. */
+  weekdays?: number[];
   paused?: boolean;
   createdAt?: string;
 }

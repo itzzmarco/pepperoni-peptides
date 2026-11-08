@@ -3,6 +3,7 @@ import type { Checkin, DoseEntry, Ledger } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { useAccount } from '../lib/account';
 import { intervalDays } from '../lib/schedule';
+import { download } from '../lib/download';
 import { DAY, dayKey, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
 import { adherence, doseDays, effectDays, effectsNearDoses, patternWeeks, siteCounts, topEffects } from '../lib/insights';
 import { SITE_LABEL } from '../lib/sites';
@@ -28,17 +29,6 @@ function DeleteButton({ onConfirm }: { onConfirm: () => void }) {
       {armed ? 'Confirm' : 'Delete'}
     </button>
   );
-}
-
-function download(filename: string, data: string, type: string) {
-  const url = URL.createObjectURL(new Blob([data], { type }));
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function ExportPanel({ ledger }: { ledger: Ledger }) {

@@ -190,7 +190,7 @@ a.tile { color: var(--ink); }
 .field { display: grid; gap: 6px; min-width: 0; }
 .field > span { font-size: var(--fs-sm); font-weight: 600; }
 .field small { color: var(--ink-3); font-size: var(--fs-xs); font-weight: 400; }
-input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="search"], input[type="date"], input[type="datetime-local"], select, textarea {
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="search"], input[type="date"], input[type="datetime-local"], input[type="time"], select, textarea {
   width: 100%; background: var(--surface); border: 0; box-shadow: var(--ring); border-radius: var(--r-sm); padding: 10px 14px; min-height: 48px;
 }
 input[type="search"] { border-radius: 24px; padding-left: 44px; }
@@ -293,6 +293,13 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .miniclock .h { fill: var(--sky-dot); }
 .miniclock .navel { fill: var(--ink-4); }
 .miniclock .next { fill: var(--sky-ink); }
+.minibody { flex: none; overflow: visible; }
+.minibody .fig > * { fill: var(--surface); }
+.minibody .next { fill: var(--sky-ink); stroke: var(--surface); stroke-width: 6; }
+.minibody .behind { fill: none; stroke: var(--sky-ink); stroke-width: 4; stroke-dasharray: 6 6; }
+.minibody .pop { transform-box: fill-box; transform-origin: center; }
+.nextshot { display: flex; align-items: center; gap: 14px; background: var(--sky); border-radius: 16px; padding: 10px 14px 10px 10px; }
+.nextshot .label { color: var(--sky-ink); }
 .bar { height: 6px; border-radius: 3px; background: color-mix(in srgb, currentColor 15%, transparent); overflow: hidden; }
 .bar i { display: block; height: 100%; border-radius: 3px; background: currentColor; }
 
@@ -598,3 +605,5 @@ footer.foot p { max-width: 90ch; }
   .hour:active, .site:active, .btn:active, .fchip:active { transform: scale(.96); }
   .site:active { transform: translate(-50%, -50%) scale(.94); }
 }
+.weekdays { gap: 6px; }
+.weekdays .fchip { min-width: 44px; padding: 0 10px; justify-content: center; }

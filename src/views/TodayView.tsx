@@ -5,14 +5,13 @@ import { drugAmount, isVolumeUnit } from '../lib/doseMath';
 import { checkRegimen } from '../lib/vial';
 import { DAY, dayKey, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
 import { adherence, topEffects, usualMinutes } from '../lib/insights';
-import { BELLY, lastBellyHour, lastUsedBySite, nextBellyHour, siteLabel, sitePlan, suggestSite } from '../lib/sites';
-import { INJECTABLE } from '../data/options';
+import { nextSite, siteLabel, type NextSite } from '../lib/sites';
 import { PEP } from '../data/peptides';
 import { TIERS } from '../data/reference';
-import { useAccount } from '../lib/account';
+import { configured, useAccount } from '../lib/account';
 import { firstName, usePartners, weightChange } from '../lib/partner';
 import { DeviceLogPrompt } from '../sheets/AccountSheet';
-import { MiniClock } from '../components/BellyClock';
+import { SiteFigure, doseText, whenNext } from '../components/NextShot';
 import { useCountUp } from '../components/Motion';
 import { Glp1Alert, regName, type Actions } from './PeptidesView';
 
@@ -46,8 +45,8 @@ function DayBar({ done, todo, now }: { done: Date[]; todo: Date[]; now: Date }) 
   );
 }
 
-function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now }: {
-  r: Regimen; st: RegimenStatus; actions: Actions; doneToday: number; dueToday: number; todo: Date[]; done: Date[]; now: Date;
+function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now, site }: {
+  r: Regimen; st: RegimenStatus; actions: Actions; doneToday: number; dueToday: number; todo: Date[]; done: Date[]; now: Date; site: NextSite | null;
 }) {
   const { math, checks } = checkRegimen(r);
   const usual = todo[0];
@@ -61,7 +60,7 @@ function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now }: {
       <div className="stack" style={{ gap: 4 }}>
         <span style={{ fontSize: '1.625rem', fontWeight: 600, letterSpacing: '-.01em', lineHeight: 1.15 }}>{regName(r)} · {fmtNum(Number(r.dose), 3)} {r.unit}</span>
         <span className="sub" style={{ fontSize: '.9375rem' }}>
-          {[usual && st.s !== 'ok' ? `Usually around ${fmtTime(usual)}` : '', math ? (isVolumeUnit(r.unit) ? `about ${drugAmount(math.doseMg, PEP[r.compoundId]?.defaultUnit)}` : `draw ${fmtNum(math.units, 1)} units`) : checks.length ? 'check the vial details' : '', r.route].filter(Boolean).join(' · ')}
+          {[usual && st.s !== 'ok' ? `Usually around ${fmtTime(usual)}` : '', math ? (isVolumeUnit(r.unit) ? `about ${drugAmount(math.doseMg, PEP[r.compoundId]?.defaultUnit)}` : `draw ${fmtNum(math.units, 1)} units`) : checks.length ? 'check the vial details' : '', site ? siteLabel(site.site, r.route) : r.route].filter(Boolean).join(' · ')}
         </span>
       </div>
       {(done.length > 0 || todo.length > 0) && <DayBar done={done} todo={todo} now={now} />}
@@ -83,7 +82,9 @@ function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now }: {
 
 export function TodayView(actions: Actions) {
   const { regimens, doses, checkins } = useLedger();
-  const signedIn = !!useAccount().user;
+  const acct = useAccount();
+  const signedIn = !!acct.user;
+  const seenHere = acct.seenHere;
   const now = new Date();
   const today = dayKey(now);
   const list = upcoming(regimens, doses, now);
@@ -116,15 +117,8 @@ export function TodayView(actions: Actions) {
   const checkedIn = checkins.find(c => dayKey(new Date(c.at)) === today);
   const lastFlag = checkins.find(c => c.flags.length && Date.now() - new Date(c.at).getTime() < 2 * DAY);
 
-  // Site suggestion for the next injectable dose: belly clock if this regimen has used it, else the least-used body site.
-  const inj = list.find(x => INJECTABLE.has(x.r.route));
-  const lastUsed = lastUsedBySite(doses);
-  // The sites that fit this injection: under the skin or into the muscle, and what the drug's label allows.
-  const plan = inj ? sitePlan(inj.r.route, inj.r.compoundId) : null;
-  const bh = inj && plan?.belly ? lastBellyHour(inj.r.id, doses) : null;
-  const nextHour = bh ? nextBellyHour(bh, lastUsed) : null;
-  const nextSite = plan ? suggestSite(lastUsed, plan.sites) : '';
-  const usedSite = !!plan?.sites.some(k => lastUsed[k]);
+  // Each injected peptide's next spot in its own rotation (belly clock or body map), soonest due first.
+  const shots = list.flatMap(x => { const s = nextSite(x.r, doses); return s ? [{ r: x.r, s }] : []; }).slice(0, 3);
   const comingUp = list.find(x => x !== next && x.st.s === 'ok');
   const learnP = next ? PEP[next.r.compoundId] : undefined;
 
@@ -139,7 +133,11 @@ export function TodayView(actions: Actions) {
   const hour = now.getHours();
   const hello = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   let line1: string, line2: string;
-  if (!regimens.length) { line1 = 'Welcome.'; line2 = 'Add what you were prescribed to start.'; }
+  const hasLog = regimens.length > 0 || doses.length > 0 || checkins.length > 0;
+  // Signed out on a site with accounts, an empty log usually means "sign in", not "start over".
+  const offerSignIn = configured && !signedIn && !regimens.length;
+  if (!regimens.length && offerSignIn && seenHere) { line1 = "You're signed out."; line2 = 'Sign in to see your log.'; }
+  else if (!regimens.length) { line1 = hasLog ? 'Nothing to take yet.' : 'Welcome.'; line2 = 'Add what you were prescribed to start.'; }
   else if (late) { line1 = `${plural(late, 'dose')} overdue.`; line2 = 'Log it when you take it.'; }
   else if (dueNow.length) { line1 = adh.pct == null || adh.pct >= 0.8 ? "You're on track." : "Here's today."; line2 = `${plural(dueNow.length, 'dose')} left today.`; }
   else { line1 = "You're all set today."; line2 = next?.st.due ? `Next: ${regName(next.r)}, ${fmtShort(next.st.due)}.` : 'Nothing scheduled.'; }
@@ -169,18 +167,31 @@ export function TodayView(actions: Actions) {
       <Glp1Alert regimens={regimens} />
 
       {next ? (
-        <NextUp r={next.r} st={next.st} actions={actions} now={now} done={done} todo={todo}
+        <NextUp r={next.r} st={next.st} actions={actions} now={now} done={done} todo={todo} site={shots.find(x => x.r === next.r)?.s ?? null}
           doneToday={loggedToday.length} dueToday={list.filter(x => x.st.s === 'due' || x.st.s === 'late').length} />
+      ) : offerSignIn && seenHere ? (
+        <section className="tile dark rise" style={rise(2)}>
+          <span className="eyebrow">Signed out</span>
+          <span style={{ fontSize: '1.375rem', fontWeight: 600, lineHeight: 1.25 }}>Sign in and your peptides, shots and weights come back.</span>
+          <span className="sub">Your log is saved in your account. Anything added while signed out stays on this device only, so sign in before you log.</span>
+          <div className="row-wrap">
+            <button className="btn" onClick={actions.signIn}>Sign in</button>
+            <button className="btn glass" onClick={actions.addRegimen}>Add a peptide anyway</button>
+          </div>
+        </section>
       ) : (
         <section className="tile dark rise" style={rise(2)}>
           <span className="eyebrow">Start your log</span>
           <span style={{ fontSize: '1.375rem', fontWeight: 600, lineHeight: 1.25 }}>Track a peptide or medication your clinician prescribed.</span>
           <span className="sub">You'll see what's due, how consistent you've been, and where to inject next. {signedIn ? 'It syncs to your account, and only you can see it.' : 'Nothing leaves this device.'}</span>
-          <div><button className="btn" onClick={actions.addRegimen}>Add a peptide</button></div>
+          <div className="row-wrap">
+            <button className="btn" onClick={actions.addRegimen}>Add a peptide</button>
+            {offerSignIn && <button className="btn glass" onClick={actions.signIn}>I have an account</button>}
+          </div>
         </section>
       )}
 
-      {regimens.length > 0 && (
+      {hasLog && (
         <div className="bento">
           <a href="#trends" className="tile mint row-2 rise" style={rise(3)}>
             <span className="label">Adherence</span>
@@ -226,20 +237,18 @@ export function TodayView(actions: Actions) {
             </a>
           )}
 
-          {inj && plan && (
-            <button type="button" className="tile sky span-2 rise" style={{ ...rise(6), border: 0, textAlign: 'left', font: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 16 }} onClick={() => actions.logDose(inj.r)}>
-              {nextHour ? <MiniClock hour={nextHour} /> : (
-                <span className="badge-icon" style={{ background: 'var(--surface)', color: 'var(--sky-ink)' }} aria-hidden="true">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="2.5" /><path d="M12 8v7M8 10l4 1 4-1M10 21l2-6 2 6" /></svg>
-                </span>
-              )}
-              <span className="stack" style={{ gap: 2 }}>
-                <span className="label">Next site · {regName(inj.r)}</span>
-                <span style={{ fontSize: '1.375rem', fontWeight: 600, lineHeight: 1.2 }}>{nextHour ? BELLY.find(b => b.h === nextHour)!.label : siteLabel(nextSite, inj.r.route)}</span>
-                <span className="sub">{nextHour ? `One hour clockwise from ${bh} o'clock` : usedSite ? 'Rested longest of your sites' : plan.short}</span>
+          {shots.map(({ r, s: sug }, i) => (
+            <button key={r.id} type="button" className="tile sky span-2 rise" style={{ ...rise(6 + i), border: 0, textAlign: 'left', font: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 16 }} onClick={() => actions.logDose(r)}
+              aria-label={`Next shot of ${regName(r)}: ${siteLabel(sug.site, r.route)}, ${whenNext(r, doses, now)}. Log it.`}>
+              <SiteFigure s={sug} size={76} />
+              <span className="stack" style={{ gap: 2, minWidth: 0 }}>
+                <span className="label">Next shot · {regName(r)}</span>
+                <span style={{ fontSize: '1.375rem', fontWeight: 600, lineHeight: 1.2 }}>{siteLabel(sug.site, r.route)}</span>
+                <span className="sub" style={{ color: 'var(--ink-2)', fontWeight: 600 }}>{whenNext(r, doses, now)} · {doseText(r)}</span>
+                <span className="sub">{sug.why}</span>
               </span>
             </button>
-          )}
+          ))}
 
           <button type="button" className="tile rise" style={{ ...rise(7), border: 0, textAlign: 'left', font: 'inherit', cursor: 'pointer', gap: 6 }} onClick={actions.checkin}>
             <span className="label" style={{ color: 'var(--mint-ink)' }}>Check-in</span>

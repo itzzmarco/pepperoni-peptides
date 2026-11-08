@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { FamilyKey, Peptide, Regimen } from '../lib/types';
-import { store, useLedger } from '../lib/store';
-import { FREQS } from '../lib/schedule';
+import { samePeptide, store, useLedger } from '../lib/store';
+import { DAY_SHORT, FREQS, WEEK, freqText, weekdaysOf } from '../lib/schedule';
+import { configured, useAccount } from '../lib/account';
 import { SYRINGE_UNITS, drugAmount, isVolumeUnit } from '../lib/doseMath';
 import { checkDose } from '../lib/vial';
 import { dayKey, fmtNum, newId } from '../lib/format';
@@ -42,9 +43,13 @@ export function blankRegimen(compoundId = ''): Regimen {
   };
 }
 
-export function RegimenSheet({ initial, isNew, onClose, onSaved }: { initial: Regimen; isNew: boolean; onClose: () => void; onSaved: (r?: Regimen) => void }) {
+/** `onLog` opens the dose sheet for a peptide already tracked; `onSignIn` opens sign-in. */
+export function RegimenSheet({ initial, isNew, onClose, onSaved, onLog, onSignIn }: {
+  initial: Regimen; isNew: boolean; onClose: () => void; onSaved: (r?: Regimen) => void; onLog?: (r: Regimen) => void; onSignIn?: () => void;
+}) {
   const toast = useToast();
   const { regimens, doses } = useLedger();
+  const signedIn = !!useAccount().user;
   const [r, setR] = useState<Regimen>(initial);
   const [pick, setPick] = useState(initial.compoundId || (initial.name ? OTHER : ''));
   const [ack, setAck] = useState(false);
@@ -58,6 +63,15 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved }: { initial: Re
   // Changing the unit of a regimen that has history: offer to relabel the doses logged in the old unit.
   const oldUnitDoses = isNew || r.unit === initial.unit ? [] : doses.filter(x => x.rid === r.id && x.unit === initial.unit);
   const [relabel, setRelabel] = useState(false);
+  // Adding something already in the list is usually someone looking for where to log today's dose.
+  const already = isNew && pick ? regimens.find(x => !x.paused && samePeptide(x, { compoundId: p ? pick : '', name: pick === OTHER ? r.name : '' })) : undefined;
+
+  // Choosing set weekdays starts with today's day ticked, so there's always at least one.
+  const setFreq = (freq: string) => setR(cur => ({ ...cur, freq, weekdays: freq === 'days' && !weekdaysOf(cur).length ? [new Date().getDay()] : cur.weekdays }));
+  const toggleDay = (d: number) => setR(cur => {
+    const has = weekdaysOf(cur).includes(d);
+    return { ...cur, weekdays: has ? weekdaysOf(cur).filter(x => x !== d) : [...weekdaysOf(cur), d] };
+  });
 
   const choose = (v: string) => {
     setPick(v);
@@ -67,10 +81,11 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved }: { initial: Re
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const out: Regimen = { ...r, compoundId: p ? pick : '', name: pick === OTHER ? r.name.trim() : '', prescriber: r.prescriber.trim(), notes: r.notes.trim() };
+    const out: Regimen = { ...r, compoundId: p ? pick : '', name: pick === OTHER ? r.name.trim() : '', prescriber: r.prescriber.trim(), notes: r.notes.trim(), weekdays: r.freq === 'days' ? weekdaysOf(r) : undefined };
     const problem = !out.compoundId && !out.name ? 'Choose a peptide or type a name.'
       : !(Number(out.dose) > 0) ? 'Enter the dose you were prescribed.'
       : out.freq === 'custom' && !(Number(out.everyDays) >= 1) ? 'Enter how many days between doses.'
+      : out.freq === 'days' && !weekdaysOf(out).length ? 'Choose at least one day of the week.'
       : firstTime && !ack ? "Please confirm you understand this log isn't medical advice." : '';
     if (problem) { setErr(problem); return; }
     if (isNew) out.createdAt = new Date().toISOString();
@@ -91,6 +106,13 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved }: { initial: Re
           </div>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
         </div>
+        {firstTime && configured && !signedIn && onSignIn && (
+          <div className="alert info" role="note">
+            <b>Have an account? Sign in first.</b>
+            <span>You're signed out, so what you add here stays on this device only. Signing in brings back the peptides, shots and weights already in your account.</span>
+            <div style={{ marginTop: 6 }}><button type="button" className="btn sm" onClick={onSignIn}>Sign in</button></div>
+          </div>
+        )}
         <label className="field"><span>Peptide or medication</span>
           <select id="r-compound" value={pick} onChange={e => choose(e.target.value)}>
             <option value="">Choose…</option>
@@ -103,13 +125,29 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved }: { initial: Re
           </select>
         </label>
         {pick === OTHER && <label className="field"><span>Name</span><input type="text" id="r-name" value={r.name} onChange={set('name')} maxLength={80} /></label>}
+        {already && (
+          <div className="alert info" role="status">
+            <b>You already track {regName(already)}: {fmtNum(Number(already.dose), 3)} {already.unit}, {freqText(already).toLowerCase()}.</b>
+            <span>To record a dose you just took, log it there so it stays with your history. Add it again here only for a second, separate regimen.</span>
+            {onLog && <div style={{ marginTop: 6 }}><button type="button" className="btn sm" onClick={() => onLog(already)}>Log a {regName(already)} dose</button></div>}
+          </div>
+        )}
         <Caution p={p} />
         <div className="grid-3">
           <label className="field"><span>Dose</span><input type="number" id="r-dose" step="any" min="0" inputMode="decimal" value={r.dose} onChange={set('dose')} /></label>
           <label className="field"><span>Unit</span><select id="r-unit" value={r.unit} onChange={set('unit')}><UnitOptions compoundId={p ? pick : ''} /></select></label>
-          <label className="field"><span>How often</span><select id="r-freq" value={r.freq} onChange={set('freq')}>{FREQS.map(f => <option key={f.k} value={f.k}>{f.label}</option>)}</select></label>
+          <label className="field"><span>How often</span><select id="r-freq" value={r.freq} onChange={e => setFreq(e.target.value)}>{FREQS.map(f => <option key={f.k} value={f.k}>{f.label}</option>)}</select></label>
         </div>
         <UsualUnits compoundId={p ? pick : ''} value={r.unit} onPick={u => setR({ ...r, unit: u })} />
+        {r.freq === 'days' && (
+          <div className="field">
+            <span id="r-days-h">Which days?</span>
+            <div className="row-wrap weekdays" role="group" aria-labelledby="r-days-h">
+              {WEEK.map(d => <button key={d} type="button" className="fchip" aria-pressed={weekdaysOf(r).includes(d)} onClick={() => toggleDay(d)}>{DAY_SHORT[d]}</button>)}
+            </div>
+            <small>For 5 days on, 2 off, pick Mon to Fri. Due days follow the calendar, so a late dose doesn't move the next one.</small>
+          </div>
+        )}
         {r.freq === 'custom' && <label className="field"><span>Every how many days?</span><input type="number" id="r-every" min="1" step="1" value={r.everyDays} onChange={set('everyDays')} /></label>}
         <div className="grid-2">
           <label className="field"><span>How it's taken</span><select id="r-route" value={r.route} onChange={set('route')}>{ROUTES.map(x => <option key={x}>{x}</option>)}</select></label>

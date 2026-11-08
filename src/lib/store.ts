@@ -1,5 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import type { Checkin, DoseEntry, Ledger, Regimen } from './types';
+import { intervalDays } from './schedule';
+import { dayKey } from './format';
 
 /** The log kept on this device when nobody is signed in. A signed-in account gets its own key. */
 export const STORAGE_KEY = 'peptide-ledger:v1';
@@ -65,6 +67,39 @@ export function merge(base: Ledger, incoming: Ledger): { ledger: Ledger; added: 
     },
     added,
   };
+}
+
+/** Two regimens of the same thing: the same library entry, or the same typed name for something not in the library. */
+export function samePeptide(a: Pick<Regimen, 'compoundId' | 'name'>, b: Pick<Regimen, 'compoundId' | 'name'>) {
+  if (a.compoundId || b.compoundId) return a.compoundId === b.compoundId;
+  const n = (x: string) => x.trim().toLowerCase();
+  return !!n(a.name) && n(a.name) === n(b.name);
+}
+
+/**
+ * Prepares a log saved while signed out for moving into an account (`base`), so nothing shows up twice:
+ * - A peptide the account already tracks isn't added again. Its doses move onto the account's regimen.
+ * - A dose of it that the account already has for that day (or that hour, for doses more than once a day) is left out.
+ * Check-ins and peptides the account doesn't track come across as they are.
+ */
+export function foldIn(base: Ledger, incoming: Ledger): Ledger {
+  const into = new Map<string, Regimen>();
+  const regimens: Regimen[] = [];
+  for (const r of incoming.regimens) {
+    const match = base.regimens.some(b => b.id === r.id) ? undefined : base.regimens.find(b => !b.paused && samePeptide(b, r));
+    if (match) into.set(r.id, match);
+    else regimens.push(r);
+  }
+  const doses: DoseEntry[] = [];
+  for (const d of incoming.doses) {
+    const m = into.get(d.rid);
+    if (!m) { doses.push(d); continue; }
+    const daily = (intervalDays(m) ?? 1) >= 1;
+    const t = Date.parse(d.at), day = dayKey(new Date(t));
+    const twice = base.doses.some(x => x.rid === m.id && (daily ? dayKey(new Date(x.at)) === day : Math.abs(Date.parse(x.at) - t) < 3600e3));
+    if (!twice) doses.push({ ...d, rid: m.id });
+  }
+  return { version: 1, regimens, doses, checkins: incoming.checkins };
 }
 
 /** Reads a saved log from storage, or null when there is none or it can't be read. */

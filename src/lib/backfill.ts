@@ -1,6 +1,6 @@
 import type { Checkin, DoseEntry, Ledger, Regimen } from './types';
 import { DAY, dayKey, newId, startOfDay } from './format';
-import { intervalDays } from './schedule';
+import { intervalDays, scheduledOn } from './schedule';
 import { usualMinutes } from './insights';
 
 /**
@@ -63,6 +63,10 @@ export function readWeight(s: string): number | null {
 export function dueDayKeys(r: Regimen, doses: DoseEntry[], cells: (DayCell | null)[]): Set<string> {
   const iv = intervalDays(r);
   const out = new Set<string>();
+  if (r.freq === 'days') {
+    for (const c of cells) if (c && !c.future && scheduledOn(r, c.date)) out.add(c.key);
+    return out;
+  }
   if (!iv || iv < 1 || !Number.isInteger(iv)) return out;
   const mine = doses.filter(d => d.rid === r.id).map(d => startOfDay(new Date(d.at)).getTime());
   const anchor = mine.length ? Math.min(...mine) : r.start ? dayAt(r.start, 0).getTime() : NaN;

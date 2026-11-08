@@ -288,6 +288,13 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .miniclock .h { fill: var(--sky-dot); }
 .miniclock .navel { fill: var(--ink-4); }
 .miniclock .next { fill: var(--sky-ink); }
+.minibody { flex: none; overflow: visible; }
+.minibody .fig > * { fill: var(--surface); }
+.minibody .next { fill: var(--sky-ink); stroke: var(--surface); stroke-width: 6; }
+.minibody .behind { fill: none; stroke: var(--sky-ink); stroke-width: 4; stroke-dasharray: 6 6; }
+.minibody .pop { transform-box: fill-box; transform-origin: center; }
+.nextshot { display: flex; align-items: center; gap: 14px; background: var(--sky); border-radius: 16px; padding: 10px 14px 10px 10px; }
+.nextshot .label { color: var(--sky-ink); }
 .bar { height: 6px; border-radius: 3px; background: color-mix(in srgb, currentColor 15%, transparent); overflow: hidden; }
 .bar i { display: block; height: 100%; border-radius: 3px; background: currentColor; }
 

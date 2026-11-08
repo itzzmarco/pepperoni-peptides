@@ -13,6 +13,7 @@ import { PEP } from '../data/peptides';
 import { UNREGULATED_SOURCE } from '../data/options';
 import { LegalChip, TierChip } from '../components/Chips';
 import { useToast } from '../components/Toast';
+import { NextShot } from '../components/NextShot';
 
 export const regName = (r: Pick<Regimen, 'compoundId' | 'name'>) => PEP[r.compoundId]?.name ?? (r.name || 'Unnamed');
 
@@ -21,6 +22,8 @@ export type Actions = {
   editRegimen: (r: Regimen) => void;
   logDose: (r: Regimen) => void;
   checkin: () => void;
+  /** Opens sign-in. */
+  signIn: () => void;
 };
 
 export function Strip({ rid, doses }: { rid: string; doses: DoseEntry[] }) {
@@ -128,6 +131,7 @@ function RegimenCard({ r, doses, actions, example, i = 0 }: { r: Regimen; doses:
       {checks.length > 0 && (
         <div className="alert danger"><b>The dose and vial numbers don't add up.</b><span>{checks[0].title} Tap Edit to check them.</span></div>
       )}
+      {!example && <NextShot r={r} doses={doses} />}
       {p && <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /></div>}
       {r.prescriber && <div className="small muted">Prescribed by {r.prescriber}</div>}
       {r.source === UNREGULATED_SOURCE && (

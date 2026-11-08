@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
-import { STORAGE_KEY, countItems, kv, readLedger, store } from './store';
+import { STORAGE_KEY, countItems, foldIn, kv, readLedger, store } from './store';
 import { Sync, syncStateKey, type PulledItem, type Remote, type SyncStatus } from './sync';
 
 /**
@@ -23,6 +23,8 @@ export const accountKey = (uid: string) => `${STORAGE_KEY}:${uid}`;
 /** The copy of linked partners' logs kept on this device for a signed-in person. */
 export const partnersKey = (uid: string) => `peptide-ledger:partners:${uid}`;
 const keptKey = (uid: string) => `peptide-ledger:device-kept:${uid}`;
+/** Set the first time anyone signs in on this device, and kept after sign-out, so a signed-out screen can say "sign in" rather than "start". */
+const SEEN_KEY = 'peptide-ledger:signed-in-here';
 
 export interface AccountState {
   configured: boolean;
@@ -41,11 +43,13 @@ export interface AccountState {
   linkError: string;
   /** True when the Supabase project has Google sign-in turned on. */
   google: boolean;
+  /** Someone has signed in on this device before (and may have signed out, or been signed out). */
+  seenHere: boolean;
 }
 
 let state: AccountState = {
   configured, user: null, status: 'idle', error: '', pending: 0, lastSynced: null,
-  deviceItems: 0, deviceKept: false, recovering: false, linkError: linkErrorFromUrl(), google: false,
+  deviceItems: 0, deviceKept: false, recovering: false, linkError: linkErrorFromUrl(), google: false, seenHere: seenBefore(),
 };
 const listeners = new Set<() => void>();
 function patch(p: Partial<AccountState>) {
@@ -104,6 +108,10 @@ function fromSync() {
   if (sync.status === 'offline' || sync.status === 'error') retry = setTimeout(runSync, RETRY_MS);
 }
 
+function seenBefore() {
+  try { return kv?.getItem(SEEN_KEY) === '1'; } catch { return false; }
+}
+
 function deviceInfo(uid: string) {
   const device = readLedger(kv, STORAGE_KEY);
   const n = device ? countItems(device) : 0;
@@ -128,7 +136,8 @@ function attach(user: { id: string; email?: string | null }) {
     clearTimeout(debounce);
     debounce = setTimeout(runSync, 800);
   };
-  patch({ user: { id: user.id, email }, ...deviceInfo(user.id) });
+  try { kv?.setItem(SEEN_KEY, '1'); } catch { /* storage blocked */ }
+  patch({ user: { id: user.id, email }, seenHere: true, ...deviceInfo(user.id) });
   fromSync();
 }
 
@@ -240,6 +249,14 @@ function checkProviders() {
     .catch(() => { providers = null; });
 }
 
+/**
+ * True inside another app's built-in browser (Facebook, Messenger, Instagram, an Android web view), where
+ * Google refuses to sign anyone in and what's saved may not be the same as in the phone's own browser.
+ */
+export function inAppBrowser(ua = typeof navigator === 'undefined' ? '' : navigator.userAgent): boolean {
+  return /; wv\)|FBAN|FBAV|FB_IAB|Instagram|Snapchat|Line\/|MicroMessenger|musical_ly|TikTok/i.test(ua);
+}
+
 /** Starts loading the client before the person needs it, for example when the account sheet opens. */
 export function warmUp() {
   if (!configured) return;
@@ -313,11 +330,14 @@ export function syncNow() {
   runSync();
 }
 
-/** Moves the entries saved on this device while signed out into the signed-in account. */
+/**
+ * Moves the entries saved on this device while signed out into the signed-in account. A peptide the
+ * account already tracks isn't added a second time; its doses join the account's regimen.
+ */
 export function moveDeviceLog(): number {
   const device = readLedger(kv, STORAGE_KEY);
   if (!device || !state.user) return 0;
-  const added = store.importBackup(device) ?? 0;
+  const added = store.importBackup(foldIn(store.get(), device)) ?? 0;
   try { kv?.removeItem(STORAGE_KEY); } catch { /* storage blocked */ }
   patch({ deviceItems: 0, deviceKept: false });
   return added;

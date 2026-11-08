@@ -121,6 +121,7 @@ export function App() {
         <div className="wrap">
           <p><b>Peptide Ledger</b> is an educational reference and personal journal. It does not diagnose, treat, or recommend doses, and it does not sell or endorse any product. Information reflects sources reviewed through {AS_OF}; rules and evidence change, so check the linked sources and ask your clinician or pharmacist.</p>
           <p>US Poison Control: 1-800-222-1222 · Emergency: 911 · Suicide &amp; Crisis Lifeline: 988</p>
+          <p><a href="./privacy.html">Privacy Policy</a> · <a href="./terms.html">Terms</a></p>
         </div>
       </footer>
       <div className="app-end" />

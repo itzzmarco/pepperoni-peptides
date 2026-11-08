@@ -210,6 +210,11 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .checks.red label:has(input:checked) { background: var(--danger); color: #fff; }
 .checks input { accent-color: var(--accent); margin: 0; }
 .tile.peach .checks label { box-shadow: none; }
+/* A sentence to agree to, not a chip: a card with the box at the start of the first line. */
+.checks.long label { border-radius: var(--r-md); padding: 12px 14px; align-items: flex-start; line-height: 1.45; }
+.checks.long label:has(input:checked) { background: var(--surface); color: var(--ink); box-shadow: var(--ring); }
+.checks.long input { margin-top: 3px; flex: none; width: 18px; height: 18px; }
+.checks.long a { color: var(--sky-ink); font-weight: 600; }
 
 /* Chips */
 .chip { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 600; padding: 5px 10px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; line-height: 1.3; }

@@ -60,3 +60,48 @@ describe('adherenceDays', () => {
     expect(days[0].date.getDate()).toBe(29);
   });
 });
+
+describe('set weekdays', () => {
+  // NOW is Mon Oct 26, 2026, noon. Mon/Wed/Fri.
+  const mwf = reg({ freq: 'days', weekdays: [5, 1, 3, 3, 9] });
+
+  it('describes the days in week order and ignores bad values', () => {
+    expect(freqText(mwf)).toBe('Mon, Wed, Fri');
+    expect(freqText(reg({ freq: 'days', weekdays: [1, 2, 3, 4, 5] }))).toBe('Mon to Fri');
+    expect(freqText(reg({ freq: 'days', weekdays: [0, 1, 2, 3, 4, 5, 6] }))).toBe('Every day');
+    expect(intervalDays(mwf)).toBeCloseTo(7 / 3);
+    expect(intervalDays(reg({ freq: 'days', weekdays: [] }))).toBeNull();
+  });
+
+  it('is due today on a scheduled day not yet dosed', () => {
+    expect(regimenStatus(mwf, [dose(at(2026, 10, 23))], NOW)).toMatchObject({ s: 'due', text: 'Due today' });
+  });
+
+  it('moves to the next scheduled day once today is done', () => {
+    const s = regimenStatus(mwf, [dose(at(2026, 10, 26, 8))], NOW);
+    expect(s).toMatchObject({ s: 'ok' });
+    expect(s.due?.getDate()).toBe(28);
+    expect(s.due?.getHours()).toBe(8);
+  });
+
+  it("follows the calendar: a late dose doesn't move the next one", () => {
+    // Monday's dose taken Tuesday: next is still Wednesday.
+    const tue = at(2026, 10, 27, 12);
+    const s = regimenStatus(mwf, [dose(at(2026, 10, 27, 9))], tue);
+    expect(s.text).toBe('Next: tomorrow');
+    expect(s.due?.getDate()).toBe(28);
+  });
+
+  it('shows a missed scheduled day as late until the next one comes', () => {
+    const tue = at(2026, 10, 27, 12);
+    expect(regimenStatus(mwf, [dose(at(2026, 10, 23))], tue)).toMatchObject({ s: 'late', text: 'Due 1 day ago' });
+    const sun = at(2026, 11, 1, 12);
+    expect(regimenStatus(mwf, [dose(at(2026, 10, 28))], sun)).toMatchObject({ s: 'late', text: 'Due 2 days ago' });
+    // Monday arrives: the missed Friday drops, today is due.
+    expect(regimenStatus(mwf, [dose(at(2026, 10, 28))], at(2026, 11, 2, 12))).toMatchObject({ s: 'due', text: 'Due today' });
+  });
+
+  it('asks for days when none are set', () => {
+    expect(regimenStatus(reg({ freq: 'days', weekdays: [] }), [], NOW)).toMatchObject({ s: 'prn', text: 'Choose the days' });
+  });
+});

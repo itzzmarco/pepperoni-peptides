@@ -3,6 +3,7 @@ export type Tier = 1 | 2 | 3 | 4 | 5;
 export type LegalKey =
   | 'approved'
   | 'compoundable'
+  | 'interim'
   | 'pending'
   | 'restricted'
   | 'investigational'

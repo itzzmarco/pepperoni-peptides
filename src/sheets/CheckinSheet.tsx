@@ -31,6 +31,7 @@ export function CheckinSheet({ onClose, onBackfill }: { onClose: () => void; onB
     if (isNaN(at.getTime())) { fail('c-at', 'Enter a valid date and time.'); return; }
     if (at.getTime() > Date.now() + 5 * 60e3) { fail('c-at', "That's in the future. Pick today or an earlier day."); return; }
     const entry: Checkin = { id: newId(), at: at.toISOString(), effects, flags, notes: notes.trim(), ...vals };
+    if (weight.trim() && !(Number(weight) > 0)) { fail('c-weight', 'Enter a weight above 0, or leave it blank.'); return; }
     if (Number(weight) > 0) { entry.weight = Number(weight); entry.weightUnit = wUnit; }
     store.addCheckin(entry);
     toast(flags.length ? 'Saved. Please get medical help now.' : 'Check-in saved.');
@@ -48,41 +49,51 @@ export function CheckinSheet({ onClose, onBackfill }: { onClose: () => void; onB
           </div>
           <button type="button" className="icon-btn" onClick={close} aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
         </div>
-        {SCALES.map(([k, l]) => (
-          <div className="field" key={k}>
-            <span>{l}</span>
-            <div className="scale" role="group" aria-label={l}>
-              {[1, 2, 3, 4, 5].map(n => (
-                <button type="button" key={n} aria-pressed={vals[k] === n} onClick={() => setVals({ ...vals, [k]: vals[k] === n ? undefined : n })}>{n}</button>
-              ))}
+        {/* The form comes in tiles, like the dose and regimen sheets: how you feel, when and weight, side effects, emergencies, notes. */}
+        <section className="tile" aria-label="How you feel">
+          {SCALES.map(([k, l]) => (
+            <div className="field" key={k}>
+              <span>{l}</span>
+              <div className="scale" role="group" aria-label={l}>
+                {[1, 2, 3, 4, 5].map(n => (
+                  <button type="button" key={n} aria-pressed={vals[k] === n} onClick={() => setVals({ ...vals, [k]: vals[k] === n ? undefined : n })}>{n}</button>
+                ))}
+              </div>
             </div>
+          ))}
+        </section>
+        <section className="tile" aria-label="When and weight">
+          <label className="field"><span>When</span><input type="datetime-local" id="c-at" {...invalid('c-at')} value={when} max={toLocalInput(new Date())} onChange={e => setWhen(e.target.value)} /></label>
+          {errFor('c-at')}
+          <div className="grid-2">
+            <label className="field"><span>Weight <small>(optional)</small></span><input type="number" id="c-weight" {...invalid('c-weight')} step="any" min="0" inputMode="decimal" value={weight} onChange={e => setWeight(e.target.value)} /></label>
+            <label className="field"><span>Unit</span><select id="c-wunit" value={wUnit} onChange={e => setWUnit(e.target.value)}><option>lb</option><option>kg</option></select></label>
           </div>
-        ))}
-        <label className="field"><span>When</span><input type="datetime-local" id="c-at" {...invalid('c-at')} value={when} max={toLocalInput(new Date())} onChange={e => setWhen(e.target.value)} /></label>
-        {errFor('c-at')}
-        <div className="grid-2">
-          <label className="field"><span>Weight <small>(optional)</small></span><input type="number" id="c-weight" step="any" min="0" inputMode="decimal" value={weight} onChange={e => setWeight(e.target.value)} /></label>
-          <label className="field"><span>Unit</span><select id="c-wunit" value={wUnit} onChange={e => setWUnit(e.target.value)}><option>lb</option><option>kg</option></select></label>
+          {errFor('c-weight')}
+        </section>
+        <div className="tile">
+          <fieldset className="field">
+            <legend>Side effects today</legend>
+            <div className="checks peachy">
+              {EFFECTS.map(x => <label key={x}><input type="checkbox" checked={effects.includes(x)} onChange={() => setEffects(toggle(effects, x))} />{x}</label>)}
+            </div>
+          </fieldset>
         </div>
-        <fieldset className="field">
-          <legend>Side effects today</legend>
-          <div className="checks peachy">
-            {EFFECTS.map(x => <label key={x}><input type="checkbox" checked={effects.includes(x)} onChange={() => setEffects(toggle(effects, x))} />{x}</label>)}
-          </div>
-        </fieldset>
-        <fieldset className="field">
-          <legend className="tone-danger">Emergency symptoms</legend>
-          <div className="checks red">
-            {RED_FLAGS.map(x => <label key={x}><input type="checkbox" checked={flags.includes(x)} onChange={() => setFlags(toggle(flags, x))} />{x}</label>)}
-          </div>
-        </fieldset>
-        {flags.length > 0 && (
-          <div className="alert danger" role="alert">
-            <b>These symptoms need medical care now.</b>
-            <span>Call 911 or go to the nearest emergency room. Don't wait to finish this form. For a possible overdose or poisoning, call Poison Control at 1-800-222-1222. If you're having thoughts of harming yourself, call or text 988.</span>
-          </div>
-        )}
-        <label className="field"><span>Notes <small>(optional)</small></span><textarea id="c-notes" maxLength={500} value={notes} onChange={e => setNotes(e.target.value)} /></label>
+        <div className="tile">
+          <fieldset className="field">
+            <legend className="tone-danger">Emergency symptoms</legend>
+            <div className="checks red">
+              {RED_FLAGS.map(x => <label key={x}><input type="checkbox" checked={flags.includes(x)} onChange={() => setFlags(toggle(flags, x))} />{x}</label>)}
+            </div>
+          </fieldset>
+          {flags.length > 0 && (
+            <div className="alert danger" role="alert">
+              <b>These symptoms need medical care now.</b>
+              <span>Call 911 or go to the nearest emergency room. Don't wait to finish this form. For a possible overdose or poisoning, call Poison Control at 1-800-222-1222. If you're having thoughts of harming yourself, call or text 988.</span>
+            </div>
+          )}
+        </div>
+        <label className="field tile gap-2"><span>Notes <small>(optional)</small></span><textarea id="c-notes" maxLength={500} value={notes} onChange={e => setNotes(e.target.value)} /></label>
         <LeaveFoot guard={guard}>
           <button type="button" className="btn ghost" onClick={close}>Cancel</button>
           <button type="submit" className="btn">Save check-in</button>

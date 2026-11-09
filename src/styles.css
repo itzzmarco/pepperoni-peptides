@@ -319,6 +319,9 @@ a.tile { color: var(--ink); }
 @media (hover: hover) { .btn:not(.ghost, .quiet, .soft, .danger, .glass, [disabled]):hover { background: var(--btn-hover); } }
 .btn.ghost { background: var(--surface); color: var(--ink); box-shadow: var(--ring); }
 @media (hover: hover) { .btn.ghost:hover { background: var(--surface-2); filter: none; } }
+/* On a white card a white ghost would read as loose text, so there the second action takes a soft grey fill instead. */
+:is(.empty, .tile) .btn.ghost { background: var(--surface-2); box-shadow: none; }
+@media (hover: hover) { :is(.empty, .tile) .btn.ghost:hover { background: var(--surface-3); } }
 .btn.quiet { background: transparent; color: var(--ink-2); padding: 0 12px; }
 @media (hover: hover) { .btn.quiet:hover { color: var(--ink); background: var(--surface-2); filter: none; } }
 .btn.soft { background: var(--surface-2); color: var(--ink); }
@@ -611,7 +614,11 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .illo-ground > .illo { width: clamp(200px, 62%, 300px); }
 /* On a short screen the drawing shrinks to about 96px tall, so the title and the main action still show in the first view. */
 @media (max-height: 700px) { .illo-ground > .illo { width: 128px; } }
-/* One empty-state layout everywhere: art, centred title, a line of copy, the main action. Today's dark card has its own drawing. */
+/* An empty state inside a list (Trends' History) keeps the art small, so it reads as part of the page around it. */
+.empty.compact .illo-ground > .illo { width: 128px; }
+/* One empty-state layout everywhere: art, centred title, a line of copy, the main action. Today's dark card has its own drawing.
+   Two sizes, by job: an empty state that is the whole page (Peptides, Trends, Partner) leads with the page's h1 at display size;
+   one that sits under the page's own headline (Today's start card, Learn's No matches, History) uses an h3 at --fs-xl. */
 .empty :is(h2, h3) { font-size: var(--fs-xl); }
 .empty > .eyebrow { margin-bottom: -6px; }
 .empty > p, .empty > .sub { max-width: 46ch; }
@@ -638,9 +645,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 @media (hover: hover) { .filter-more:hover { background: var(--surface-2); } }
 /* One column on phones, so chips like "Compoundable with Rx" stay on one line; more columns as the page widens. */
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 12px; }
-/* Each card carries a faint wash of its evidence tier's colour from the corner behind its glyph, so a screen of
-   results varies by tier as well as by family (the same --t{n} colours as the profile band). */
-.card { --tc: var(--t1); position: relative; display: grid; gap: 8px; align-content: start; grid-template-rows: auto auto 1fr auto; text-align: left; background: radial-gradient(90% 70% at 100% 0%, color-mix(in srgb, var(--tc) 10%, transparent), transparent 70%), var(--surface); box-shadow: var(--ring), var(--shadow-1); border-radius: var(--r-md); padding: 16px; color: var(--ink); text-decoration: none; min-width: 0; }
+/* A plain white card: the family glyph is its one colour block, and the tier shows only in the small ladder. */
+.card { position: relative; display: grid; gap: 8px; align-content: start; grid-template-rows: auto auto 1fr auto; text-align: left; background: var(--surface); box-shadow: var(--ring), var(--shadow-1); border-radius: var(--r-md); padding: 16px; color: var(--ink); text-decoration: none; min-width: 0; }
 .glyph { display: inline-grid; place-items: center; border-radius: 14px; flex: none; }
 .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 /* Family and tier on one quiet line under the name: the ladder carries the tier colour, the words stay grey. */
@@ -671,8 +677,8 @@ details[open] > summary .chev { transform: rotate(90deg); }
 /* Peptide profile: a header band washed with the evidence tier's tint */
 .band { --tc: var(--t1); --tb: var(--t1-bg); padding: 20px; border-radius: var(--r-xl); box-shadow: var(--shadow-1);
   background: radial-gradient(120% 100% at 100% 0%, color-mix(in srgb, var(--tc) 16%, transparent), transparent 60%), linear-gradient(180deg, var(--tb), color-mix(in srgb, var(--tb) 45%, var(--surface))); }
-:is(.band, .card)[data-t="2"] { --tc: var(--t2); --tb: var(--t2-bg); } :is(.band, .card)[data-t="3"] { --tc: var(--t3); --tb: var(--t3-bg); }
-:is(.band, .card)[data-t="4"] { --tc: var(--t4); --tb: var(--t4-bg); } :is(.band, .card)[data-t="5"] { --tc: var(--t5); --tb: var(--t5-bg); }
+.band[data-t="2"] { --tc: var(--t2); --tb: var(--t2-bg); } .band[data-t="3"] { --tc: var(--t3); --tb: var(--t3-bg); }
+.band[data-t="4"] { --tc: var(--t4); --tb: var(--t4-bg); } .band[data-t="5"] { --tc: var(--t5); --tb: var(--t5-bg); }
 .band { position: relative; overflow: hidden; isolation: isolate; }
 .band-art { position: absolute; z-index: -1; top: -6px; right: -18px; pointer-events: none; }
 @media (max-width: 480px) { .band-art { width: 180px; height: 120px; right: -28px; } }
@@ -874,6 +880,8 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 .tab-track { position: absolute; z-index: -1; inset: 6px; pointer-events: none;
   -webkit-mask: radial-gradient(circle at 50% calc(50% - 10.5px), transparent 23px, black 24px); mask: radial-gradient(circle at 50% calc(50% - 10.5px), transparent 23px, black 24px); }
 .tab-ind { position: absolute; top: 0; bottom: 0; left: 0; width: 20%; border-radius: 22px; background: var(--tab-pill); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); }
+/* The log button leads the markup (it tops the desktop rail); on the phone bar Today and Trends move ahead of it. */
+.tabbar > a:nth-of-type(-n+2) { order: -1; }
 .tabbar a { color: var(--ink-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; font-size: var(--fs-xs); font-weight: 500; text-decoration: none; border-radius: 22px; }
 @media (hover: hover) { .tabbar a:hover { color: var(--ink); } }
 .tabbar a[aria-current] { color: var(--ink); }
@@ -881,6 +889,8 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 .tabbar .log { justify-self: stretch; min-height: 56px; border: 0; background: none; padding: 0; color: var(--ink); font-size: var(--fs-xs); font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; border-radius: 22px; }
 .tabbar .log-dot { width: 40px; height: 40px; border-radius: 20px; background: var(--brand); color: var(--brand-ink); display: grid; place-items: center; box-shadow: var(--shadow-1); }
 @media (hover: hover) { .tabbar .log:hover .log-dot { background: color-mix(in srgb, var(--brand) 86%, var(--ink)); } }
+/* On the narrowest phones the bar spans all but 8px a side, so a five-column cell (about 59px) fits "Peptides" with room each side. */
+@media (max-width: 359px) { .tabbar { width: calc(100% - 16px); } }
 .app-end { height: calc(96px + env(safe-area-inset-bottom, 0px)); }
 .toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 12px 18px; border-radius: 999px; font-size: var(--fs-sm); z-index: 60; box-shadow: var(--shadow-3); max-width: calc(100% - 32px); }
 /* Mouse and keyboard widths: the same five destinations become a full-height glass rail along the left edge, from the
@@ -888,9 +898,13 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
    and the pill slides down them instead of along, around the log button the same way (the track spans just the five). */
 @media (min-width: 900px) {
   body { padding-left: 100px; }
-  .tabbar { left: 0; top: 0; bottom: 0; transform: none; width: calc(88px + env(safe-area-inset-left, 0px)); padding: 12px 6px 12px calc(6px + env(safe-area-inset-left, 0px)); border-radius: 0; align-content: start; box-shadow: inset -1px 0 0 var(--line); grid-template-columns: minmax(0, 1fr); grid-auto-rows: 64px; }
-  .tab-track { inset: 12px 6px auto calc(6px + env(safe-area-inset-left, 0px)); height: calc(5 * 64px); }
-  .tab-ind { right: 0; bottom: auto; width: auto; height: 20%; transform: translateY(calc(var(--k) * 100%)); }
+  .tabbar { left: 0; top: 0; bottom: 0; transform: none; width: calc(88px + env(safe-area-inset-left, 0px)); padding: 12px 6px 12px calc(6px + env(safe-area-inset-left, 0px)); border-radius: 0; align-content: start; box-shadow: inset -1px 0 0 var(--line); grid-template-columns: minmax(0, 1fr); grid-template-rows: 88px; grid-auto-rows: 64px; }
+  /* The primary action sits apart at the top of the rail, over a hairline, with the four tabs below it. */
+  .tabbar > a:nth-of-type(-n+2) { order: 0; }
+  .tabbar .log { align-self: start; min-height: 64px; position: relative; }
+  .tabbar .log::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: -12px; height: 1px; background: var(--line); }
+  .tab-track { inset: 100px 6px auto calc(6px + env(safe-area-inset-left, 0px)); height: calc(4 * 64px); -webkit-mask: none; mask: none; }
+  .tab-ind { right: 0; bottom: auto; width: auto; height: 25%; transform: translateY(calc(var(--r) * 100%)); }
   .app-end { height: 32px; }
   .toast { left: calc(50% + 50px); bottom: 32px; }
   .scrim { padding-left: 124px; }
@@ -986,6 +1000,8 @@ footer.foot p { max-width: 90ch; }
   @keyframes grow-up { from { transform: scaleY(0); } }
   .syringe .moves { transition: transform var(--dur-slow) var(--ease-out); }
   details > summary .chev, .btn > .chev { transition: transform var(--dur-med) var(--ease-out); }
+  /* What a disclosure reveals rises in softly, like the .reveal rows, instead of snapping into place. */
+  details[open] > :not(summary) { animation: rise-soft var(--dur-med) var(--ease-out) backwards; }
 
   /* Tactile feedback: quick press, gentle lift */
   .btn, .fchip, .icon-btn, .tabbar .log, .tabbar a, .hour, .scale button, .checks label, .pattern .c, button.bf-cell, button.sync, .find-row { transition: transform var(--dur-fast) var(--ease-out), filter var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }

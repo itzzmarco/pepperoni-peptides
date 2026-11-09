@@ -181,6 +181,18 @@ export function PeptidesView(actions: Actions) {
   const due = active.filter(r => ['due', 'late'].includes(regimenStatus(r, doses).s)).length;
 
   const plus = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>;
+  const intro = (
+    <ul className="small bullets">
+      <li>This is a journal for doses and symptoms, built to share with your clinician. It never suggests a dose; enter the one you were prescribed.</li>
+      <li>{signedIn
+        ? 'Your log syncs to your account, so it follows you to any device you sign in on. Only you can see it. Use Export on Trends to keep a copy.'
+        : configured
+          ? "Signed out, everything you enter stays in this browser on this device. Sign in (top right) to sync it across your devices; each person in your home can have their own account. Use Export on Trends to keep a copy."
+          : "Everything you enter stays in this browser on this device. There's no account and no server. Use Export on Trends to keep a copy."}</li>
+      <li>Most peptides promoted online are unapproved, and products sold as "research use only" aren't tested for what's in the vial. Check the library before you log something new.</li>
+      <li>If you feel seriously unwell, stop and get help. The daily check-in flags emergency symptoms.</li>
+    </ul>
+  );
   return (
     <section className="view">
       {/* First run: one empty hero (art, headline, what you get, one primary action) instead of a header and a second empty card. */}
@@ -210,22 +222,23 @@ export function PeptidesView(actions: Actions) {
 
       <Glp1Alert regimens={regimens} />
 
-      {!(introHidden && regimens.length) && (
+      {/* A first visit keeps these notes folded under their title, so the screen opens on the empty hero alone;
+          once something is tracked they show open, with Hide. */}
+      {regimens.length === 0 ? (
+        <details className="tile lemon rise" aria-label="About this log" style={{ ['--i' as string]: 2 }}>
+          <summary className="spread" style={{ alignItems: 'center', flexWrap: 'nowrap' }}>
+            <h3>Before you start</h3>
+            <span className="arrow" aria-hidden="true"><svg className="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+          </summary>
+          {intro}
+        </details>
+      ) : !introHidden && (
         <section className="tile lemon rise" aria-label="About this log" style={{ ['--i' as string]: 2 }}>
           <div className="spread">
             <h3>Before you start</h3>
-            {regimens.length > 0 && <button className="btn quiet sm" onClick={() => { lsSet('pl-intro-hidden', '1'); setIntroHidden(true); }}>Hide</button>}
+            <button className="btn quiet sm" onClick={() => { lsSet('pl-intro-hidden', '1'); setIntroHidden(true); }}>Hide</button>
           </div>
-          <ul className="small bullets">
-            <li>This is a journal for doses and symptoms, built to share with your clinician. It never suggests a dose; enter the one you were prescribed.</li>
-            <li>{signedIn
-              ? 'Your log syncs to your account, so it follows you to any device you sign in on. Only you can see it. Use Export on Trends to keep a copy.'
-              : configured
-                ? "Signed out, everything you enter stays in this browser on this device. Sign in (top right) to sync it across your devices; each person in your home can have their own account. Use Export on Trends to keep a copy."
-                : "Everything you enter stays in this browser on this device. There's no account and no server. Use Export on Trends to keep a copy."}</li>
-            <li>Most peptides promoted online are unapproved, and products sold as "research use only" aren't tested for what's in the vial. Check the library before you log something new.</li>
-            <li>If you feel seriously unwell, stop and get help. The daily check-in flags emergency symptoms.</li>
-          </ul>
+          {intro}
         </section>
       )}
 

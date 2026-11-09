@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import type { Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { freqText } from '../lib/schedule';
@@ -41,8 +41,10 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
   const recent = bellyDoses.map(x => bellyHour(x.site)!);
   const [view, setView] = useState<'clock' | 'body'>(first?.hour ? 'clock' : 'body');
   const next = nextBellyHour(recent[0] ?? null, last);
-  // A changed dose form asks before a stray dismiss throws it away (LeaveGuard).
-  const guard = useLeaveGuard(JSON.stringify([r.id, d]), onClose);
+  // Each peptide keeps its own draft, so switching chips and back loses no edits.
+  const drafts = useRef(new Map<string, { d: typeof d; auto: boolean; view: typeof view }>());
+  // A changed dose form, or one whose other peptides hold drafts, asks before a stray dismiss throws it away (LeaveGuard).
+  const guard = useLeaveGuard(JSON.stringify([r.id, d, [...drafts.current].filter(([id]) => id !== r.id)]), onClose);
   const { close } = guard;
 
   const set = (k: keyof typeof d) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setD({ ...d, [k]: e.target.value });
@@ -74,8 +76,10 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
   const hour = bellyHour(d.site);
 
   const switchTo = (x: Regimen) => {
+    drafts.current.set(r.id, { d, auto, view });
+    const kept = drafts.current.get(x.id);
     setR(x);
-    setD(blank(x, suggest(x, x.route)));
+    if (kept) { setD(kept.d); setAuto(kept.auto); setView(kept.view); } else setD(blank(x, suggest(x, x.route)));
   };
 
   const submit = (e: React.FormEvent) => {

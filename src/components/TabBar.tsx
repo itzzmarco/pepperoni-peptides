@@ -6,8 +6,10 @@ const ICON = {
   learn: 'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z',
   peptides: 'M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5V2M8.5 2h7M14.5 16h-5',
 };
-/** Grid column of each tab. Column 2 is the log button, so the indicator never lands there. */
+/** Grid column of each tab on the phone bar. Column 2 is the log button, so the indicator never lands there.
+ *  On the desktop rail the log button sits apart at the top, so there the four tabs are rows 0 to 3 (`ROW`). */
 const COL: Record<keyof typeof ICON, number> = { today: 0, trends: 1, learn: 3, peptides: 4 };
+const ROW: Record<keyof typeof ICON, number> = { today: 0, trends: 1, learn: 2, peptides: 3 };
 
 function Tab({ k, label, current, exact }: { k: keyof typeof ICON; label: string; current: string; exact: boolean }) {
   const on = current === k;
@@ -28,14 +30,15 @@ export function TabBar({ current, exact, onLog, logLabel, logWord, inert }: { cu
   // sides the pill passes around the button in one piece and never comes to rest there.
   return (
     <nav className="tabbar" aria-label="Main" inert={inert}>
-      {col != null && <span className="tab-track"><span className="tab-ind" aria-hidden="true" style={{ ['--k' as string]: col }} /></span>}
-      <Tab k="today" label="Today" current={current} exact={exact} />
-      <Tab k="trends" label="Trends" current={current} exact={exact} />
-      {/* Its visible word says what a tap does right now (the full name stays in aria-label, which starts with it). */}
+      {col != null && <span className="tab-track"><span className="tab-ind" aria-hidden="true" style={{ ['--k' as string]: col, ['--r' as string]: ROW[current as keyof typeof ROW] }} /></span>}
+      {/* Its visible word says what a tap does right now (the full name stays in aria-label, which starts with it).
+          It comes first, as the primary action: the rail shows it on top, and the phone bar moves Today and Trends before it. */}
       <button className="log" type="button" onClick={onLog} aria-label={logLabel}>
         <span className="log-dot"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></span>
         {logWord}
       </button>
+      <Tab k="today" label="Today" current={current} exact={exact} />
+      <Tab k="trends" label="Trends" current={current} exact={exact} />
       <Tab k="learn" label="Learn" current={current} exact={exact} />
       <Tab k="peptides" label="Peptides" current={current} exact={exact} />
     </nav>

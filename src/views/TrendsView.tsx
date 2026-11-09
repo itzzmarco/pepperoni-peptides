@@ -150,7 +150,8 @@ function History({ doses, checkins, onBackfill }: { doses: DoseEntry[]; checkins
   let lastDay = '';
   // Peptides tracked but nothing logged yet: the same empty-state card as every other screen (title, one line, one action).
   if (!items.length) return (
-    <section className="empty" aria-labelledby="hist-h">
+    <section className="empty compact" aria-labelledby="hist-h">
+      <IlloTrends />
       <span className="eyebrow">History</span>
       <h3 id="hist-h">Nothing logged yet</h3>
       <p className="small muted">{HIST_EMPTY}</p>

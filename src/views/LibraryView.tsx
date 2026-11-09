@@ -266,7 +266,7 @@ export function LibraryView() {
         {list.length ? list.map(p => (
           // The name leads; family and tier share one quiet line under it, and legal status is the only chip.
           // The tapped card marks its glyph, which travels into the profile header as the page opens (styles.css).
-          <a className="card" href={`#${p.id}`} key={p.id} data-t={p.tier} style={{ ['--vt' as string]: `c-${p.id}` }} onClick={open}>
+          <a className="card" href={`#${p.id}`} key={p.id} style={{ ['--vt' as string]: `c-${p.id}` }} onClick={open}>
             <div className="card-top">
               <div><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 2).join(' · ')}</div> : null}</div>
               <FamilyGlyph family={p.family} />
@@ -278,7 +278,7 @@ export function LibraryView() {
         )) : (
           <div className="empty" style={{ gridColumn: '1 / -1' }}>
             <IlloSearch />
-            <span className="eyebrow">Library</span>
+            <span className="eyebrow">Learn</span>
             <h3>No matches</h3>
             <p className="small muted">Try a different word or clear a filter.</p>
             <button className="btn" onClick={() => setF({ q: '', fam: 'all', tier: 'all', legal: 'all' })}>Clear filters</button>

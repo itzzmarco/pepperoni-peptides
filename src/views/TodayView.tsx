@@ -198,6 +198,19 @@ export function TodayView(actions: Actions) {
   else if (left) { line1 = adh.pct == null || adh.pct >= 0.8 ? "You're on track." : "Here's today."; line2 = `${plural(left, 'dose')} left today.`; }
   else { line1 = "You're all set today."; line2 = next?.st.due ? `Next: ${regName(next.r)}, ${fmtShort(next.st.due)}.` : 'Nothing scheduled.'; }
 
+  // A linked partner's tile shows whether or not this user has logged anything yet: it is the only way to their progress.
+  const partnerTile = partner && (
+    <a href="#partner" className="tile span-2 partner-tile rise" style={rise(6)}>
+      <span className="avatar" aria-hidden="true">{firstName(partner.name)[0]}</span>
+      <span className="stack gap-1 flex-1 min-0">
+        <span className="label">{firstName(partner.name)} · partner</span>
+        <span className="tile-title">
+          {pW ? <>{fmtNum(pW.last.w, 1)}<small className="sub"> {pUnit}</small>{pW.count > 1 && <span className="sub"> · {pW.change > 0 ? '+' : pW.change < 0 ? '−' : ''}{Math.abs(pW.change).toFixed(1)} since {fmtShort(pW.first.at)}</span>}</> : 'No weigh-ins yet'}
+        </span>
+        {pNext && <span className="sub">{regName(pNext.r)} · {pNext.st.text}</span>}
+      </span>
+    </a>
+  );
   return (
     <section className="view">
       <header className="head">
@@ -250,6 +263,7 @@ export function TodayView(actions: Actions) {
       <DeviceLogPrompt onToday />
       <Glp1Alert regimens={regimens} />
 
+      {!hasLog && partnerTile && <div className="bento quad">{partnerTile}</div>}
       {hasLog && (
         <div className="bento quad">
           <a href="#trends" className="tile mint row-2 rise" style={rise(3)}>
@@ -257,7 +271,7 @@ export function TodayView(actions: Actions) {
             <span className="big">{adh.pct == null ? '–' : `${Math.round(pct)}%`}</span>
             <span className="sub tone-mint">{adh.expected ? `${adh.logged} of ${adh.expected} doses · 4 weeks` : 'Log a few doses to see this.'}</span>
             <span className="dots7" role="img" aria-label={`Last 7 days: dose logged on ${week.filter(w => w.on).length}`}>
-              {week.map((w, i) => <i key={i} className={`pop${w.on ? ' on' : ''}${w.today && !w.on ? ' today' : ''}`} style={rise(i)} title={fmtDay(w.d)} />)}
+              {week.map((w, i) => <i key={i} className={`pop${w.on ? ' on' : ''}${w.today && !w.on ? ' today' : ''}`} style={rise(i)} />)}
             </span>
           </a>
 
@@ -282,18 +296,7 @@ export function TodayView(actions: Actions) {
             ) : <span className="sub">None logged this week.</span>}
           </a>
 
-          {partner && (
-            <a href="#partner" className="tile span-2 partner-tile rise" style={rise(6)}>
-              <span className="avatar" aria-hidden="true">{firstName(partner.name)[0]}</span>
-              <span className="stack gap-1 flex-1 min-0">
-                <span className="label">{firstName(partner.name)} · partner</span>
-                <span className="tile-title">
-                  {pW ? <>{fmtNum(pW.last.w, 1)}<small className="sub"> {pUnit}</small>{pW.count > 1 && <span className="sub"> · {pW.change > 0 ? '+' : pW.change < 0 ? '−' : ''}{Math.abs(pW.change).toFixed(1)} since {fmtShort(pW.first.at)}</span>}</> : 'No weigh-ins yet'}
-                </span>
-                {pNext && <span className="sub">{regName(pNext.r)} · {pNext.st.text}</span>}
-              </span>
-            </a>
-          )}
+          {partnerTile}
 
           {shots.map(({ r, s: sug }, i) => (
             <button key={r.id} type="button" className="tile sky span-2 rise row-tile gap-4" style={rise(6 + i)} onClick={() => actions.logDose(r)}

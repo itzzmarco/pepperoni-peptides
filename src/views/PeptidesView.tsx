@@ -7,7 +7,7 @@ import { firstReminder, googleLink, icsFile, rrule, timesPerDay, type Reminder }
 import { download } from '../lib/download';
 import { drugAmount, isVolumeUnit } from '../lib/doseMath';
 import { checkRegimen } from '../lib/vial';
-import { fmtDay, fmtNum } from '../lib/format';
+import { fmtNum } from '../lib/format';
 import { glp1Overlap, usualMinutes } from '../lib/insights';
 import { PEP } from '../data/peptides';
 import { UNREGULATED_SOURCE } from '../data/options';
@@ -34,7 +34,7 @@ export function Strip({ rid, doses }: { rid: string; doses: DoseEntry[] }) {
     <div className="stack gap-2">
       <div className="strip" role="img" aria-label={`Doses logged on ${count} of the last 28 days`}>
         {days.map((d, i) => (
-          <i key={d.date.getTime()} className={`pop${d.on ? ' on' : ''}${d.today ? ' today' : ''}`} style={{ ['--i' as string]: i }} title={`${fmtDay(d.date)}${d.on ? ': dose logged' : ''}`} />
+          <i key={d.date.getTime()} className={`pop${d.on ? ' on' : ''}${d.today ? ' today' : ''}`} style={{ ['--i' as string]: i }} />
         ))}
       </div>
       <div className="strip-legend"><span>4 weeks ago</span><span>Today</span></div>
@@ -226,7 +226,7 @@ export function PeptidesView(actions: Actions) {
           once something is tracked they show open, with Hide. */}
       {regimens.length === 0 ? (
         <details className="tile lemon rise" aria-label="About this log" style={{ ['--i' as string]: 2 }}>
-          <summary className="spread" style={{ alignItems: 'center', flexWrap: 'nowrap' }}>
+          <summary className="spread mid nowrap">
             <h3>Before you start</h3>
             <span className="arrow" aria-hidden="true"><svg className="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
           </summary>
@@ -248,7 +248,7 @@ export function PeptidesView(actions: Actions) {
           <div className="cols">{active.map((r, i) => <RegimenCard key={r.id} r={r} doses={doses} actions={actions} i={i} />)}</div>
           {paused.length > 0 && (
             <details className="tile">
-              <summary className="spread" style={{ alignItems: 'center', flexWrap: 'nowrap' }}>
+              <summary className="spread mid nowrap">
                 <b>Paused ({paused.length})</b>
                 <span className="arrow" aria-hidden="true"><svg className="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
               </summary>

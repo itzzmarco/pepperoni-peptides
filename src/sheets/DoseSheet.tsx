@@ -133,6 +133,8 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
           <span className="stat">{fmtNum(Number(r.dose), 3)}<small> {r.unit}</small></span>
           {math && injectable && (
             <div className="white-inset stack gap-2">
+              {/* The draw follows What you took, so once that is edited it says which amount it is for. */}
+              {(amountDiffers || unitDiffers) && <p className="xsmall">For the <b>{d.amount || '0'} {d.unit}</b> entered below, not the prescribed dose:</p>}
               {isVolumeUnit(d.unit)
                 ? <p className="small">That's <b className="mono tone-lilac">{drugAmount(math.doseMg, PEP[r.compoundId]?.defaultUnit)}</b> ({fmtNum(math.vol, 2)} mL) from a vial with {fmtNum(Number(r.vialMg))} mg in {fmtNum(Number(r.diluentMl))} mL.</p>
                 : <p className="small">Draw to <b className="mono tone-lilac">{fmtNum(math.units, 1)} units</b> ({fmtNum(math.vol, 2)} mL) on a U-100 syringe. {fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL water.</p>}

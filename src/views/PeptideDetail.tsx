@@ -36,13 +36,6 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
   const { regimens, doses } = useLedger();
   const mine = regimens.filter(r => r.compoundId === p.id);
   const banner = cautionBanner(p);
-  // The page's two actions: under the header, and again after the evidence, so a reader who finishes it can act there.
-  const acts = (
-    <>
-      <button className="btn" onClick={() => onTrack(p.id)}>{mine.length ? 'Track another regimen' : 'Track this in my log'}</button>
-      <a className="btn ghost" href="#calculator">Dose math</a>
-    </>
-  );
   return (
     <article className="view">
       <header className="head band rise" data-t={p.tier}>
@@ -55,8 +48,6 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
         {p.aka?.length ? <p className="small">Also called {p.aka.join(', ')}</p> : null}
         <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /><WadaChip w={p.wada} /></div>
         <p className="lede">{p.summary}</p>
-        <SeqStrip p={p} />
-        {p.seqNote && <p className="xsmall">{p.seqNote}</p>}
       </header>
       {/* The warning comes straight after the header, before any invitation to track the compound. */}
       {banner && (
@@ -68,7 +59,12 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
           </span>
         </div>
       )}
-      <div className="head-actions rise" style={rise(3)}>{acts}</div>
+      {/* The page's two actions, under the header. The row pins under the top bar as the evidence scrolls by, so the
+          next step stays in reach all the way down. */}
+      <div className="head-actions pin rise" style={rise(3)}>
+        <button className="btn" onClick={() => onTrack(p.id)}>{mine.length ? 'Track another regimen' : 'Track this in my log'}</button>
+        <a className="btn ghost" href="#calculator">Dose math</a>
+      </div>
 
       {mine.length > 0 && <Glp1Alert regimens={regimens} />}
       {/* One instrument card per screen: the first regimen gets the dark card, any others are plain tiles. */}
@@ -108,6 +104,7 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
           {p.routes && <div><dt>How it's given</dt><dd>{p.routes}</dd></div>}
           {p.wada && <div><dt>Sport (WADA)</dt><dd>{p.wada}</dd></div>}
           {p.mechanism && <div><dt>How it works</dt><dd>{p.mechanism}</dd></div>}
+          {(p.seq || p.seqNote) && <div><dt>Sequence</dt><dd className="stack gap-2"><SeqStrip p={p} />{p.seqNote && <span className="xsmall">{p.seqNote}</span>}</dd></div>}
         </dl>
       </section>
       </div>
@@ -143,7 +140,6 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
           </section>
         ) : null}
       </div>
-      <div className="head-actions">{acts}</div>
     </article>
   );
 }

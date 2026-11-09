@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 
 /**
  * Dismissing a changed form (Escape, a scrim tap, a drag, the close button, Cancel) first asks in the footer:
- * Keep editing, or Discard and leave. A second dismiss leaves; any new edit takes the question away.
+ * Keep editing, or Discard and leave. Further dismissals keep the question up (focus returns to Keep editing), so only
+ * the explicit Discard and leave loses what was entered; any new edit takes the question away.
  * `ask(go)` puts the same question in front of any other action that would drop the form, such as a link away.
  * `snapshot` is the form's values as one string; the form counts as changed once it differs from the first one.
  * `close` keeps one identity for the sheet's life, since Sheet re-focuses itself whenever onClose changes.
@@ -18,8 +19,10 @@ export function useLeaveGuard(snapshot: string, onClose: () => void) {
   // What "Discard and leave" does: close the sheet, or the in-sheet action (a link away, a swap to another sheet) that asked.
   const next = useRef(onClose);
   const ask = useCallback((go: () => void) => {
-    if (dirty.current && !leavingRef.current) { next.current = go; setLeaving(true); return; }
-    go();
+    if (!dirty.current) { go(); return; }
+    if (leavingRef.current) { keep.current?.focus(); return; }
+    next.current = go;
+    setLeaving(true);
   }, []);
   const close = useCallback(() => ask(onClose), [ask, onClose]);
   useEffect(() => { setLeaving(false); }, [snapshot]);

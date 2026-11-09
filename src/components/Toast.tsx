@@ -1,29 +1,34 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
 import { exitMs, prefersReducedMotion } from './Motion';
 
 const ToastCtx = createContext<(msg: string) => void>(() => {});
 
+type Msg = { text: string; id: number; out?: boolean };
+
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [msg, setMsg] = useState<{ text: string; id: number; out?: boolean } | null>(null);
+  const [msgs, setMsgs] = useState<Msg[]>([]);
+  const seq = useRef(0);
   const show = useCallback((text: string) => {
-    const id = Date.now();
-    setMsg({ text, id });
-    // Fade out first, then unmount; with reduced motion it just goes at 3.2s.
+    const id = ++seq.current;
+    // A toast still showing plays its fade-out while the new one rises in its place (they share one fixed spot).
     const exit = prefersReducedMotion() ? 0 : exitMs();
-    if (exit) setTimeout(() => setMsg(m => (m?.id === id ? { ...m, out: true } : m)), 3200 - exit);
-    setTimeout(() => setMsg(m => (m?.id === id ? null : m)), 3200);
+    setMsgs(ms => [...(exit ? ms.map(m => ({ ...m, out: true })) : []), { text, id }]);
+    if (exit) setTimeout(() => setMsgs(ms => ms.filter(m => m.id >= id)), exit);
+    // Fade out first, then unmount; with reduced motion it just goes at 3.2s.
+    if (exit) setTimeout(() => setMsgs(ms => ms.map(m => (m.id === id ? { ...m, out: true } : m))), 3200 - exit);
+    setTimeout(() => setMsgs(ms => ms.filter(m => m.id !== id)), 3200);
   }, []);
   return (
     <ToastCtx.Provider value={show}>
       {children}
       {/* One live region stays mounted (empty between toasts), so each message is announced as it is added;
-          only the pill inside it is keyed, so it plays its own enter and exit. */}
+          only the pills inside it are keyed, so each plays its own enter and exit. */}
       <div role="status">
-        {msg && (
-          <div className="toast" key={msg.id} data-out={msg.out || undefined}>
-            {msg.text}
+        {msgs.map(m => (
+          <div className="toast" key={m.id} data-out={m.out || undefined} aria-hidden={m.out || undefined}>
+            {m.text}
           </div>
-        )}
+        ))}
       </div>
     </ToastCtx.Provider>
   );

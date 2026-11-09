@@ -183,7 +183,7 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
                 <span className={`sub em ${st.s === 'late' ? 'tone-danger' : 'tone-mint'}`}>{st.text}</span>
               </div>
               <span className="strip28" role="img" aria-label={`Last 4 weeks: ${name} logged ${r.name || regName(r)} on ${strip.filter(d => d.on).length} days`}>
-                {strip.map((d, i) => <i key={i} className={`${d.on ? 'on' : ''}${d.today ? ' today' : ''}`} title={fmtDay(d.date)} />)}
+                {strip.map((d, i) => <i key={i} className={`${d.on ? 'on' : ''}${d.today ? ' today' : ''}`} />)}
               </span>
               {adh.expected > 0 && <span className="xsmall tone-mint">{adh.logged} of {adh.expected} due doses logged in 4 weeks</span>}
             </div>

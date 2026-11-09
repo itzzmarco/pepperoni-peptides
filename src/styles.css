@@ -184,7 +184,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .brand svg { flex: none; }
 /* Sub-pages (a profile, the guides): a bare chevron leads back up to Learn. It sits over the vial and the two crossfade,
    so the wordmark never moves when a page with a way back opens; elsewhere the chevron is invisible and inert. */
-.topbar .bar-back { background: transparent; box-shadow: none; margin-left: -9px; justify-self: start; opacity: 0; visibility: hidden; }
+.topbar .bar-back { background: transparent; box-shadow: none; margin-left: -9px; justify-self: start; opacity: 0; visibility: hidden; pointer-events: none; }
 .topbar[data-sub] .bar-back { opacity: 1; visibility: visible; }
 .topbar[data-sub] .brand svg { opacity: 0; }
 /* Once the page title scrolls under the bar, the wordmark gives its place to the route or peptide name. The name is its
@@ -233,6 +233,8 @@ main { padding-block: 8px 40px; }
 .head p { color: var(--ink-3); max-width: 62ch; }
 .head .lede { color: var(--ink); }
 .head-actions { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 4px; }
+/* A profile's actions pin just under the sticky top bar (14px + 44px row + 10px), on a compact glass strip of their own. */
+.head-actions.pin { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 68px); z-index: 20; padding: 6px; border-radius: var(--r-md); background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); box-shadow: inset 0 0 0 1px var(--glass-edge); }
 /* Hero header (Trends): a neutral card with a display headline; the range's dose bars along the bottom carry the colour. */
 .head.hero { padding: 20px 20px 16px; gap: 10px; border-radius: var(--r-xl); background: var(--surface); box-shadow: var(--ring), var(--shadow-1); }
 .head.hero .eyebrow { color: var(--lilac-ink); }
@@ -492,7 +494,6 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .miniclock .navel { fill: var(--ink-4); }
 .miniclock .next { fill: var(--sky-ink); }
 .minibody { flex: none; overflow: visible; }
-.minibody .fig > * { fill: var(--surface); }
 .minibody .next { fill: var(--sky-ink); stroke: var(--surface); stroke-width: 6; }
 .minibody .behind { fill: none; stroke: var(--sky-ink); stroke-width: 4; stroke-dasharray: 6 6; }
 .minibody .pop { transform-box: fill-box; transform-origin: center; }
@@ -684,7 +685,6 @@ details[open] > summary .chev { transform: rotate(90deg); }
 @media (max-width: 480px) { .band-art { width: 180px; height: 120px; right: -28px; } }
 .band .band-top { display: flex; align-items: center; gap: 10px; }
 .band .tier { background: var(--surface); }
-.band .seq span { background: color-mix(in srgb, var(--surface) 70%, transparent); }
 
 .facts-hype { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
 .sections { display: grid; gap: 12px; }
@@ -776,7 +776,6 @@ tr:last-child td { border-bottom: 0; }
 /* Body map */
 .bodymap { position: relative; width: 260px; max-width: 100%; margin: 0 auto; }
 .bodymap svg { width: 100%; height: auto; display: block; }
-.bodymap svg path, .bodymap svg rect, .bodymap svg circle.head { fill: var(--surface); stroke: none; }
 .site { position: absolute; transform: translate(-50%, -50%); width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--sky-dot); background: var(--surface); color: var(--ink); font-size: var(--fs-2xs); font-weight: 600; cursor: pointer; display: grid; place-items: center; padding: 0; }
 /* The dot stays 36px so the figure isn't crowded; an invisible ring around it makes the tap target 44px or more. */
 .site::before { content: ""; position: absolute; inset: -7px; border-radius: 50%; }
@@ -870,15 +869,12 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 /* Tab bar */
 .tabbar { position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: min(440px, calc(100% - 32px)); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; padding: 6px; border-radius: var(--r-xl); background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); box-shadow: var(--shadow-3), inset 0 0 0 1px var(--glass-edge); view-transition-name: tabbar; isolation: isolate; overflow: hidden; }
 /* Opaque fallback for both glass bars; it comes after both rules so it wins on equal specificity. */
-@supports not (backdrop-filter: blur(1px)) { .topbar, .tabbar { background: var(--bg); } }
+@supports not (backdrop-filter: blur(1px)) { .topbar, .tabbar, .head-actions.pin { background: var(--bg); } }
 /* People who ask the OS for less transparency get the same opaque bars, with no blur behind them. */
-@media (prefers-reduced-transparency: reduce) { .topbar, .tabbar { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; } }
-/* One pill behind the current tab: one fifth of the track. It slides from tab to tab in one piece; the track only cuts a
-   round hole 3px wider than the log button's 40px disc, centred on the disc, so crossing sides the pill wraps under and
-   around the disc (a thin gap rings it) and stays one visible shape, and it never rests there.
-   The disc sits 10.5px above the middle of its column: the column holds the 40px disc, a 3px gap and an 18px word line. */
-.tab-track { position: absolute; z-index: -1; inset: 6px; pointer-events: none;
-  -webkit-mask: radial-gradient(circle at 50% calc(50% - 10.5px), transparent 23px, black 24px); mask: radial-gradient(circle at 50% calc(50% - 10.5px), transparent 23px, black 24px); }
+@media (prefers-reduced-transparency: reduce) { .topbar, .tabbar, .head-actions.pin { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; } }
+/* One pill behind the current tab: one fifth of the track. It slides from tab to tab as one solid rounded shape; crossing
+   sides it passes under the log button (the button paints above the track), and it never comes to rest there. */
+.tab-track { position: absolute; z-index: -1; inset: 6px; pointer-events: none; }
 .tab-ind { position: absolute; top: 0; bottom: 0; left: 0; width: 20%; border-radius: 22px; background: var(--tab-pill); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); }
 /* The log button leads the markup (it tops the desktop rail); on the phone bar Today and Trends move ahead of it. */
 .tabbar > a:nth-of-type(-n+2) { order: -1; }
@@ -903,7 +899,7 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
   .tabbar > a:nth-of-type(-n+2) { order: 0; }
   .tabbar .log { align-self: start; min-height: 64px; position: relative; }
   .tabbar .log::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: -12px; height: 1px; background: var(--line); }
-  .tab-track { inset: 100px 6px auto calc(6px + env(safe-area-inset-left, 0px)); height: calc(4 * 64px); -webkit-mask: none; mask: none; }
+  .tab-track { inset: 100px 6px auto calc(6px + env(safe-area-inset-left, 0px)); height: calc(4 * 64px); }
   .tab-ind { right: 0; bottom: auto; width: auto; height: 25%; transform: translateY(calc(var(--r) * 100%)); }
   .app-end { height: 32px; }
   .toast { left: calc(50% + 50px); bottom: 32px; }
@@ -989,10 +985,11 @@ footer.foot p { max-width: 90ch; }
   @keyframes pop { from { transform: scale(0); } }
   /* Dense grids (calendar days, week dots, the pattern, 28-day strips) fade in as one piece instead of cell by cell. */
   :is(.cal, .pattern, .dots7, .strip, .strip28, .daybar) .pop { animation-name: fade-in; animation-delay: 80ms; }
-  .grow { animation: grow var(--dur-slow) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 60ms + 250ms); transform-origin: left; }
+  /* Bars stagger like the rise blocks: capped, so a ten-bar chart settles in one clean beat (under 0.8s) rather than bar by bar. */
+  .grow { animation: grow var(--dur-slow) var(--ease-out) both; animation-delay: calc(min(var(--i, 0), 6) * 30ms + 120ms); transform-origin: left; }
   @keyframes grow { from { transform: scaleX(0); } }
   /* A bar's value arrives with it: hidden while the bar starts out, then sliding the last few pixels into place. */
-  .hbar-val { animation: val-in var(--dur-slow) var(--ease-out) backwards; animation-delay: calc(var(--i, 0) * 60ms + 250ms); }
+  .hbar-val { animation: val-in var(--dur-slow) var(--ease-out) backwards; animation-delay: calc(min(var(--i, 0), 6) * 30ms + 120ms); }
   @keyframes val-in { 0%, 40% { opacity: 0; transform: translate(-8px, -50%); } }
   .grow.up { animation-name: grow-up; transform-origin: bottom; }
   /* The Trends header chart settles in one short entrance: a tight stagger, like the rise blocks, not 60ms a bar. */

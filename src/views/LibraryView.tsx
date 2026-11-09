@@ -278,7 +278,8 @@ export function LibraryView() {
         )) : (
           <div className="empty" style={{ gridColumn: '1 / -1' }}>
             <IlloSearch />
-            <span className="eyebrow">Learn</span>
+            {/* The eyebrow restates what found nothing, so it adds to the page's own Learn heading. */}
+            <span className="eyebrow">{f.q.trim() ? `Searching “${f.q.trim()}”` : 'With these filters'}</span>
             <h3>No matches</h3>
             <p className="small muted">Try a different word or clear a filter.</p>
             <button className="btn" onClick={() => setF({ q: '', fam: 'all', tier: 'all', legal: 'all' })}>Clear filters</button>
@@ -287,7 +288,7 @@ export function LibraryView() {
       </div>
 
       <details className="tile mint" id="tiers">
-        <summary className="spread" style={{ alignItems: 'center', flexWrap: 'nowrap' }}>
+        <summary className="spread mid nowrap">
           <span className="stack gap-1">
             <span className="label">How evidence tiers work</span>
             <span className="tile-title">Only {trialBacked} of {PEPTIDES.length} have randomized human trials</span>

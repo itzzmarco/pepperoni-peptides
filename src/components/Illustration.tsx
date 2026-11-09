@@ -11,11 +11,11 @@ const svg = (size: number) => ({ width: size, height: Math.round(size * 0.75), v
  *  (the `Cast` group), which gives them a little depth. Outlines are fine lines, so the art reads as a drawing, not an icon. */
 const Ground = ({ children }: { children: ReactNode }) => <div className="illo-ground" aria-hidden="true">{children}</div>;
 /** Shadow copies of a scene's main shapes, offset away from the top-left light. */
-const Cast = ({ children }: { children: ReactNode }) => <g transform="translate(5 5)" fill="var(--illo-shade)">{children}</g>;
+export const Cast = ({ children }: { children: ReactNode }) => <g transform="translate(5 5)" fill="var(--illo-shade)">{children}</g>;
 /** The second tone every object gets from the same light: a sheen from the top left (`url(#illo-hi)`), a shade
  *  toward the bottom (`url(#illo-lo)`), and a fine dot texture for paper and walls (`url(#illo-dots)`).
  *  Each instance prefixes its ids with `useId`, so two scenes on one page never share or shadow definitions. */
-const Defs = ({ u }: { u: string }) => (
+export const Defs = ({ u }: { u: string }) => (
   <defs>
     <linearGradient id={`${u}illo-hi`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="var(--surface)" stopOpacity=".8" /><stop offset=".5" stopColor="var(--surface)" stopOpacity="0" /></linearGradient>
     <linearGradient id={`${u}illo-lo`} x1="0" y1="0" x2="0" y2="1"><stop offset=".45" stopColor="var(--illo-shade)" stopOpacity="0" /><stop offset="1" stopColor="var(--illo-shade)" /></linearGradient>

@@ -221,14 +221,15 @@ export function App() {
   const sub = !!route.id || route.tab === 'calculator' || route.tab === 'safety';
   return (
     <>
-      <header ref={barRef} className="topbar gutter" inert={bg} data-scrolled={scrolled ? 'true' : undefined} data-titled={titled ? '' : undefined} data-sub={sub ? '' : undefined}>
+      <header ref={barRef} className="topbar gutter" inert={bg} data-scrolled={scrolled ? 'true' : undefined} data-titled={titled && !sub ? '' : undefined} data-sub={sub ? '' : undefined}>
         <div className="wrap">
           <div className="row">
             {/* The link is the vial and wordmark. Once the headline scrolls away, the page name takes the wordmark's
-                place as its own button that scrolls back to the top; the vial stays the home link. On a sub-page the back
-                chevron crossfades in over the vial, so nothing in the bar shifts sideways (styles.css). */}
+                place as its own button that scrolls back to the top; the vial stays the home link. On a sub-page the whole
+                cluster is one way back: a chevron crossfades in over the vial and the word reads Learn, so nothing in the
+                bar shifts sideways (styles.css) and every part of it does the same thing. */}
             <div className="brand-wrap">
-            <a className="brand" href="#today" aria-label="Peptide Ledger, today">
+            <a className="brand" href={sub ? '#learn' : '#today'} aria-label={sub ? 'Back to Learn' : 'Peptide Ledger, today'}>
               {/* The installed icon's vial, drawn the same way: a pink cap on a dark rounded tile. */}
               <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
                 <rect width="32" height="32" rx="7" fill="var(--dark)" />
@@ -237,13 +238,13 @@ export function App() {
                 <path d="M9 13.5 Q9 12 10.5 12 H21.5 Q23 12 23 13.5 V25 Q23 28 20 28 H12 Q9 28 9 25 Z" fill="var(--on-dark)" />
                 <path d="M10.3 21 H21.7 V25 Q21.7 26.7 20 26.7 H12 Q10.3 26.7 10.3 25 Z" fill="var(--on-dark-3)" />
               </svg>
-              <span className="wordmark">Peptide Ledger</span>
+              <span className="wordmark">{sub ? 'Learn' : 'Peptide Ledger'}</span>
             </a>
-            <button type="button" className="bar-title" inert={titled ? undefined : true} aria-label={`${pageName}, back to top`}
-              onClick={() => window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}>{pageName}</button>
-            <a className="icon-btn bar-back" href="#learn" aria-label="Back to Learn" inert={sub ? undefined : true}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
-            </a>
+            <button type="button" className="bar-title" inert={titled && !sub ? undefined : true} aria-label={`${pageName}, back to top`}
+              onClick={() => window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })}>{pageName}</button>
+            <span className="icon-btn bar-back" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
+            </span>
             </div>
             <AccountButton onOpen={() => setSheet({ kind: 'account' })} />
             <ThemeToggle />
@@ -269,7 +270,7 @@ export function App() {
         </div>
       </footer>
       <div className="app-end" />
-      <TabBar current={route.id ? 'learn' : tab} exact={!route.id && tab === route.tab} onLog={logNext} logLabel={nextDue ? 'Log a dose' : 'Add a peptide'} logWord={nextDue ? 'Log' : 'Add'} inert={bg} />
+      <TabBar current={route.id ? 'learn' : tab} exact={!route.id && tab === route.tab} onLog={logNext} logLabel={nextDue ? `Log ${nextDue.name}` : 'Add a peptide'} logWord={nextDue ? 'Log' : 'Add'} inert={bg} />
       <SheetClosing.Provider key={session} value={closing}>
         {shown?.kind === 'regimen' && (shown.back
           ? <RegimenSheet initial={shown.r} isNew={false} onClose={backToDose} onSaved={x => setSheet(x ? { kind: 'dose', r: x } : null)} />

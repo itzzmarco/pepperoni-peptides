@@ -26,14 +26,15 @@ function Tab({ k, label, current, exact }: { k: keyof typeof ICON; label: string
  *  `exact` is false on a screen that belongs to the tab's section without being the tab's own page. */
 export function TabBar({ current, exact, onLog, logLabel, logWord, inert }: { current: Route; exact: boolean; onLog: () => void; logLabel: string; logWord: string; inert?: boolean }) {
   const col = COL[current as keyof typeof COL];
-  // One pill stays mounted and slides to every tab. Its track only cuts a round hole around the log button, so crossing
-  // sides the pill passes around the button in one piece and never comes to rest there.
+  // One pill stays mounted and slides to every tab as one solid shape. Crossing sides it passes under the log button
+  // and never comes to rest there.
   return (
     <nav className="tabbar" aria-label="Main" inert={inert}>
       {col != null && <span className="tab-track"><span className="tab-ind" aria-hidden="true" style={{ ['--k' as string]: col, ['--r' as string]: ROW[current as keyof typeof ROW] }} /></span>}
-      {/* Its visible word says what a tap does right now (the full name stays in aria-label, which starts with it).
+      {/* Its visible word says what a tap does right now; aria-label and the tooltip, which start with that word, name the
+          peptide it will log (the soonest due), so the sheet that opens is no surprise.
           It comes first, as the primary action: the rail shows it on top, and the phone bar moves Today and Trends before it. */}
-      <button className="log" type="button" onClick={onLog} aria-label={logLabel}>
+      <button className="log" type="button" onClick={onLog} aria-label={logLabel} title={logLabel}>
         <span className="log-dot"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></span>
         {logWord}
       </button>

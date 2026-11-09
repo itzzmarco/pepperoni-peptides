@@ -21,6 +21,29 @@ import { Glp1Alert, regName, type Actions } from './PeptidesView';
 const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
 const rise = (i: number) => ({ ['--i' as string]: i });
 
+/** The weight sparkline, drawn at the tile's real pixel width (like LineChart) so its stroke keeps an even weight
+    on any tile. `ys` are heights within the 28px box, oldest first. */
+function Spark({ ys }: { ys: number[] }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [W, setW] = useState(120);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => setW(Math.max(40, Math.round(el.clientWidth)));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  // Inset by the round cap's radius so the ends aren't clipped.
+  const pts = ys.map((y, i) => `${(2 + (i / Math.max(1, ys.length - 1)) * (W - 4)).toFixed(1)},${y.toFixed(1)}`).join(' ');
+  return (
+    <div ref={ref}>
+      <svg className="spark" width={W} height={28} viewBox={`0 0 ${W} 28`} aria-hidden="true"><polyline className="draw" pathLength={1} points={pts} /></svg>
+    </div>
+  );
+}
+
 /** Width (px) of one time label's box under the track, and of the pinned "12 AM" at the end. */
 const LABEL = 54, END_LABEL = 40;
 
@@ -143,7 +166,7 @@ export function TodayView(actions: Actions) {
   const wShown = useCountUp(wNow?.w ?? 0, wFirst?.w ?? 0);
   const wChange = wNow && wFirst && wNow !== wFirst ? wNow.w - wFirst.w : null;
   const wMin = Math.min(...weights.map(w => w.w)), wMax = Math.max(...weights.map(w => w.w));
-  const spark = weights.slice(-12).map((w, i, a) => `${(i / Math.max(1, a.length - 1)) * 120},${4 + (1 - (w.w - wMin) / Math.max(0.1, wMax - wMin)) * 20}`).join(' ');
+  const spark = weights.slice(-12).map(w => 4 + (1 - (w.w - wMin) / Math.max(0.1, wMax - wMin)) * 20);
 
   const effects = topEffects(checkins, startOfDay(now).getTime() - 6 * DAY);
   const checkedIn = checkins.find(c => dayKey(new Date(c.at)) === today);
@@ -178,11 +201,10 @@ export function TodayView(actions: Actions) {
   return (
     <section className="view">
       <header className="head">
+        {/* The greeting leads; the date sits opposite it as a quiet pill. */}
         <div className="spread rise mid">
-          <span className="stack gap-1">
-            <span className="greet">{hello}</span>
-            <span className="eyebrow">{fmtDay(now)}</span>
-          </span>
+          <span className="greet">{hello}</span>
+          <span className="chip">{fmtDay(now)}</span>
         </div>
         <h1 className="rise" style={rise(1)}>{line1}{line2 && <><br /><span className="soft">{line2}</span></>}</h1>
       </header>
@@ -244,7 +266,7 @@ export function TodayView(actions: Actions) {
             {wNow ? (
               <>
                 <span className="stat">{wShown.toFixed(1)}<small> {wUnit}</small></span>
-                {weights.length > 1 && <svg className="spark" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true"><polyline className="draw" pathLength={1} points={spark} /></svg>}
+                {weights.length > 1 && <Spark ys={spark} />}
                 <span className="sub">{wChange != null ? `${wChange > 0 ? '+' : '−'}${Math.abs(wChange).toFixed(1)} since ${fmtShort(wFirst.at)}` : 'Add more check-ins for a trend.'}</span>
               </>
             ) : <span className="sub">Add your weight in a daily check-in.</span>}

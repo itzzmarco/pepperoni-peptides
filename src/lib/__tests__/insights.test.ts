@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DoseEntry, Regimen } from '../types';
-import { adherence, doseDays, effectsNearDoses, glp1Overlap, patternWeeks } from '../insights';
+import { adherence, bucketDays, doseDays, effectsNearDoses, glp1Overlap, patternWeeks } from '../insights';
 import { lastBellyHour, nextBellyHour } from '../sites';
 
 const reg = (id: string, freq: string, extra: Partial<Regimen> = {}): Regimen => ({
@@ -78,4 +78,20 @@ it('flags two different GLP-1 medicines tracked at once', () => {
   expect(glp1Overlap([sema, tirz])).toHaveLength(2);
   expect(glp1Overlap([sema, { ...tirz, paused: true }])).toHaveLength(0);
   expect(glp1Overlap([sema, { ...sema, id: 'c' }])).toHaveLength(0);
+});
+
+describe('bucketDays', () => {
+  it('keeps one bucket per day at size 1', () => {
+    expect(bucketDays([0, 2, 1], 1)).toEqual([{ start: 0, n: 0 }, { start: 1, n: 2 }, { start: 2, n: 1 }]);
+  });
+
+  it('groups 90 days into 13 weeks ending today, the oldest one short', () => {
+    const counts = Array.from({ length: 90 }, (_, i) => (i === 0 || i === 89 ? 1 : 0));
+    const b = bucketDays(counts, 7);
+    expect(b).toHaveLength(13);
+    expect(b[0]).toEqual({ start: 0, n: 1 }); // days 0 to 5
+    expect(b[1].start).toBe(6);
+    expect(b[12]).toEqual({ start: 83, n: 1 }); // the last 7 days
+    expect(b.reduce((a, x) => a + x.n, 0)).toBe(2);
+  });
 });

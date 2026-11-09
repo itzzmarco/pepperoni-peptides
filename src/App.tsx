@@ -163,7 +163,12 @@ export function App() {
   }, []);
   // A closed sheet stays mounted (same instance, so focus return still works) while its exit plays.
   // Swapping straight to another sheet skips the exit; reduced motion unmounts at once.
+  // Each opening from closed is a new session with its own key, so reopening during an exit (another peptide's dose
+  // sheet, say) mounts a fresh form instead of reusing the leaving one.
   const [shown, setShown] = useState<SheetState>(null);
+  const [prev, setPrev] = useState<SheetState>(null);
+  const [session, setSession] = useState(0);
+  if (sheet !== prev) { setPrev(sheet); if (sheet && !prev) setSession(n => n + 1); }
   if (sheet && sheet !== shown) setShown(sheet);
   else if (!sheet && shown && prefersReducedMotion()) setShown(null);
   const closing = !sheet && !!shown;
@@ -259,7 +264,7 @@ export function App() {
       </footer>
       <div className="app-end" />
       <TabBar current={route.id ? 'learn' : tab} exact={!route.id && tab === route.tab} onLog={logNext} logLabel={nextDue ? 'Log a dose' : 'Add a peptide'} logWord={nextDue ? 'Log' : 'Add'} inert={bg} />
-      <SheetClosing.Provider value={closing}>
+      <SheetClosing.Provider key={session} value={closing}>
         {shown?.kind === 'regimen' && (shown.back
           ? <RegimenSheet initial={shown.r} isNew={false} onClose={() => setSheet({ kind: 'dose', r: shown.r })} onSaved={x => setSheet(x ? { kind: 'dose', r: x } : null)} />
           : <RegimenSheet initial={shown.r} isNew={shown.isNew} onClose={close} onSaved={goPeptides} onLog={actions.logDose} onSignIn={actions.signIn} />)}

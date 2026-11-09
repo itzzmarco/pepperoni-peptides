@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { fmtNum } from '../lib/format';
 import { syringeScale } from '../lib/syringeScale';
+import { prefersReducedMotion } from './Motion';
 
 /** A U-100 insulin syringe drawn to scale with its fill at `units`. The fill and plunger glide when the amount changes.
  *  It is drawn at its container's real pixel width, like LineChart, so the unit labels stay at text size on a phone;
@@ -21,8 +22,9 @@ export function Syringe({ units, cap }: { units: number; cap: number }) {
   const H = 92, x0 = 40, len = W - x0 - 42, y = 30, h = 30;
   const { step, major, label } = syringeScale(cap, len);
   const fillU = Math.min(Math.max(units, 0), cap);
-  // Start empty and draw up to the amount just after mounting, so the first view shows the draw.
-  const [ready, setReady] = useState(false);
+  // Start empty and draw up to the amount just after mounting, so the first view shows the draw. Under reduced motion
+  // there is no glide to show, so it mounts already filled instead of flashing empty.
+  const [ready, setReady] = useState(prefersReducedMotion);
   useEffect(() => { const t = setTimeout(() => setReady(true), 60); return () => clearTimeout(t); }, []);
   const frac = ready ? fillU / cap : 0;
   const ticks = [];

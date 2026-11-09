@@ -4,7 +4,7 @@ import type { FamilyKey, LegalKey, Peptide, Tier } from '../lib/types';
 import { PEPTIDES } from '../data/peptides';
 import { AS_OF, FAMILIES, LEGAL, TIERS } from '../data/reference';
 import { fmtNum } from '../lib/format';
-import { Ladder, LegalChip, TierChip } from '../components/Chips';
+import { Ladder, LegalChip } from '../components/Chips';
 import { FamilyGlyph } from '../components/FamilyGlyph';
 import { IlloSearch } from '../components/Illustration';
 import { prefersReducedMotion, viewTransition } from '../components/Motion';
@@ -193,6 +193,11 @@ export function LibraryView() {
   const [moreAtStart] = useState(moreOn > 0);
   const count = list.length === PEPTIDES.length ? `All ${list.length}` : `${list.length} of ${PEPTIDES.length}`;
   // A button, not a #tiers link: the hash is the route, so a fragment link would leave Learn.
+  // Only the card being opened carries the shared glyph name, since a view transition needs each name to be unique.
+  const open = (e: MouseEvent<HTMLAnchorElement>) => {
+    for (const c of Array.from(e.currentTarget.parentElement?.children ?? [])) c.removeAttribute('data-opening');
+    e.currentTarget.setAttribute('data-opening', '');
+  };
   const showTiers = () => {
     const d = document.getElementById('tiers') as HTMLDetailsElement | null;
     if (!d) return;
@@ -244,11 +249,16 @@ export function LibraryView() {
       <p className="sr-only" aria-live="polite">{count}</p>
       <div className="cards">
         {list.length ? list.map(p => (
-          <a className="card" href={`#${p.id}`} key={p.id} style={{ ['--vt' as string]: `c-${p.id}` }}>
-            <div className="card-top"><FamilyGlyph family={p.family} size={36} /><Ladder t={p.tier} /></div>
-            <div><span className="fam">{FAMILIES[p.family]?.name}</span><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 2).join(' · ')}</div> : null}</div>
+          // The name leads; family and tier share one quiet line under it, and legal status is the only chip.
+          // The tapped card marks its glyph, which travels into the profile header as the page opens (styles.css).
+          <a className="card" href={`#${p.id}`} key={p.id} style={{ ['--vt' as string]: `c-${p.id}` }} onClick={open}>
+            <div className="card-top">
+              <div><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 2).join(' · ')}</div> : null}</div>
+              <FamilyGlyph family={p.family} size={32} />
+            </div>
+            <div className="card-meta"><span>{FAMILIES[p.family]?.name}</span><Ladder t={p.tier} /><span>T{p.tier} · {TIERS[p.tier].label}</span></div>
             <p className="sum">{p.summary}</p>
-            <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /></div>
+            <div className="row-wrap"><LegalChip k={p.legal} /></div>
           </a>
         )) : (
           <div className="empty" style={{ gridColumn: '1 / -1' }}>

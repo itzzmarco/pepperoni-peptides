@@ -5,7 +5,7 @@ import { useAccount } from '../lib/account';
 import { intervalDays } from '../lib/schedule';
 import { download } from '../lib/download';
 import { DAY, dayKey, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
-import { adherence, doseDays, effectDays, effectsNearDoses, patternWeeks, siteCounts, topEffects } from '../lib/insights';
+import { adherence, bucketDays, doseDays, effectDays, effectsNearDoses, patternWeeks, siteCounts, topEffects } from '../lib/insights';
 import { SITE_LABEL } from '../lib/sites';
 import { ledgerToCsv } from '../lib/csv';
 import { PEP } from '../data/peptides';
@@ -88,43 +88,47 @@ function ExportPanel({ ledger }: { ledger: Ledger }) {
 const RECENT = 12, PAGE = 30;
 
 /** Header chart: one bar per day in the range, as tall as that day's dose count, so the page opens on the shape of the log.
- *  A caption under it gives the total and the range's first and last day, and a hairline at the top marks the busiest day's count.
- *  Pointing, touching or arrowing along the bars reads out one day (a slider for screen readers, so every day is reachable).
+ *  Over three months the days are summed into weeks, so a phone shows 13 readable bars rather than 90 slivers.
+ *  A caption under it gives the total and the range's first and last day, and a hairline at the top marks the busiest bar's count.
+ *  Pointing, touching or arrowing along the bars reads out one bar (a slider for screen readers, so every bar is reachable).
  *  With no doses in range it isn't drawn at all. */
 function DoseBars({ doses, days, now }: { doses: DoseEntry[]; days: number; now: Date }) {
   const [sel, setSel] = useState<number | null>(null);
   const perDay = new Map<string, number>();
   for (const d of doses) { const k = dayKey(new Date(d.at)); perDay.set(k, (perDay.get(k) ?? 0) + 1); }
   const dayAt = (i: number) => new Date(now.getFullYear(), now.getMonth(), now.getDate() - (days - 1) + i);
-  const counts = Array.from({ length: days }, (_, i) => perDay.get(dayKey(dayAt(i))) ?? 0);
-  const max = Math.max(1, ...counts);
-  const total = counts.reduce((a, b) => a + b, 0);
+  const weekly = days > 31;
+  const unit = weekly ? 'week' : 'day';
+  const bars = bucketDays(Array.from({ length: days }, (_, i) => perDay.get(dayKey(dayAt(i))) ?? 0), weekly ? 7 : 1);
+  const n = bars.length;
+  const max = Math.max(1, ...bars.map(b => b.n));
+  const total = bars.reduce((a, b) => a + b.n, 0);
   if (!total) return null;
-  const at = sel == null ? null : Math.min(sel, days - 1);
-  const dayText = (i: number) => `${fmtDay(dayAt(i))}: ${counts[i]} dose${counts[i] === 1 ? '' : 's'}`;
+  const at = sel == null ? null : Math.min(sel, n - 1);
+  const dayText = (i: number) => `${weekly ? 'Week of ' : ''}${fmtDay(dayAt(bars[i].start))}: ${bars[i].n} dose${bars[i].n === 1 ? '' : 's'}`;
   const fromPointer = (e: PointerEvent<HTMLDivElement>) => {
     const b = e.currentTarget.getBoundingClientRect();
-    setSel(Math.max(0, Math.min(days - 1, Math.floor(((e.clientX - b.left) / b.width) * days))));
+    setSel(Math.max(0, Math.min(n - 1, Math.floor(((e.clientX - b.left) / b.width) * n))));
   };
   const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
-    const cur = at ?? days - 1;
-    const next = { ArrowLeft: cur - 1, ArrowDown: cur - 1, ArrowRight: cur + 1, ArrowUp: cur + 1, Home: 0, End: days - 1 }[e.key];
+    const cur = at ?? n - 1;
+    const next = { ArrowLeft: cur - 1, ArrowDown: cur - 1, ArrowRight: cur + 1, ArrowUp: cur + 1, Home: 0, End: n - 1 }[e.key];
     if (next == null) return;
     e.preventDefault();
-    setSel(Math.max(0, Math.min(days - 1, next)));
+    setSel(Math.max(0, Math.min(n - 1, next)));
   };
   return (
     <>
-      <div className="hero-bars" data-n={days} tabIndex={0} role="slider" aria-label={`Doses logged each day over the last ${days} days, ${total} in total`}
-        aria-valuemin={0} aria-valuemax={days - 1} aria-valuenow={at ?? days - 1} aria-valuetext={dayText(at ?? days - 1)}
+      <div className="hero-bars" data-n={n} tabIndex={0} role="slider" aria-label={`Doses logged each ${unit} over the last ${days} days, ${total} in total`}
+        aria-valuemin={0} aria-valuemax={n - 1} aria-valuenow={at ?? n - 1} aria-valuetext={dayText(at ?? n - 1)}
         onKeyDown={onKey} onPointerDown={fromPointer} onPointerMove={fromPointer}
         onPointerLeave={e => { if (e.pointerType === 'mouse') setSel(null); }} onBlur={() => setSel(null)}>
-        <span className="hero-max" aria-hidden="true">{max} a day</span>
-        {counts.map((n, i) => <i key={i} className={`grow up${n ? '' : ' none'}`} data-on={at === i || undefined} style={{ height: n ? `${(n / max) * 100}%` : undefined, ['--i' as string]: Math.round((i / days) * 12) }} />)}
+        <span className="hero-max" aria-hidden="true">{max} a {unit}</span>
+        {bars.map((b, i) => <i key={i} className={`grow up${b.n ? '' : ' none'}`} data-on={at === i || undefined} style={{ height: b.n ? `${(b.n / max) * 100}%` : undefined, ['--i' as string]: Math.round((i / n) * 12) }} />)}
       </div>
       <div className="hero-cap" aria-hidden="true">
         <span>{fmtShort(dayAt(0))}</span>
-        {at == null ? <span><b>{total} dose{total === 1 ? '' : 's'}</b> logged<small className="hero-hint">Drag to inspect a day</small></span> : <span><b>{dayText(at)}</b></span>}
+        {at == null ? <span><b>{total} dose{total === 1 ? '' : 's'}</b> logged<small className="hero-hint">Drag to inspect a {unit}</small></span> : <span><b>{dayText(at)}</b></span>}
         <span>Today</span>
       </div>
     </>

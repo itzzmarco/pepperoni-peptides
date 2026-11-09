@@ -172,7 +172,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
                 <p className="small tone-ink">Looking down at your belly, 12 is toward your chest. Move one hour clockwise each injection and stay about 2 in (5 cm) from your navel, or use the spacing your nurse gave you.</p>
                 <div className="site-legend" style={{ justifyContent: 'flex-start' }}>
                   <span><i style={{ background: 'var(--sky-ink)' }} />Selected</span>
-                  <span><i style={{ boxShadow: 'inset 0 0 0 2px var(--sky-ink)', background: 'var(--surface)' }} />Next clockwise</span>
+                  <span><i style={{ background: 'var(--surface)', border: '2px dashed var(--sky-ink)' }} />Next clockwise</span>
                   <span><i style={{ background: 'var(--recent-1)' }} />Used recently</span>
                 </div>
                 {bellyDoses.length > 0 && (

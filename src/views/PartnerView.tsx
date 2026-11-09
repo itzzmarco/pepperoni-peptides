@@ -76,11 +76,11 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
         {first ? (
           /* The shape of the card either answer starts with (art, heading, a line, one control), so nothing jumps far when it lands. */
           <div className="skel-page empty" aria-hidden="true">
-            <div className="skel" style={{ height: 150, justifySelf: 'stretch', borderRadius: 'var(--r-md)' }} />
+            <div className="skel skel-art" />
             <span className="eyebrow">Partner</span>
-            <div className="skel" style={{ height: 30, width: '70%', borderRadius: 'var(--r-sm)' }} />
-            <div className="skel" style={{ height: 18, width: '90%', borderRadius: 'var(--r-sm)' }} />
-            <div className="skel" style={{ height: 48, width: 180, borderRadius: 999 }} />
+            <div className="skel skel-title" />
+            <div className="skel skel-line" />
+            <div className="skel skel-btn" />
           </div>
         ) : (
           <header className="empty rise">

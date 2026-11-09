@@ -42,8 +42,10 @@ function CompoundPicker({ pick, onPick, field }: { pick: string; onPick: (v: str
   const [finding, setFinding] = useState(!pick);
   const [q, setQ] = useState('');
   const change = useRef<HTMLButtonElement>(null);
+  const search = useRef<HTMLInputElement>(null);
+  // Choosing or reopening moves focus to what replaced the button just pressed, so keyboard users keep their place.
   const moved = useRef(false);
-  useEffect(() => { if (!finding && moved.current) change.current?.focus(); }, [finding]);
+  useEffect(() => { if (moved.current) (finding ? search : change).current?.focus(); }, [finding]);
   const p = PEP[pick];
   const found = PEPTIDES.filter(x => matches(x, { q, fam: 'all', tier: 'all', legal: 'all' }));
   const take = (v: string) => { onPick(v); setQ(''); moved.current = true; setFinding(false); };
@@ -60,13 +62,13 @@ function CompoundPicker({ pick, onPick, field }: { pick: string; onPick: (v: str
         <div className="picked">
           {p && <FamilyGlyph family={p.family} size={36} />}
           <span className="nm"><b>{p ? p.name : 'Something else'}</b>{p && <TierChip t={p.tier} />}</span>
-          <button ref={change} type="button" className="btn quiet sm" onClick={() => setFinding(true)} aria-label="Change peptide">Change</button>
+          <button ref={change} type="button" className="btn quiet sm" onClick={() => { moved.current = true; setFinding(true); }} aria-label="Change peptide">Change</button>
         </div>
       ) : (
         <>
           <div className="search">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
-            <input type="search" id="r-compound" {...field} aria-label="Search peptides" value={q} onChange={e => setQ(e.target.value)} placeholder="Search name, nickname or goal" autoComplete="off" />
+            <input ref={search} type="search" id="r-compound" {...field} aria-label="Search peptides" value={q} onChange={e => setQ(e.target.value)} placeholder="Search name, nickname or goal" autoComplete="off" />
           </div>
           <div className="find-list" role="group" aria-labelledby="r-compound-l">
             {found.map(x => row(x.id, x))}

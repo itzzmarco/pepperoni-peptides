@@ -4,6 +4,8 @@ import { PEPTIDES } from '../data/peptides';
 import { AS_OF, FAMILIES, LEGAL, TIERS } from '../data/reference';
 import { fmtNum } from '../lib/format';
 import { Ladder, LegalChip, TierChip } from '../components/Chips';
+import { FamilyGlyph } from '../components/FamilyGlyph';
+import { IlloSearch } from '../components/Illustration';
 
 const TIER_LIST: Tier[] = [1, 2, 3, 4, 5];
 
@@ -155,6 +157,7 @@ export function LibraryView() {
       <div className="cards">
         {list.length ? list.map(p => (
           <a className="card" href={`#${p.id}`} key={p.id}>
+            <FamilyGlyph family={p.family} />
             <div><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 2).join(' · ')}</div> : null}</div>
             <Ladder t={p.tier} />
             <p className="sum">{p.summary}</p>
@@ -162,6 +165,7 @@ export function LibraryView() {
           </a>
         )) : (
           <div className="empty" style={{ gridColumn: '1 / -1' }}>
+            <IlloSearch />
             <h3>No matches</h3>
             <p className="small muted">Try a different word or clear a filter.</p>
             <button className="btn ghost sm" onClick={() => setF({ q: '', fam: 'all', tier: 'all', legal: 'all' })}>Clear filters</button>

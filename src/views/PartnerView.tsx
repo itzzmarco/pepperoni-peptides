@@ -74,10 +74,19 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
           <h1>Track progress together.</h1>
           <p>Link accounts with your partner and you'll each see the other's weight and shots next to your own. Neither of you can change the other's log.</p>
         </header>
-        <div className="head-actions">
-          {loading && acct.user ? <span className="small muted">Checking for a linked partner…</span>
-            : <button className="btn" onClick={onAccount}>{acct.user ? 'Link your partner' : 'Sign in to link'}</button>}
-        </div>
+        {/* First load: placeholder blocks shaped like the partner page; the sentence stays for screen readers. */}
+        <p className="sr-only" aria-live="polite">{loading && acct.user ? 'Checking for a linked partner…' : ''}</p>
+        {loading && acct.user ? (
+          <div className="skel-page" aria-hidden="true">
+            <div className="skel" style={{ height: 48, width: '60%' }} />
+            <div className="skel" style={{ height: 180 }} />
+            <div className="bento"><div className="skel" style={{ height: 120 }} /><div className="skel" style={{ height: 120 }} /></div>
+          </div>
+        ) : (
+          <div className="head-actions">
+            <button className="btn" onClick={onAccount}>{acct.user ? 'Link your partner' : 'Sign in to link'}</button>
+          </div>
+        )}
         {error && <p className="alert warn"><b>Couldn't load your partner.</b><span>{error}</span></p>}
       </section>
     );

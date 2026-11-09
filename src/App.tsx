@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { flushSync } from 'react-dom';
 import type { Regimen } from './lib/types';
 import { PEP } from './data/peptides';
 import { AS_OF } from './data/reference';
@@ -21,6 +22,8 @@ import { useAccount } from './lib/account';
 import { AccountButton } from './components/AccountButton';
 import { ThemeToggle } from './components/ThemeToggle';
 import { TabBar } from './components/TabBar';
+import { SheetClosing } from './components/Sheet';
+import { EXIT_MS, prefersReducedMotion } from './components/Motion';
 
 const ROUTES = ['today', 'trends', 'learn', 'peptides', 'calculator', 'safety', 'partner'] as const;
 export type Route = (typeof ROUTES)[number];
@@ -44,6 +47,9 @@ type SheetState =
   | { kind: 'account' }
   | null;
 
+/** View Transitions aren't in every browser or in every TS DOM lib, so feature-detect with a narrow type. */
+type WithTransitions = Document & { startViewTransition: (update: () => void) => unknown };
+
 export function App() {
   const [route, setRoute] = useState(parseHash);
   const [sheet, setSheet] = useState<SheetState>(null);
@@ -54,10 +60,34 @@ export function App() {
     if (recovering || linkError) setSheet({ kind: 'account' });
   }, [recovering, linkError]);
   useEffect(() => {
-    const onHash = () => { setRoute(parseHash()); setSheet(null); window.scrollTo(0, 0); };
+    const swap = () => { setRoute(parseHash()); setSheet(null); window.scrollTo(0, 0); };
+    // Fade the new route in while the top bar and tab bar stay put; reduced motion keeps the instant swap.
+    const onHash = () => {
+      if ('startViewTransition' in document && !prefersReducedMotion()) (document as WithTransitions).startViewTransition(() => flushSync(swap));
+      else swap();
+    };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
+  // The glass top bar picks up a hairline once the page scrolls under it.
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  // A closed sheet stays mounted (same instance, so focus return still works) while its exit plays.
+  // Swapping straight to another sheet skips the exit; reduced motion unmounts at once.
+  const [shown, setShown] = useState<SheetState>(null);
+  if (sheet && sheet !== shown) setShown(sheet);
+  else if (!sheet && shown && prefersReducedMotion()) setShown(null);
+  const closing = !sheet && !!shown;
+  useEffect(() => {
+    if (!closing) return;
+    const t = setTimeout(() => setShown(null), EXIT_MS);
+    return () => clearTimeout(t);
+  }, [closing]);
   const close = useCallback(() => setSheet(null), []);
   const goPeptides = useCallback(() => {
     setSheet(null);
@@ -93,7 +123,7 @@ export function App() {
   const tab = route.tab === 'calculator' || route.tab === 'safety' ? 'learn' : route.tab === 'partner' ? 'today' : route.tab;
   return (
     <>
-      <header className="topbar gutter" inert={bg}>
+      <header className="topbar gutter" inert={bg} data-scrolled={scrolled ? 'true' : undefined}>
         <div className="wrap">
           <div className="row">
             <a className="brand" href="#today" aria-label="Peptide Ledger, today">
@@ -125,13 +155,15 @@ export function App() {
       </footer>
       <div className="app-end" />
       <TabBar current={route.id ? 'learn' : tab} onLog={logNext} inert={bg} />
-      {sheet?.kind === 'regimen' && (sheet.back
-        ? <RegimenSheet initial={sheet.r} isNew={false} onClose={() => setSheet({ kind: 'dose', r: sheet.r })} onSaved={x => setSheet(x ? { kind: 'dose', r: x } : null)} />
-        : <RegimenSheet initial={sheet.r} isNew={sheet.isNew} onClose={close} onSaved={goPeptides} onLog={actions.logDose} onSignIn={actions.signIn} />)}
-      {sheet?.kind === 'dose' && <DoseSheet r={sheet.r} onClose={close} onFix={r => setSheet({ kind: 'regimen', r, isNew: false, back: true })} />}
-      {sheet?.kind === 'checkin' && <CheckinSheet onClose={close} onBackfill={() => setSheet({ kind: 'backfill' })} />}
-      {sheet?.kind === 'backfill' && <BackfillSheet onClose={close} />}
-      {sheet?.kind === 'account' && <AccountSheet onClose={close} />}
+      <SheetClosing.Provider value={closing}>
+        {shown?.kind === 'regimen' && (shown.back
+          ? <RegimenSheet initial={shown.r} isNew={false} onClose={() => setSheet({ kind: 'dose', r: shown.r })} onSaved={x => setSheet(x ? { kind: 'dose', r: x } : null)} />
+          : <RegimenSheet initial={shown.r} isNew={shown.isNew} onClose={close} onSaved={goPeptides} onLog={actions.logDose} onSignIn={actions.signIn} />)}
+        {shown?.kind === 'dose' && <DoseSheet r={shown.r} onClose={close} onFix={r => setSheet({ kind: 'regimen', r, isNew: false, back: true })} />}
+        {shown?.kind === 'checkin' && <CheckinSheet onClose={close} onBackfill={() => setSheet({ kind: 'backfill' })} />}
+        {shown?.kind === 'backfill' && <BackfillSheet onClose={close} />}
+        {shown?.kind === 'account' && <AccountSheet onClose={close} />}
+      </SheetClosing.Provider>
     </>
   );
 }

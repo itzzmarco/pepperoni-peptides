@@ -12,6 +12,7 @@ import { PEP } from '../data/peptides';
 import { LineChart } from '../components/LineChart';
 import { useCountUp } from '../components/Motion';
 import { useToast } from '../components/Toast';
+import { IlloTrends } from '../components/Illustration';
 import { regName } from './PeptidesView';
 
 const RANGES = [[7, 'Week'], [30, 'Month'], [90, '3 months']] as const;
@@ -244,9 +245,12 @@ export function TrendsView({ onBackfill }: { onBackfill: () => void }) {
     adh.expected ? (missed ? `${missed} dose${missed === 1 ? '' : 's'} missed` : 'no doses missed') : '',
   ].filter(Boolean).join(', ');
 
+  const empty = !regimens.length && !doses.length && !checkins.length;
+
   return (
     <section className="view">
       <header className="head rise">
+        {empty && <IlloTrends />}
         <span className="eyebrow">Trends · {RANGES.find(r => r[0] === days)![1]}</span>
         <h1>{line1}{line2 && <><br /><span className="soft">{line2[0].toUpperCase() + line2.slice(1)}.</span></>}</h1>
       </header>

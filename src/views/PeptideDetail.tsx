@@ -4,6 +4,7 @@ import { Ladder, LegalChip, SeqStrip, TierChip, WadaChip } from '../components/C
 import { useLedger } from '../lib/store';
 import { freqText, regimenStatus } from '../lib/schedule';
 import { fmtNum } from '../lib/format';
+import { FamilyGlyph } from '../components/FamilyGlyph';
 import { Glp1Alert, Strip } from './PeptidesView';
 
 function ListSec({ title, items, tone = '' }: { title: string; items?: string[]; tone?: string }) {
@@ -40,8 +41,11 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
         Learn
       </a></div>
-      <header className="head rise" style={rise(1)}>
-        <span className="eyebrow">{FAMILIES[p.family]?.name}{p.isPeptide === false ? ' · not technically a peptide' : ''}</span>
+      <header className="head band rise" data-t={p.tier} style={rise(1)}>
+        <div className="band-top">
+          <FamilyGlyph family={p.family} size={44} />
+          <span className="eyebrow">{FAMILIES[p.family]?.name}{p.isPeptide === false ? ' · not technically a peptide' : ''}</span>
+        </div>
         <h1>{p.name}</h1>
         {p.aka?.length ? <p className="small">Also called {p.aka.join(', ')}</p> : null}
         <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /><WadaChip w={p.wada} /></div>

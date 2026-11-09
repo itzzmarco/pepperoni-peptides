@@ -13,6 +13,7 @@ import { PEP } from '../data/peptides';
 import { UNREGULATED_SOURCE } from '../data/options';
 import { LegalChip, TierChip } from '../components/Chips';
 import { useToast } from '../components/Toast';
+import { IlloShelf } from '../components/Illustration';
 import { NextShot } from '../components/NextShot';
 
 export const regName = (r: Pick<Regimen, 'compoundId' | 'name'>) => PEP[r.compoundId]?.name ?? (r.name || 'Unnamed');
@@ -206,6 +207,7 @@ export function PeptidesView(actions: Actions) {
       {regimens.length === 0 ? (
         <>
           <div className="empty">
+            <IlloShelf />
             <h3>Nothing tracked yet</h3>
             <p className="muted small">Add a peptide or medication you've been prescribed. You'll get a due-date status, a 4-week history strip, and injection-site rotation.</p>
             <button className="btn" onClick={actions.addRegimen}>Add a peptide</button>

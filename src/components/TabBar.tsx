@@ -6,6 +6,8 @@ const ICON = {
   learn: 'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z',
   peptides: 'M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5V2M8.5 2h7M14.5 16h-5',
 };
+/** Grid column of each tab. Column 2 is the log button, so the indicator never lands there. */
+const COL: Record<keyof typeof ICON, number> = { today: 0, trends: 1, learn: 3, peptides: 4 };
 
 function Tab({ k, label, current }: { k: keyof typeof ICON; label: string; current: string }) {
   const on = current === k;
@@ -17,10 +19,12 @@ function Tab({ k, label, current }: { k: keyof typeof ICON; label: string; curre
   );
 }
 
-/** Floating bottom tab bar; the dark button in the middle logs the next due dose. */
+/** Floating glass tab bar; the dark button in the middle logs the next due dose. A pill slides to the current tab. */
 export function TabBar({ current, onLog, inert }: { current: Route; onLog: () => void; inert?: boolean }) {
+  const col = COL[current as keyof typeof COL];
   return (
     <nav className="tabbar" aria-label="Main" inert={inert}>
+      {col != null && <span className="tab-ind" aria-hidden="true" style={{ ['--k' as string]: col }} />}
       <Tab k="today" label="Today" current={current} />
       <Tab k="trends" label="Trends" current={current} />
       <button className="log" type="button" onClick={onLog} aria-label="Log a dose">

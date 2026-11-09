@@ -13,6 +13,7 @@ import { firstName, usePartners, weightChange } from '../lib/partner';
 import { DeviceLogPrompt } from '../sheets/AccountSheet';
 import { SiteFigure, doseText, whenNext } from '../components/NextShot';
 import { useCountUp } from '../components/Motion';
+import { IlloStart } from '../components/Illustration';
 import { Glp1Alert, regName, type Actions } from './PeptidesView';
 
 const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
@@ -181,6 +182,7 @@ export function TodayView(actions: Actions) {
         </section>
       ) : (
         <section className="tile dark rise" style={rise(2)}>
+          <IlloStart />
           <span className="eyebrow">Start your log</span>
           <span style={{ fontSize: '1.375rem', fontWeight: 600, lineHeight: 1.25 }}>Track a peptide or medication your clinician prescribed.</span>
           <span className="sub">You'll see what's due, how consistent you've been, and where to inject next. {signedIn ? 'It syncs to your account, and only you can see it.' : 'Nothing leaves this device.'}</span>

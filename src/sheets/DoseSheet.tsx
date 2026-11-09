@@ -169,7 +169,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
                 <div className="site-legend" style={{ justifyContent: 'flex-start' }}>
                   <span><i style={{ background: 'var(--sky-ink)' }} />Selected</span>
                   <span><i style={{ boxShadow: 'inset 0 0 0 2px var(--sky-ink)', background: 'var(--surface)' }} />Next clockwise</span>
-                  <span><i style={{ background: '#F9C9AE' }} />Used recently</span>
+                  <span><i style={{ background: 'var(--recent-1)' }} />Used recently</span>
                 </div>
                 {bellyDoses.length > 0 && (
                   <div className="recent"><span className="xsmall" style={{ background: 'none', padding: 0, color: 'var(--ink-2)' }}>Recent</span>

@@ -26,8 +26,8 @@ function Tab({ k, label, current, exact }: { k: keyof typeof ICON; label: string
  *  `exact` is false on a screen that belongs to the tab's section without being the tab's own page. */
 export function TabBar({ current, exact, onLog, logLabel, logWord, inert }: { current: Route; exact: boolean; onLog: () => void; logLabel: string; logWord: string; inert?: boolean }) {
   const col = COL[current as keyof typeof COL];
-  // One pill for every move: it slides from tab to tab. On the phone bar the track is masked over the log button's column
-  // (styles.css), so crossing sides it passes out of sight behind the button and never shows or rests there.
+  // One pill for every move: it slides from tab to tab, in sight the whole way. On the phone bar, crossing sides it passes
+  // under the log button's disc and never rests there (styles.css).
   // Its visible word is "Log" (or "Add" with nothing set up); aria-label and the tooltip, which start with that word,
   // name the peptide when exactly one is due, else how many doses are due.
   // It is rendered where each layout shows it, top of the rail and middle of the phone bar, with the other copy hidden

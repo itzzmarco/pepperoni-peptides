@@ -25,8 +25,10 @@ export const Defs = ({ u }: { u: string }) => (
 
 /** Today, nothing tracked yet: one vial, drawn in the wordmark vial's own material (pink cap, light glass, a pale dose)
  *  at hero size, on the dark instrument card it sits on. The headline carries the welcome; the art is just the object,
- *  with the same top-left light, dot texture and floor shade as the spot drawings. */
-export function IlloStart({ size = 200 }: Props) {
+ *  with the same top-left light, dot texture and floor shade as the spot drawings.
+ *  `locked` is the signed-out card: the same vial with the account's cloud behind it and a padlock badge on its foot,
+ *  so "your log is in your account" reads apart from "start your log" at a glance. */
+export function IlloStart({ size = 200, locked }: Props & { locked?: boolean }) {
   const u = useId();
   return (
     <Ground><svg {...svg(size)} viewBox="0 0 160 100" height={size * 100 / 160} className="illo scene">
@@ -38,6 +40,7 @@ export function IlloStart({ size = 200 }: Props) {
       </defs>
       <circle cx="80" cy="50" r="48" fill={`url(#${u}st-halo)`} />
       <circle cx="80" cy="50" r="40" fill={`url(#${u}st-dots)`} />
+      {locked && <path d="M104 46h30a10 10 0 0 0 0-20 14 14 0 0 0-27-4 10 10 0 0 0-3 24z" fill="var(--on-dark)" opacity=".2" />}
       <ellipse cx="80" cy="93" rx="30" ry="4" fill="var(--illo-shade-on-dark)" />
       {/* Cap and crimp, then the glass body with its dose, a scale and a sheen down the lit side. */}
       <rect x="64" y="6" width="32" height="14" rx="4" fill="var(--brand)" />
@@ -50,6 +53,14 @@ export function IlloStart({ size = 200 }: Props) {
       <g stroke="var(--dark)" strokeWidth="1.6" strokeLinecap="round" opacity=".35"><path d="M88 40h8M90 48h6M88 56h8M90 70h6M88 78h8" /></g>
       <path d="M65 36v44" stroke="var(--on-dark)" strokeWidth="4" strokeLinecap="round" />
       <g fill="var(--on-dark)" opacity=".5"><circle cx="34" cy="30" r="2" /><circle cx="128" cy="22" r="2.5" /><circle cx="122" cy="72" r="1.5" /></g>
+      {locked && (
+        <g>
+          <circle cx="104" cy="80" r="15" fill="var(--on-dark)" />
+          <path d="M98 78v-4a6 6 0 0 1 12 0v4" fill="none" stroke="var(--dark)" strokeWidth="3" strokeLinecap="round" />
+          <rect x="95" y="77" width="18" height="12" rx="3" fill="var(--dark)" />
+          <circle cx="104" cy="83" r="1.8" fill="var(--on-dark)" />
+        </g>
+      )}
     </svg></Ground>
   );
 }

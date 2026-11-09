@@ -168,7 +168,7 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved, onLog, onSignIn
           <div className="alert info" role="note">
             <b>Have an account? Sign in first.</b>
             <span>You're signed out, so what you add here stays on this device only. Signing in brings back the peptides, shots and weights already in your account.</span>
-            <div className="mt-2"><button type="button" className="btn sm" onClick={onSignIn}>Sign in</button></div>
+            <div className="mt-2"><button type="button" className="btn sm" onClick={() => guard.ask(onSignIn)}>Sign in</button></div>
           </div>
         )}
         {/* The form comes in labelled tiles, like the dose sheet: what it is, the prescribed dose, the schedule, where it comes from. */}

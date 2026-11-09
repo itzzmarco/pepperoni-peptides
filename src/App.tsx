@@ -139,6 +139,8 @@ export function App() {
     arrived.current = false;
     const main = mainRef.current;
     if (!main) return;
+    // A page that already put focus somewhere in itself (Learn, back on the card a profile was opened from) keeps it.
+    if (main.contains(document.activeElement)) return;
     const land = (h: HTMLElement) => { h.tabIndex = -1; h.focus({ preventScroll: true }); };
     const h = main.querySelector('h1');
     if (h) { land(h); return; }
@@ -162,11 +164,20 @@ export function App() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+  const barRef = useRef<HTMLElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
+  // The bar's real height, larger text and the notch included, as --bar-h, so what pins under it (Learn's finder) and
+  // anchored jumps sit flush with its bottom edge instead of assuming a fixed height.
+  useEffect(() => {
+    const bar = barRef.current;
+    if (!bar || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => document.documentElement.style.setProperty('--bar-h', `${bar.offsetHeight}px`));
+    ro.observe(bar);
+    return () => ro.disconnect();
+  }, []);
   // It takes the page's name exactly when the page's own headline (its h1) has slid fully under the bar, however tall
   // the notice or headline are on this screen. A mutation observer follows the h1 when a route or state swaps it,
   // and the observer is rebuilt when the window resizes, since the bar's height sets where "under the bar" starts.
-  const barRef = useRef<HTMLElement>(null);
-  const mainRef = useRef<HTMLElement>(null);
   useEffect(() => {
     const main = mainRef.current;
     if (!main || typeof IntersectionObserver === 'undefined') return;

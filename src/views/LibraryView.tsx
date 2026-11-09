@@ -5,7 +5,7 @@ import { PEPTIDES } from '../data/peptides';
 import { AS_OF, FAMILIES, LEGAL, TIERS } from '../data/reference';
 import { fmtNum } from '../lib/format';
 import { Ladder, LegalChip } from '../components/Chips';
-import { FamilyGlyph, familyTint } from '../components/FamilyGlyph';
+import { FamilyGlyph } from '../components/FamilyGlyph';
 import { IlloSearch } from '../components/Illustration';
 import { prefersReducedMotion, viewTransition } from '../components/Motion';
 
@@ -15,7 +15,7 @@ type Filters = { q: string; fam: 'all' | FamilyKey; tier: 'all' | `${Tier}`; leg
 const FILTER_KEY = 'pl-lib';
 /** Kept in memory for this visit only (never stored): the query, and where the page was when a profile was opened,
     so coming back from a profile shows the same results at the same place. */
-const back: { q: string; y: number | null } = { q: '', y: null };
+const back: { q: string; y: number | null; link: string | null; nth: number } = { q: '', y: null, link: null, nth: 0 };
 
 function loadFilters(): Filters {
   const base: Filters = { q: '', fam: 'all', tier: 'all', legal: 'all' };
@@ -180,16 +180,25 @@ export function LibraryView() {
     back.q = f.q;
     try { localStorage.setItem(FILTER_KEY, JSON.stringify({ ...f, q: '' })); } catch { /* storage blocked */ }
   }, [f]);
-  // Back from a profile: return to the spot it was opened from. A layout effect, so it lands before the route fade's
-  // new snapshot and after App's scroll to the top.
+  // Back from a profile: return to the spot it was opened from, with keyboard focus on the link that opened it, so the
+  // next Tab carries on from that card. A layout effect, so it lands before the route fade's new snapshot, after App's
+  // scroll to the top, and before App's arrival effect, which leaves focus here rather than on the headline.
+  const sectionRef = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
     if (back.y != null) window.scrollTo(0, back.y);
+    const link = back.link == null ? null : sectionRef.current?.querySelectorAll<HTMLAnchorElement>(`a[href="${back.link}"]`);
+    if (link?.length) (link[back.nth] ?? link[0]).focus({ preventScroll: true });
     back.y = null;
+    back.link = null;
   }, []);
-  // Any link to a profile (cards, chart rows, tier lists) remembers where the page was.
+  // Any link to a profile (cards, chart rows, tier lists) remembers where the page was and which of its links it was.
   const remember = (e: MouseEvent) => {
     const a = (e.target as Element).closest('a[href^="#"]');
-    if (a && !GUIDES.some(g => g.href === a.getAttribute('href'))) back.y = window.scrollY;
+    const href = a?.getAttribute('href');
+    if (!a || !href || GUIDES.some(g => g.href === href)) return;
+    back.y = window.scrollY;
+    back.link = href;
+    back.nth = Array.from(e.currentTarget.querySelectorAll(`a[href="${href}"]`)).indexOf(a);
   };
   const fresh = useRef(true);
   useEffect(() => { fresh.current = false; }, []);
@@ -223,7 +232,7 @@ export function LibraryView() {
     d.querySelector('summary')?.focus({ preventScroll: true });
   };
   return (
-    <section className="view" onClickCapture={remember}>
+    <section className="view" ref={sectionRef} onClickCapture={remember}>
       <header className="head rise">
         <span className="eyebrow">Learn</span>
         <h1>What the evidence says.<br /><span className="soft">{PEPTIDES.length} peptides, graded.</span></h1>
@@ -275,7 +284,7 @@ export function LibraryView() {
           // The tapped card marks its glyph, which travels into the profile header as the page opens (styles.css).
           // On the page's first paint the first few cards rise in on the same capped stagger as the other tabs' blocks;
           // cards a filter brings in later are left to the filter's own transition.
-          <a className={`card${fresh.current && i < 6 ? ' rise' : ''}`} href={`#${p.id}`} key={p.id} style={{ ['--vt' as string]: `c-${p.id}`, ['--i' as string]: i + 1, ['--tone' as string]: familyTint(p.family) }} onClick={open}>
+          <a className={`card${fresh.current && i < 6 ? ' rise' : ''}`} href={`#${p.id}`} key={p.id} style={{ ['--vt' as string]: `c-${p.id}`, ['--i' as string]: i + 1 }} onClick={open}>
             <div className="card-top">
               <div><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 2).join(' · ')}</div> : null}</div>
               <FamilyGlyph family={p.family} ground="surface" />

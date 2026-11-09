@@ -242,7 +242,7 @@ export function TodayView(actions: Actions) {
           doneToday={loggedToday.length} dueToday={left} />
       ) : offerSignIn && seenHere ? (
         <section className="tile dark empty rise" style={rise(2)}>
-          <IlloStart />
+          <IlloStart locked />
           <span className="eyebrow">Signed out</span>
           <h2>Sign in and your peptides, shots and weights come back.</h2>
           <span className="sub">Your log is saved in your account. Anything added while signed out stays on this device only, so sign in before you log.</span>

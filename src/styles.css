@@ -54,11 +54,11 @@
   --illo-shade: rgba(30,34,48,.07); --illo-shade-on-dark: rgba(0,0,0,.28); --illo-line: #6E7484;
   /* Brand pink: the vial cap in the mark, and the Log button at the centre of the tab bar, so the app's one main action wears it. */
   --brand: #C93D87; --brand-ink: #FFFFFF;
-  /* Sheets: their own surface, a 1px top light, and the scrim that dims the page behind. Primary-button hover. */
+  /* Sheets: their own surface, a 1px top light, and the scrim that dims the page behind. Primary-button hover, and the tab bar's pale pill. */
   --sheet-bg: #F6F6F8; --sheet-hi: rgba(255,255,255,.8); --scrim: rgba(16,18,24,.5);
   /* The phone sheet's drag handle: a neutral at about 3:1 on --sheet-bg, so it reads as a handle in both themes. */
   --grabber: #888E9B;
-  --btn-hover: #353B4D;
+  --btn-hover: #353B4D; --tab-pill: #E3EAF8;
   /* Motion */
   --ease-out: cubic-bezier(.22, 1, .36, 1);
   --ease-in: cubic-bezier(.4, 0, 1, 1);
@@ -108,7 +108,7 @@
     --illo-shade: rgba(0,0,0,.3); --illo-shade-on-dark: rgba(0,0,0,.3); --illo-line: #8E94A3;
     --brand: #EE79B4; --brand-ink: #101218;
     --sheet-bg: #171A23; --sheet-hi: rgba(255,255,255,.09); --scrim: rgba(0,0,0,.66); --grabber: #666C7B;
-    --btn-hover: #CDD2DC;
+    --btn-hover: #CDD2DC; --tab-pill: #26324A;
     color-scheme: dark;
   }
 }
@@ -141,12 +141,14 @@
   --illo-shade: rgba(0,0,0,.3); --illo-shade-on-dark: rgba(0,0,0,.3); --illo-line: #8E94A3;
   --brand: #EE79B4; --brand-ink: #101218;
   --sheet-bg: #171A23; --sheet-hi: rgba(255,255,255,.09); --scrim: rgba(0,0,0,.66); --grabber: #666C7B;
-  --btn-hover: #CDD2DC;
+  --btn-hover: #CDD2DC; --tab-pill: #26324A;
   color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 76px); }
+/* --bar-h is the top bar's measured height (App.tsx writes it as the bar resizes, larger text included); the fallback is
+   its default height, for the first paint. Anchored jumps stop just under the bar. */
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: calc(var(--bar-h, calc(env(safe-area-inset-top, 0px) + 68px)) + 8px); }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
   font-family: var(--f-body); font-size: var(--fs-md); line-height: 1.5;
@@ -196,16 +198,20 @@ h1[tabindex="-1"]:focus { outline: none; }
 .brand-wrap { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; margin-right: auto; min-width: 0; }
 .brand-wrap > * { grid-area: 1 / 1; }
 .brand { justify-self: start; }
-.topbar :is(.bar-back, .bar-title) { margin-left: 34px; align-self: stretch; min-width: 0; }
+/* The back and back-to-top controls are a chip of their own, like the sync chip at the other end, set 16px clear of the
+   vial; while either shows, only the vial itself is the home link, so the gap between them is dead space, never a home tap. */
+.topbar :is(.bar-back, .bar-title) { justify-self: start; max-width: calc(100% - 42px); margin-left: 42px; min-height: 44px; padding: 0 14px 0 10px; border-radius: 999px; background: var(--surface); box-shadow: var(--ring); min-width: 0; }
+.topbar:is([data-sub], [data-titled]) .brand { pointer-events: none; }
+.topbar:is([data-sub], [data-titled]) .brand > svg { pointer-events: auto; }
 .bar-back { display: flex; align-items: center; gap: 2px; min-height: 44px; text-decoration: none; color: var(--ink); font-weight: 600; font-size: var(--fs-md); opacity: 0; visibility: hidden; pointer-events: none; }
-.bar-back > svg { flex: none; color: var(--ink-3); margin-left: -3px; }
+.bar-back > svg { flex: none; color: var(--ink-3); }
 .bar-back > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .topbar[data-sub] .bar-back { opacity: 1; visibility: visible; pointer-events: auto; }
 .topbar:is([data-sub], [data-titled]) .wordmark { opacity: 0; visibility: hidden; }
 .wordmark, .bar-title > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 /* Its up arrow says what a tap does: back to the top. */
 .bar-title > svg { flex: none; color: var(--ink-3); }
-.bar-title { display: flex; align-items: center; gap: 4px; appearance: none; border: 0; background: none; padding: 0; font: inherit; text-align: left; cursor: pointer; font-weight: 600; font-size: var(--fs-md); color: var(--ink); min-width: 0; opacity: 0; transform: translateY(6px); pointer-events: none; }
+.bar-title { display: flex; align-items: center; gap: 4px; appearance: none; border: 0; font: inherit; text-align: left; cursor: pointer; font-weight: 600; font-size: var(--fs-md); color: var(--ink); min-width: 0; opacity: 0; transform: translateY(6px); pointer-events: none; }
 .topbar[data-titled] .wordmark { transform: translateY(-6px); }
 .topbar[data-titled] .bar-title { opacity: 1; transform: none; pointer-events: auto; }
 /* The brand row keeps a 44px target in both states. */
@@ -390,10 +396,10 @@ input[type="search"] { border-radius: 24px; padding-left: 44px; }
 textarea { min-height: 80px; resize: vertical; }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
 .search { position: relative; }
-/* Learn's finder: search and the evidence row pin under the top bar (its 68px height plus the notch inset) on an opaque
+/* Learn's finder: search and the evidence row pin flush under the top bar (its measured --bar-h) on an opaque
    page-coloured band, so the cards scroll under it; they let go after the last card, before the tier explainer. */
 .lib-find { display: grid; gap: 16px; }
-.lib-pin { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 68px); z-index: 20; display: grid; gap: 10px; padding: 6px 0 10px; margin: -6px 0 -10px; background: var(--bg); box-shadow: -16px 0 0 var(--bg), 16px 0 0 var(--bg); }
+.lib-pin { position: sticky; top: var(--bar-h, calc(env(safe-area-inset-top, 0px) + 68px)); z-index: 20; display: grid; gap: 10px; padding: 6px 0 10px; margin: -6px 0 -10px; background: var(--bg); box-shadow: -16px 0 0 var(--bg), 16px 0 0 var(--bg); }
 .search svg { position: absolute; left: 16px; top: 15px; color: var(--ink-3); pointer-events: none; }
 .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
 .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; }
@@ -681,8 +687,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 12px; }
 /* A plain white card: the family glyph is its one colour block, and the tier shows only in the small ladder. */
 .card { position: relative; display: grid; gap: 8px; align-content: start; grid-template-rows: auto auto 1fr auto; text-align: left;
-  /* A faint breath of the family's tint behind the glyph's corner; the glyph stays the card's one colour cue. */
-  background: radial-gradient(90% 60% at 100% 0%, color-mix(in srgb, var(--tone, var(--surface)) 35%, transparent), transparent 62%), var(--surface); box-shadow: var(--ring), var(--shadow-1); border-radius: var(--r-md); padding: 16px; color: var(--ink); text-decoration: none; min-width: 0; }
+  background: var(--surface); box-shadow: var(--ring), var(--shadow-1); border-radius: var(--r-md); padding: 16px; color: var(--ink); text-decoration: none; min-width: 0; }
 .glyph { display: inline-grid; place-items: center; border-radius: 14px; flex: none; }
 .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 /* Family and tier on one quiet line under the name: the family in grey words, the tier as the ladder alone. */
@@ -715,7 +720,8 @@ details[open] > summary .chev { transform: rotate(90deg); }
 .band[data-t="4"] { --tc: var(--t4); --tb: var(--t4-bg); } .band[data-t="5"] { --tc: var(--t5); --tb: var(--t5-bg); }
 .band { position: relative; overflow: hidden; isolation: isolate; }
 .band-art { position: absolute; z-index: -1; top: 14px; right: 16px; pointer-events: none; }
-@media (max-width: 480px) { .band-art { width: 112px; height: 43px; right: 12px; } }
+/* On phones the drawing keeps the top-right corner, so the family and tier row stops short of it. */
+@media (max-width: 480px) { .band-art { width: 112px; height: 43px; right: 12px; } .band .band-top { padding-right: 124px; } }
 .band .band-top { display: flex; align-items: center; gap: 10px; }
 .band .tier { background: var(--surface); }
 
@@ -908,15 +914,19 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 @supports not (backdrop-filter: blur(1px)) { .topbar, .tabbar { background: var(--bg); } }
 /* People who ask the OS for less transparency get the same opaque bars, with no blur behind them. */
 @media (prefers-reduced-transparency: reduce) { .topbar, .tabbar { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; } }
-/* One pill behind the current tab: one fifth of the track. It slides to every tab; the track is masked over the log
-   button's column (the middle fifth), so crossing sides it passes out of sight there and never shows behind the button. */
-.tab-track { position: absolute; z-index: -1; inset: 6px; pointer-events: none; -webkit-mask-image: linear-gradient(to right, black 40%, transparent 40% 60%, black 60%); mask-image: linear-gradient(to right, black 40%, transparent 40% 60%, black 60%); }
-.tab-ind { position: absolute; top: 0; bottom: 0; left: 0; width: 20%; border-radius: 22px; background: var(--btn); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); }
+/* One pill behind the current tab: one fifth of the track. It slides to every tab and stays in sight the whole way,
+   passing under the log button's disc when it crosses sides; it only ever comes to rest on a tab. It is a pale accent
+   chip, not a dark fill, so every label it passes (and the log word) keeps readable ink and nothing drops out mid-move;
+   the current tab says so in accent ink with a bolder icon. */
+.tab-track { position: absolute; z-index: -1; inset: 6px; pointer-events: none; }
+.tab-ind { position: absolute; top: 0; bottom: 0; left: 0; width: 20%; border-radius: 22px; background: var(--tab-pill); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); }
 /* The log button is in the markup twice, once where each layout shows it: the middle of the phone bar, the top of the rail. */
 .tabbar .log.log-rail { display: none; }
 .tabbar a { color: var(--ink-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; font-size: var(--fs-xs); font-weight: 500; text-decoration: none; border-radius: 22px; }
 @media (hover: hover) { .tabbar a:hover { color: var(--ink); } }
-.tabbar a[aria-current] { color: var(--btn-ink); }
+.tabbar a[aria-current] { color: var(--accent); }
+/* Each tab's icon sits centred in a slot as tall as the log disc, so all five words share one baseline. */
+.tabbar a > svg { margin-block: 9px; }
 /* The log button reads like its neighbours: a pink disc where they have an icon, and a word under it. */
 .tabbar .log { justify-self: stretch; min-height: 56px; border: 0; background: none; padding: 0; color: var(--ink); font-size: var(--fs-xs); font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; border-radius: 22px; }
 .tabbar .log-word { max-width: 100%; padding-inline: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -938,7 +948,7 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
   .tabbar .log.log-bar { display: none; }
   .tabbar .log { align-self: start; min-height: 64px; position: relative; }
   .tabbar .log::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: -12px; height: 1px; background: var(--line); }
-  .tab-track { inset: 100px 6px auto calc(6px + env(safe-area-inset-left, 0px)); height: calc(4 * 64px); -webkit-mask-image: none; mask-image: none; }
+  .tab-track { inset: 100px 6px auto calc(6px + env(safe-area-inset-left, 0px)); height: calc(4 * 64px); }
   .tab-ind { right: 0; bottom: auto; width: auto; height: 25%; transform: translateY(calc(var(--r) * 100%)); }
   .app-end { height: 32px; }
   .toast { left: calc(50% + 50px); bottom: 32px; }
@@ -1084,15 +1094,12 @@ footer.foot p { max-width: 90ch; }
      Nothing runs on mount, so a control opens already filled in. */
   .seg button { transition: transform var(--dur-fast) var(--ease-out), color 0s var(--ease-out) calc(var(--dur-med) / 4); }
   .seg button[aria-pressed="true"] { transition: transform var(--dur-fast) var(--ease-out), color 0s var(--ease-out) calc(var(--dur-med) / 3); }
-  /* Tab labels do the same, so the new tab's label darkens as its pill arrives, not before. */
-  /* The label losing the pill keeps its selected ink until the pill has slid off it, then changes in one step. */
-  .tabbar a { transition: transform var(--dur-fast) var(--ease-out), color 0s var(--ease-out) calc(var(--dur-med) / 4); }
-  .tabbar a[aria-current] { transition: transform var(--dur-fast) var(--ease-out), color 0s var(--ease-out) calc(var(--dur-med) / 3); }
 
   /* Sheets: scrim fades; phones slide up from the bottom, wider screens fade and scale from .96. Exit reverses. */
   .scrim { animation: fade-in var(--dur-med) var(--ease-out) backwards; }
   .scrim[data-closing] { animation: fade-out var(--dur-med) var(--ease-in) forwards; }
-  .sheet { animation: sheet-up var(--dur-med) var(--ease-out) backwards; transition: transform var(--dur-med) var(--ease-spring); }
+  /* A short drag settles back with no overshoot, so the sheet never lifts off its bottom edge and shows scrim under it. */
+  .sheet { animation: sheet-up var(--dur-med) var(--ease-out) backwards; transition: transform var(--dur-med) var(--ease-out); }
   .sheet[data-dragging] { transition: none; }
   /* Sheet.tsx cancels the entrance when the grabber is taken, so the finger owns transform from the first frame; the exit
      (a new animation name) then slides on from wherever the finger left the sheet. */

@@ -62,20 +62,19 @@ export function App() {
   }, [recovering, linkError]);
   useEffect(() => {
     // Fade the new route in while the top bar and tab bar stay put; reduced motion keeps the instant swap.
-    // First-paint reveals (.rise) switch off for the rest of the session once a fade is used, so the root fade is the only page motion.
-    // The switch flips inside the swap, after the old page is snapshotted, so the page being left never moves.
+    // First-paint reveals (.rise) and count-ups switch off for the rest of the session after the first route change, faded or not,
+    // so revisited screens open on their real numbers. The switch flips inside the swap, after the old page is snapshotted,
+    // so the page being left never moves.
     // A second tap while a fade is still running swaps at once instead of starting another one (see transitionGate).
     // The old page is snapshotted where the user was looking (the card they just tapped); the scroll to the top
     // happens inside the update, so only the new screen opens at the top.
-    let fade = false;
     const swap = () => {
-      if (fade) document.documentElement.dataset.routed = '';
+      document.documentElement.dataset.routed = '';
       setRoute(parseHash()); setSheet(null); window.scrollTo(0, 0);
     };
     const go = transitionGate(swap);
     const onHash = () => {
       const start = viewTransition();
-      fade = !!start;
       go(start ? update => start(() => flushSync(update)) : null);
     };
     window.addEventListener('hashchange', onHash);
@@ -206,7 +205,7 @@ export function App() {
         </div>
       </footer>
       <div className="app-end" />
-      <TabBar current={route.id ? 'learn' : tab} onLog={logNext} inert={bg} />
+      <TabBar current={route.id ? 'learn' : tab} exact={!route.id && tab === route.tab} onLog={logNext} inert={bg} />
       <SheetClosing.Provider value={closing}>
         {shown?.kind === 'regimen' && (shown.back
           ? <RegimenSheet initial={shown.r} isNew={false} onClose={() => setSheet({ kind: 'dose', r: shown.r })} onSaved={x => setSheet(x ? { kind: 'dose', r: x } : null)} />

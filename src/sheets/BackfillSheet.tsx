@@ -4,6 +4,7 @@ import { dayKey, fmtDay, fmtNum } from '../lib/format';
 import { dayAt, dueDayKeys, monthGrid, parsePasted, planBackfill, readWeight, weightsByDay } from '../lib/backfill';
 import { Sheet } from '../components/Sheet';
 import { useToast } from '../components/Toast';
+import { prefersReducedMotion } from '../components/Motion';
 import { regName } from '../views/PeptidesView';
 
 const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
@@ -111,7 +112,7 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
     const first = dayAt(values.map(([k]) => k).sort()[0]);
     setYm({ y: first.getFullYear(), m: first.getMonth() });
     setPaste('');
-    tile.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    tile.current?.scrollIntoView({ block: 'start', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
     toast(`Filled in ${plural(values.length, 'day')}${bad.length ? `, skipped ${plural(bad.length, 'line')}` : ''}. Check them, then save.`);
   };
 

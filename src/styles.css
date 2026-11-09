@@ -31,13 +31,12 @@
   --chart-line: #7B5BE0; --chart-line-2: #D9653A;
   --chart-grid: rgba(30,34,48,.08);
   --shadow-card: 0 8px 20px rgba(30,34,48,.18);
-  --shadow-float: 0 10px 28px rgba(30,34,48,.14);
   /* Elevation: each step is a tight contact shadow plus a soft ambient one. */
   --shadow-1: 0 1px 2px rgba(30,34,48,.06), 0 2px 8px rgba(30,34,48,.05);
   --shadow-2: 0 2px 4px rgba(30,34,48,.06), 0 10px 24px rgba(30,34,48,.10);
   --shadow-3: 0 3px 6px rgba(30,34,48,.08), 0 18px 40px rgba(30,34,48,.18);
   /* Glass chrome (top bar, tab bar) and the pill that marks the current tab. */
-  --glass: rgba(246,246,248,.74); --glass-edge: rgba(30,34,48,.08); --tab-pill: rgba(255,255,255,.92);
+  --glass: rgba(246,246,248,.74); --glass-edge: rgba(30,34,48,.08); --tab-pill: rgba(30,34,48,.09);
   /* Instrument card: highlights layered over --dark, plus a 1px top light. */
   --dark-glow: rgba(141,180,255,.26); --dark-glow-2: rgba(127,224,181,.12); --dark-hi: rgba(255,255,255,.14);
   /* Belly-clock hours used recently, newest first, and the text on them. */
@@ -81,7 +80,7 @@
     --t1-bg: #14301F; --t2-bg: #10302D; --t3-bg: #33290C; --t4-bg: #3A2117; --t5-bg: #3B1A18;
     --good: #7FE0B5; --good-bg: #14301F; --warn: #F2D27A; --warn-bg: #33290C; --danger: #FF8A80; --danger-bg: #3B1A18;
     --chart-line: #A08BFF; --chart-line-2: #F5A27C; --chart-grid: rgba(255,255,255,.08);
-    --shadow-card: 0 8px 20px rgba(0,0,0,.4); --shadow-float: 0 10px 28px rgba(0,0,0,.5);
+    --shadow-card: 0 8px 20px rgba(0,0,0,.4);
     --shadow-1: 0 1px 2px rgba(0,0,0,.3), 0 2px 8px rgba(0,0,0,.25);
     --shadow-2: 0 2px 4px rgba(0,0,0,.35), 0 10px 24px rgba(0,0,0,.4);
     --shadow-3: 0 3px 6px rgba(0,0,0,.4), 0 18px 40px rgba(0,0,0,.55);
@@ -112,7 +111,7 @@
   --t1-bg: #14301F; --t2-bg: #10302D; --t3-bg: #33290C; --t4-bg: #3A2117; --t5-bg: #3B1A18;
   --good: #7FE0B5; --good-bg: #14301F; --warn: #F2D27A; --warn-bg: #33290C; --danger: #FF8A80; --danger-bg: #3B1A18;
   --chart-line: #A08BFF; --chart-line-2: #F5A27C; --chart-grid: rgba(255,255,255,.08);
-  --shadow-card: 0 8px 20px rgba(0,0,0,.4); --shadow-float: 0 10px 28px rgba(0,0,0,.5);
+  --shadow-card: 0 8px 20px rgba(0,0,0,.4);
   --shadow-1: 0 1px 2px rgba(0,0,0,.3), 0 2px 8px rgba(0,0,0,.25);
   --shadow-2: 0 2px 4px rgba(0,0,0,.35), 0 10px 24px rgba(0,0,0,.4);
   --shadow-3: 0 3px 6px rgba(0,0,0,.4), 0 18px 40px rgba(0,0,0,.55);
@@ -235,6 +234,8 @@ a.tile { color: var(--ink); }
 .tile.dark .label, .tile.dark .eyebrow { color: var(--on-dark-3); }
 .tile.dark .sub { color: var(--on-dark-2); }
 .tile.dark a:not(.btn) { color: var(--on-dark); }
+/* A light inset inside the instrument card (the dose sheet's syringe panel) keeps the page's link colour. */
+.tile.dark .white-inset a:not(.btn) { color: var(--accent); }
 .label { font-size: .9375rem; font-weight: 600; color: var(--ink-3); }
 /* The headline line of a tile: one step of the type scale for every tile in a grid. */
 .tile-title { font-size: var(--fs-lg); font-weight: 600; line-height: 1.2; }
@@ -480,10 +481,10 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .tile.lilac .chart .pt { stroke: var(--lilac); }
 .tile.mint { --chart-line: var(--mint-ink); }
 .tile.mint .chart .pt { stroke: var(--mint); }
-.chart-wrap { position: relative; border-radius: var(--r-sm); }
+.chart-wrap { position: relative; border-radius: var(--r-sm); touch-action: pan-y; }
 .chart-wrap:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .chart .pt-focus { fill: none; stroke: var(--ink); stroke-width: 2; }
-.tip { position: absolute; pointer-events: none; background: var(--btn); color: var(--btn-ink); font-size: var(--fs-xs); padding: 5px 10px; border-radius: 10px; white-space: nowrap; transform: translate(-50%, -120%); z-index: 2; }
+.tip { position: absolute; pointer-events: none; background: var(--btn); color: var(--btn-ink); font-size: var(--fs-xs); padding: 5px 10px; border-radius: 10px; width: max-content; max-width: min(240px, 100%); white-space: normal; text-align: center; transform: translate(-50%, -120%); z-index: 2; }
 /* Names get a fixed share (long ones ellipsize, the full name is the row's label), so the bars keep a readable track at 320px. */
 .hbar { display: grid; grid-template-columns: minmax(84px, 34%) minmax(0, 1fr); column-gap: 10px; row-gap: 4px; }
 .hbar-grid, .hbar-axis { grid-column: 2; position: relative; margin-right: 78px; }
@@ -520,7 +521,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 /* The art grows with its ground (up to a size that still reads as a spot drawing), so a wide card isn't a pale band. */
 .illo-ground > .illo { width: clamp(168px, 46%, 280px); }
 /* One empty-state layout everywhere: art on its ground, centred title, a line of copy, the main action. The dark Today card only swaps colours. */
-.empty :is(h1, h2, h3) { font-size: var(--fs-xl); }
+.empty :is(h2, h3) { font-size: var(--fs-xl); }
 .empty h1 .soft { color: var(--ink-4); }
 .empty > .eyebrow { margin-bottom: -6px; }
 .empty > p, .empty > .sub { max-width: 46ch; }
@@ -590,7 +591,7 @@ details[open] > summary .chev { transform: rotate(90deg); }
 .kv dt { font-size: var(--fs-xs); color: var(--on-dark-3); }
 .kv dd { margin: 0; font-family: var(--f-mono); font-size: var(--fs-md); font-variant-numeric: tabular-nums; }
 .syringe-wrap { overflow-x: auto; }
-.syringe text { fill: var(--ink-3); font-family: var(--f-mono); font-size: 14px; }
+.syringe text { fill: var(--ink-3); font-family: var(--f-mono); font-size: 12px; }
 .syringe .barrel { fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
 .syringe .fill { fill: var(--lilac-line); opacity: .45; transform-box: fill-box; transform-origin: left; }
 .syringe .tick { stroke: var(--ink-4); stroke-width: 1; }
@@ -730,18 +731,18 @@ input.code-input { font-family: var(--f-mono); font-size: 1.375rem; letter-spaci
 /* Tab bar */
 .tabbar { position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: min(440px, calc(100% - 32px)); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; padding: 6px; border-radius: var(--r-xl); background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); box-shadow: var(--shadow-3), inset 0 0 0 1px var(--glass-edge); view-transition-name: tabbar; isolation: isolate; overflow: hidden; }
 /* One pill behind the current tab: one fifth of the bar. It slides between the two tabs on the same side of the log button;
-   crossing to the other side it fades in at its new tab, so it never travels under the button. The bar clips the spring. */
+   crossing to the other side TabBar remounts it (keyed by side), so it fades in at its new tab and never travels under the button. */
 /* Opaque fallback for both glass bars; it comes after both rules so it wins on equal specificity. */
 @supports not (backdrop-filter: blur(1px)) { .topbar, .tabbar { background: var(--bg); } }
 .tab-ind { position: absolute; z-index: -1; top: 6px; bottom: 6px; left: 6px; width: calc((100% - 12px) / 5); border-radius: 22px; background: var(--tab-pill); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); pointer-events: none; }
 .tabbar a { color: var(--ink-3); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; font-size: 11px; font-weight: 500; text-decoration: none; border-radius: 22px; }
 .tabbar a:hover { color: var(--ink); }
-.tabbar a[aria-current="page"] { color: var(--ink); font-weight: 700; }
+.tabbar a[aria-current] { color: var(--ink); font-weight: 700; }
 .tabbar .log { justify-self: center; width: 56px; height: 56px; border-radius: 28px; border: 0; background: var(--btn); color: var(--btn-ink); display: grid; place-items: center; cursor: pointer; }
 .tabbar .log:hover { background: var(--btn-hover); }
 .app-end { height: calc(96px + env(safe-area-inset-bottom, 0px)); }
 
-.toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 12px 18px; border-radius: 999px; font-size: var(--fs-sm); z-index: 60; box-shadow: var(--shadow-float); max-width: calc(100% - 32px); }
+.toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 12px 18px; border-radius: 999px; font-size: var(--fs-sm); z-index: 60; box-shadow: var(--shadow-3); max-width: calc(100% - 32px); }
 /* Hover elevation where a pointer can hover: a --shadow-2 layer that fades in, so it moves with the lift.
    Press scale and the lift itself live in the motion section below. */
 a.tile, button.tile { position: relative; }
@@ -815,6 +816,13 @@ footer.foot p { max-width: 90ch; }
   .tab-ind { transition: transform var(--dur-med) var(--ease-spring), opacity var(--dur-fast) var(--ease-out); }
   /* The seg pill settles without overshoot, so it never pokes past the rounded track. */
   .seg::before { transition: transform var(--dur-med) var(--ease-out), opacity var(--dur-fast) var(--ease-out); }
+  /* A label's colour flips with aria-pressed at once, but the pill takes --dur-med to get there or away, so the label that
+     gains or loses the pill stays hidden while the pill is still on its way, then fades in on its settled ground.
+     The two names differ so each change of aria-pressed restarts the fade on both labels. */
+  .seg button { animation: seg-off var(--dur-med) var(--ease-out) backwards; }
+  .seg button[aria-pressed="true"] { animation-name: seg-on; }
+  @keyframes seg-on { 0%, 40% { opacity: 0; } }
+  @keyframes seg-off { 0%, 40% { opacity: 0; } }
   .tab-ind { animation: fade-in var(--dur-med) var(--ease-out) backwards; }
 
   /* Sheets: scrim fades; phones slide up from the bottom, wider screens fade and scale from .96. Exit reverses. */

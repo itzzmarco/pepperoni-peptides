@@ -9,31 +9,33 @@ const ICON = {
 /** Grid column of each tab. Column 2 is the log button, so the indicator never lands there. */
 const COL: Record<keyof typeof ICON, number> = { today: 0, trends: 1, learn: 3, peptides: 4 };
 
-function Tab({ k, label, current }: { k: keyof typeof ICON; label: string; current: string }) {
+function Tab({ k, label, current, exact }: { k: keyof typeof ICON; label: string; current: string; exact: boolean }) {
   const on = current === k;
+  // "page" only when this tab is the screen itself; on a screen inside its section (Dose math under Learn) it marks the section.
   return (
-    <a href={`#${k}`} aria-current={on ? 'page' : undefined}>
+    <a href={`#${k}`} aria-current={on ? (exact ? 'page' : 'true') : undefined}>
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={on ? 2.4 : 2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={ICON[k]} /></svg>
       {label}
     </a>
   );
 }
 
-/** Floating glass tab bar; the dark button in the middle logs the next due dose. A pill slides to the current tab. */
-export function TabBar({ current, onLog, inert }: { current: Route; onLog: () => void; inert?: boolean }) {
+/** Floating glass tab bar; the dark button in the middle logs the next due dose. A pill slides to the current tab.
+ *  `exact` is false on a screen that belongs to the tab's section without being the tab's own page. */
+export function TabBar({ current, exact, onLog, inert }: { current: Route; exact: boolean; onLog: () => void; inert?: boolean }) {
   const col = COL[current as keyof typeof COL];
-  // One pill for every tab change: crossing sides it slides straight under the opaque log button, which sits above it,
-  // so the move reads as one gesture and the pill only ever rests on a tab.
+  // The pill slides between the two tabs on one side of the log button. Crossing sides, the key changes, so React mounts
+  // a new pill that fades in at its new tab (its CSS entrance) instead of travelling under the button.
   return (
     <nav className="tabbar" aria-label="Main" inert={inert}>
-      {col != null && <span className="tab-ind" aria-hidden="true" style={{ ['--k' as string]: col }} />}
-      <Tab k="today" label="Today" current={current} />
-      <Tab k="trends" label="Trends" current={current} />
+      {col != null && <span key={col < 2 ? 'left' : 'right'} className="tab-ind" aria-hidden="true" style={{ ['--k' as string]: col }} />}
+      <Tab k="today" label="Today" current={current} exact={exact} />
+      <Tab k="trends" label="Trends" current={current} exact={exact} />
       <button className="log" type="button" onClick={onLog} aria-label="Log a dose">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
       </button>
-      <Tab k="learn" label="Learn" current={current} />
-      <Tab k="peptides" label="Peptides" current={current} />
+      <Tab k="learn" label="Learn" current={current} exact={exact} />
+      <Tab k="peptides" label="Peptides" current={current} exact={exact} />
     </nav>
   );
 }

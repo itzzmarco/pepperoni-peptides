@@ -5,6 +5,7 @@ import { SYRINGE_UNITS } from '../lib/doseMath';
 import { fmtNum } from '../lib/format';
 import { SITES, nextSite, siteLabel, type NextSite } from '../lib/sites';
 import { MiniClock } from './BellyClock';
+import { BodyFigure } from './BodyMap';
 
 /** Where each site sits on the small figure (viewBox 200 x 300, same as the body map). Buttocks are shown at the hips. */
 const POS: Record<string, [number, number]> = {
@@ -18,15 +19,7 @@ export function MiniBody({ site, height = 76 }: { site: string; height?: number 
   const p = POS[site];
   return (
     <svg className="minibody" width={(height * 2) / 3} height={height} viewBox="0 0 200 300" aria-hidden="true">
-      <g className="fig">
-        <circle cx="100" cy="28" r="18" />
-        <rect x="92" y="44" width="16" height="12" rx="3" />
-        <rect x="36" y="58" width="20" height="104" rx="10" transform="rotate(8 46 58)" />
-        <rect x="144" y="58" width="20" height="104" rx="10" transform="rotate(-8 154 58)" />
-        <path d="M62 56 Q100 48 138 56 L134 168 Q100 178 66 168 Z" />
-        <rect x="69" y="166" width="29" height="128" rx="13" />
-        <rect x="102" y="166" width="29" height="128" rx="13" />
-      </g>
+      <BodyFigure />
       {p && <circle className="next pop" cx={p[0]} cy={p[1]} r="17" style={{ ['--i' as string]: 4 }} />}
       {p && site.startsWith('glute-') && <circle className="behind" cx={p[0]} cy={p[1]} r="27" />}
     </svg>
@@ -63,10 +56,10 @@ export function NextShot({ r, doses }: { r: Regimen; doses: DoseEntry[] }) {
   return (
     <div className="nextshot" aria-label={`Next shot: ${siteLabel(s.site, r.route)}, ${whenNext(r, doses)}`}>
       <SiteFigure s={s} size={72} />
-      <span className="stack" style={{ gap: 2, minWidth: 0 }}>
+      <span className="stack gap-1 min-0">
         <span className="label">Next shot · {whenNext(r, doses)}</span>
-        <b style={{ fontSize: '1.0625rem', lineHeight: 1.25 }}>{s.hour ? `Belly, ${s.hour} o'clock` : siteLabel(s.site, r.route)}</b>
-        <span className="small" style={{ color: 'var(--ink-2)' }}>{doseText(r)} · {s.why}</span>
+        <b style={{ fontSize: 'var(--fs-lg)', lineHeight: 1.25 }}>{s.hour ? `Belly, ${s.hour} o'clock` : siteLabel(s.site, r.route)}</b>
+        <span className="small tone-ink">{doseText(r)} · {s.why}</span>
       </span>
     </div>
   );

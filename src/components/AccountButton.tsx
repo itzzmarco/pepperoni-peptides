@@ -21,9 +21,10 @@ export function AccountButton({ onOpen }: { onOpen: () => void }) {
     );
   }
   const pending = acct.pending ? `, ${acct.pending} waiting to send` : '';
+  // The word shows on every width; below 360px the pill drops its mark instead, so touch users still read the status (styles.css).
   return (
     <button className="sync" data-s={acct.status} onClick={onOpen} aria-label={`Account: ${acct.user.email}. ${LABEL[acct.status]}${pending}`} title={`${acct.user.email} · ${LABEL[acct.status]}${pending}`}>
-      <i />{LABEL[acct.status]}
+      <i /><span>{LABEL[acct.status]}</span>
     </button>
   );
 }

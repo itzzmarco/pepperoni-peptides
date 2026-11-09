@@ -16,12 +16,12 @@ export interface DayCell {
   today: boolean;
 }
 
-/** One month as a Sunday-first grid, the way US paper calendars are laid out. Null cells are blanks before day 1. */
+/** One month as a Monday-first grid, the same week order as the Trends calendar. Null cells are blanks before day 1. */
 export function monthGrid(year: number, month: number, now = new Date()): (DayCell | null)[] {
   const first = new Date(year, month, 1);
   const days = new Date(year, month + 1, 0).getDate();
   const today = startOfDay(now);
-  const cells: (DayCell | null)[] = Array.from({ length: first.getDay() }, () => null);
+  const cells: (DayCell | null)[] = Array.from({ length: (first.getDay() + 6) % 7 }, () => null);
   for (let i = 1; i <= days; i++) {
     const date = new Date(year, month, i);
     cells.push({ date, key: dayKey(date), future: date > today, today: date.getTime() === today.getTime() });
@@ -53,6 +53,20 @@ export function readWeight(s: string): number | null {
   if (!t) return null;
   const n = Number(t);
   return Number.isFinite(n) && n >= 20 && n <= 1500 ? Math.round(n * 10) / 10 : NaN;
+}
+
+/**
+ * Typed weights restated in another unit when the unit is switched, so 200 typed as lb becomes 90.7 in kg rather than
+ * being saved as 200 kg. `convert` maps one value from the old unit to the new one; results round to 0.1. Blank entries
+ * (clearing a saved day) and entries that aren't a weight stay exactly as typed.
+ */
+export function convertEntries(weights: Record<string, string>, convert: (w: number) => number): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(weights)) {
+    const w = readWeight(v);
+    out[k] = w == null || Number.isNaN(w) ? v : String(Math.round(convert(w) * 10) / 10);
+  }
+  return out;
 }
 
 /**

@@ -40,6 +40,17 @@ export function adherence(regimens: Regimen[], doses: DoseEntry[], now = new Dat
 export const doseDays = (doses: DoseEntry[], rid?: string) =>
   new Set(doses.filter(d => !rid || d.rid === rid).map(d => dayKey(new Date(d.at))));
 
+/** Sums per-day counts (oldest first) into buckets of `size` days. Buckets are aligned so the last one ends on the last
+ *  day, so the oldest may be shorter. Each gives the index of its first day and its total. */
+export function bucketDays(counts: number[], size: number): { start: number; n: number }[] {
+  const out: { start: number; n: number }[] = [];
+  for (let end = counts.length; end > 0; end -= size) {
+    const start = Math.max(0, end - size);
+    out.unshift({ start, n: counts.slice(start, end).reduce((a, b) => a + b, 0) });
+  }
+  return out;
+}
+
 /** Days (local date keys) whose check-in listed any side effect. */
 export const effectDays = (checkins: Checkin[]) => new Set(checkins.filter(c => c.effects.length).map(c => dayKey(new Date(c.at))));
 

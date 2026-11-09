@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dueDayKeys, monthGrid, parsePasted, planBackfill, readWeight, weightsByDay } from '../backfill';
+import { convertEntries, dueDayKeys, monthGrid, parsePasted, planBackfill, readWeight, weightsByDay } from '../backfill';
 import { LedgerStore, normalize } from '../store';
 import { dayKey } from '../format';
 import { MemoryKV, check, dose, reg } from './helpers';
@@ -8,11 +8,14 @@ const NOW = new Date(2026, 10, 1, 15, 0); // Sun Nov 1 2026, 3 pm local
 const local = (m: number, d: number, h = 12) => new Date(2026, m, d, h).toISOString();
 
 describe('monthGrid', () => {
-  it('lays a month out Sunday first, like a paper calendar', () => {
+  it('lays a month out Monday first, like the Trends calendar', () => {
     const sep = monthGrid(2026, 8, NOW);
-    // Sept 1 2026 is a Tuesday: two blanks, then day 1.
-    expect(sep.slice(0, 2)).toEqual([null, null]);
-    expect(sep[2]!.key).toBe('2026-09-01');
+    // Sept 1 2026 is a Tuesday: one blank, then day 1.
+    expect(sep.slice(0, 1)).toEqual([null]);
+    expect(sep[1]!.key).toBe('2026-09-01');
+    // Nov 1 2026 is a Sunday: six blanks, so it sits in the last column.
+    expect(monthGrid(2026, 10, NOW).slice(0, 6)).toEqual(Array(6).fill(null));
+    expect(monthGrid(2026, 10, NOW)[6]!.key).toBe('2026-11-01');
     expect(sep.filter(Boolean)).toHaveLength(30);
   });
 
@@ -144,5 +147,15 @@ describe('store.applyBatch', () => {
     expect(s.get().checkins.map(c => c.id)).toEqual(['new']);
     expect(s.get().doses.map(d => d.id)).toEqual(['d2', 'd1']);
     expect(weightsByDay(s.get().checkins).get('2026-09-07')?.weight).toBe(213);
+  });
+});
+
+describe('convertEntries', () => {
+  const toKg = (w: number) => w / 2.20462;
+  it('restates typed weights in the new unit instead of relabelling them', () => {
+    expect(convertEntries({ '2026-10-01': '200', '2026-10-02': '182,4' }, toKg)).toEqual({ '2026-10-01': '90.7', '2026-10-02': '82.7' });
+  });
+  it('keeps blank and unreadable entries as typed', () => {
+    expect(convertEntries({ '2026-10-01': '', '2026-10-02': '2x0' }, toKg)).toEqual({ '2026-10-01': '', '2026-10-02': '2x0' });
   });
 });

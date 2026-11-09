@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DoseEntry, Regimen } from '../types';
-import { adherenceDays, freqText, intervalDays, regimenStatus } from '../schedule';
+import { adherenceDays, freqText, intervalDays, leftToday, regimenStatus, upcoming } from '../schedule';
 
 const reg = (over: Partial<Regimen> = {}): Regimen => ({
   id: 'r1', compoundId: 'tirzepatide', name: '', dose: '2.5', unit: 'mg', freq: 'weekly', everyDays: '',
@@ -103,5 +103,22 @@ describe('set weekdays', () => {
 
   it('asks for days when none are set', () => {
     expect(regimenStatus(reg({ freq: 'days', weekdays: [] }), [], NOW)).toMatchObject({ s: 'prn', text: 'Choose the days' });
+  });
+});
+
+describe('leftToday', () => {
+  const left = (regimens: Regimen[], doses: DoseEntry[], now = NOW) => leftToday(upcoming(regimens, doses, now), now);
+  it('keeps the evening dose of a twice-daily regimen after the morning one is logged', () => {
+    const bid = reg({ freq: 'bid' });
+    expect(left([bid], [dose(at(2026, 10, 26, 8))])).toBe(1);
+    expect(left([bid], [dose(at(2026, 10, 26, 20)), dose(at(2026, 10, 26, 8))], at(2026, 10, 26, 21))).toBe(0);
+    // Morning dose not logged yet: both of today's doses are left.
+    expect(left([bid], [dose(at(2026, 10, 25, 20))], at(2026, 10, 26, 9))).toBe(2);
+  });
+  it('counts a due or overdue daily or weekly dose once and nothing once it is logged', () => {
+    expect(left([reg({ freq: 'daily' })], [dose(at(2026, 10, 25, 9))])).toBe(1);
+    expect(left([reg({ freq: 'daily' })], [dose(at(2026, 10, 26, 9))])).toBe(0);
+    expect(left([reg()], [dose(at(2026, 10, 12))])).toBe(1);
+    expect(left([reg({ freq: 'prn' }), reg({ id: 'p', paused: true })], [])).toBe(0);
   });
 });

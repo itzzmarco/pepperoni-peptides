@@ -83,11 +83,11 @@ function SignedOut({ acct, onClose }: { acct: AccountState; onClose: () => void 
   const go = (m: Mode) => { setMode(m); setErr(''); setNote(''); };
 
   return (
-    <form className="stack" style={{ gap: 16 }} onSubmit={submit} noValidate>
+    <form className="stack gap-4" onSubmit={submit} noValidate>
       <div className="sheet-head">
         <div>
           <h2>{mode === 'reset' ? 'Reset your password' : 'Sync your log'}</h2>
-          <p className="small muted" style={{ marginTop: 4 }}>
+          <p className="small muted mt-1">
             {mode === 'reset'
               ? "Enter your account's email and we'll send a link to choose a new password."
               : 'Sign in to keep your log on all your devices. Everyone in your home gets their own account, and each person sees only their own log.'}
@@ -148,10 +148,10 @@ function NewPassword({ onDone, onClose, recovering }: { onDone: () => void; onCl
     onDone();
   };
   return (
-    <form className="stack" style={{ gap: 12 }} onSubmit={submit} noValidate>
+    <form className="stack gap-3" onSubmit={submit} noValidate>
       {recovering && (
         <div className="sheet-head">
-          <div><h2>Choose a new password</h2><p className="small muted" style={{ marginTop: 4 }}>You're signed in from the reset link. Pick a new password to finish.</p></div>
+          <div><h2>Choose a new password</h2><p className="small muted mt-1">You're signed in from the reset link. Pick a new password to finish.</p></div>
           <Close onClose={onClose} />
         </div>
       )}
@@ -176,7 +176,7 @@ export function DeviceLogPrompt({ onToday = false }: { onToday?: boolean }) {
     <div className="alert info">
       <b>{plural(acct.deviceItems, 'entry', 'entries')} saved on this device before you signed in</b>
       <span>Move them into your account so they sync with the rest of your log. A peptide your account already tracks isn't added twice; its doses join the one you have. If you leave them here, you'll only see them when you're signed out.</span>
-      <div className="row-wrap" style={{ marginTop: 6 }}>
+      <div className="row-wrap mt-2">
         <button className="btn sm" onClick={() => { const n = moveDeviceLog(); toast(`Moved ${plural(n, 'entry', 'entries')} into your account.`); }}>Move into my account</button>
         {!acct.deviceKept && <button className="btn quiet sm" onClick={keepDeviceLog}>Leave on this device</button>}
       </div>
@@ -252,7 +252,7 @@ function PartnerSection({ onClose }: { onClose: () => void }) {
         <div key={p.id} className="partner-row">
           <span className="avatar" aria-hidden="true">{firstName(p.name)[0]}</span>
           <div className="stack" style={{ gap: 0, minWidth: 0 }}>
-            <b style={{ overflowWrap: 'anywhere' }}>{p.name || 'Your partner'}</b>
+            <b className="break-any">{p.name || 'Your partner'}</b>
             <span className="xsmall muted">Linked {fmtShort(new Date(p.since))}</span>
           </div>
           <div className="row-wrap" style={{ justifyContent: 'flex-end' }}>
@@ -269,7 +269,7 @@ function PartnerSection({ onClose }: { onClose: () => void }) {
           : 'Link with your partner to see each other\u2019s progress. They\u2019ll see your whole log (doses, weights, check-ins and notes) and you\u2019ll see theirs. Neither of you can change the other\u2019s.'}
       </p>
       {mode === 'code' && code ? (
-        <div className="inset stack" style={{ gap: 8 }}>
+        <div className="inset stack gap-2">
           <span className="xsmall muted">Your code</span>
           <button type="button" className="code" onClick={copy} aria-label={`Your code is ${code.split('').join(' ')}. Tap to copy.`}>{showCode(code)}</button>
           <p className="small">On your partner's phone: sign in to Peptide Ledger, open the account menu, tap <b>Enter a code</b> and type this in. It works once and lasts 2 days.</p>
@@ -277,7 +277,7 @@ function PartnerSection({ onClose }: { onClose: () => void }) {
           <div><button className="btn quiet sm" onClick={() => { setMode('idle'); setCode(''); }}>Done</button></div>
         </div>
       ) : mode === 'enter' ? (
-        <form className="stack" style={{ gap: 8 }} onSubmit={enter} noValidate>
+        <form className="stack gap-2" onSubmit={enter} noValidate>
           <label className="field"><span>Code from your partner</span>
             <input type="text" id="p-code" className="code-input" inputMode="text" autoCapitalize="characters" autoComplete="one-time-code" spellCheck={false}
               maxLength={7} placeholder="K7Q 4MX" value={typed} onChange={e => setTyped(e.target.value)} autoFocus />
@@ -293,7 +293,7 @@ function PartnerSection({ onClose }: { onClose: () => void }) {
           <button className="btn quiet sm" onClick={() => { setMode('enter'); setErr(''); }}>Enter a code</button>
         </div>
       )}
-      {(err || error) && <p className="small" role="alert" style={{ color: 'var(--danger)' }}>{err || error}</p>}
+      {(err || error) && <p className="small tone-danger" role="alert">{err || error}</p>}
     </section>
   );
 }
@@ -323,9 +323,9 @@ function SignedIn({ acct, onClose }: { acct: AccountState; onClose: () => void }
   };
 
   return (
-    <div className="stack" style={{ gap: 16 }}>
+    <div className="stack gap-4">
       <div className="sheet-head">
-        <div><h2>Your account</h2><p className="small muted" style={{ marginTop: 4, overflowWrap: 'anywhere' }}>{acct.user!.email}</p></div>
+        <div><h2>Your account</h2><p className="small muted mt-1 break-any">{acct.user!.email}</p></div>
         <Close onClose={onClose} />
       </div>
 
@@ -348,7 +348,7 @@ function SignedIn({ acct, onClose }: { acct: AccountState; onClose: () => void }
 
       <section className="tile" aria-label="Password">
         {changing ? <NewPassword recovering={false} onDone={() => setChanging(false)} onClose={onClose} /> : (
-          <div className="spread" style={{ alignItems: 'center' }}>
+          <div className="spread mid">
             <h3>Password</h3>
             <button className="btn quiet sm" onClick={() => setChanging(true)}>Change password</button>
           </div>
@@ -359,13 +359,13 @@ function SignedIn({ acct, onClose }: { acct: AccountState; onClose: () => void }
         <div className="alert caution" role="alert">
           <b>{unsent === 1 ? "1 change hasn't" : `${unsent} changes haven't`} synced yet.</b>
           <span>Signing out now removes them from this device for good. Stay signed in until you're back online to keep them.</span>
-          <div className="row-wrap" style={{ marginTop: 6 }}>
+          <div className="row-wrap mt-2">
             <button className="btn danger sm" disabled={busy} onClick={() => out(true)}>Sign out anyway</button>
             <button className="btn quiet sm" onClick={() => setUnsent(0)}>Stay signed in</button>
           </div>
         </div>
       ) : (
-        <div className="spread" style={{ alignItems: 'center', flexWrap: 'nowrap', padding: '0 4px' }}>
+        <div className="spread mid nowrap px-1">
           <span className="xsmall muted">Signing out removes your log from this device. It stays safe in your account.</span>
           <button className="btn ghost" disabled={busy} onClick={() => out()}>{busy ? 'Signing out…' : 'Sign out'}</button>
         </div>

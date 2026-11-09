@@ -5,6 +5,7 @@ import { PEP } from './data/peptides';
 import { AS_OF } from './data/reference';
 import { useLedger } from './lib/store';
 import { upcoming } from './lib/schedule';
+import { transitionGate } from './lib/routeSwap';
 import { TodayView } from './views/TodayView';
 import { TrendsView } from './views/TrendsView';
 import { PeptidesView } from './views/PeptidesView';
@@ -48,7 +49,7 @@ type SheetState =
   | null;
 
 /** View Transitions aren't in every browser or in every TS DOM lib, so feature-detect with a narrow type. */
-type WithTransitions = Document & { startViewTransition: (update: () => void) => unknown };
+type WithTransitions = Document & { startViewTransition: (update: () => void) => { finished: Promise<unknown> } };
 
 export function App() {
   const [route, setRoute] = useState(parseHash);
@@ -63,11 +64,12 @@ export function App() {
     const swap = () => { setRoute(parseHash()); setSheet(null); window.scrollTo(0, 0); };
     // Fade the new route in while the top bar and tab bar stay put; reduced motion keeps the instant swap.
     // The new page is snapshotted as it will look, so first-paint reveals (.rise and friends) stay off once routing starts.
+    // A second tap while a fade is still running swaps at once instead of starting another one (see transitionGate).
+    const go = transitionGate(swap);
     const onHash = () => {
-      if ('startViewTransition' in document && !prefersReducedMotion()) {
-        document.documentElement.dataset.routed = '';
-        (document as WithTransitions).startViewTransition(() => flushSync(swap));
-      } else swap();
+      const fade = 'startViewTransition' in document && !prefersReducedMotion();
+      if (fade) document.documentElement.dataset.routed = '';
+      go(fade ? update => (document as WithTransitions).startViewTransition(() => flushSync(update)) : null);
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);

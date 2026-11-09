@@ -154,7 +154,11 @@ button, input, select, textarea { font: inherit; color: inherit; }
   view-transition-name: topbar;
 }
 .topbar[data-scrolled="true"] { box-shadow: 0 1px 0 var(--glass-edge), var(--shadow-1); }
-@supports not (backdrop-filter: blur(1px)) { .topbar, .tabbar { background: var(--bg); } }
+/* Scrolled, the bar tucks up under the status bar and the wordmark shrinks, so content gets the room back.
+   Moved with transform only, so nothing below reflows. */
+.topbar[data-scrolled="true"] { transform: translateY(-10px); }
+.topbar[data-scrolled="true"] .brand { transform: scale(.92); }
+.brand { transform-origin: left center; }
 .topbar .row { display: flex; align-items: center; gap: 8px; }
 .brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); margin-right: auto; font-weight: 600; font-size: 1.0625rem; }
 .brand svg { flex: none; }
@@ -218,6 +222,8 @@ a.tile { color: var(--ink); }
 .bento { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .bento > .span-2 { grid-column: span 2; }
 .bento > .row-2 { grid-row: span 2; display: flex; flex-direction: column; }
+/* Tiles that would sit half width with long text: full width on narrow phones. */
+@media (max-width: 480px) { .bento > .wide-sm { grid-column: span 2; } }
 .miniclock .pop { transform-box: fill-box; transform-origin: center; }
 .inset { background: color-mix(in srgb, var(--surface) 65%, transparent); border-radius: 16px; padding: 10px 12px; }
 .tile.dark .inset { background: rgba(255,255,255,.08); }
@@ -236,14 +242,14 @@ a.tile { color: var(--ink); }
 .btn.sm { min-height: 44px; padding: 0 16px; font-size: var(--fs-sm); }
 .btn.block { width: 100%; }
 .btn[disabled] { opacity: .5; cursor: not-allowed; }
-.tile.dark .btn:not(.glass) { background: var(--on-dark); color: #1E2230; }
-.tile.dark .btn.glass { background: rgba(255,255,255,.12); color: var(--on-dark); }
+.tile.dark .btn:not(.glass) { background: var(--on-dark); color: var(--dark); }
+.tile.dark .btn.glass { background: var(--dark-line); color: var(--on-dark); }
 .icon-btn { appearance: none; width: 44px; height: 44px; border-radius: 22px; border: 0; background: var(--surface); box-shadow: var(--ring); color: var(--ink); display: inline-grid; place-items: center; cursor: pointer; flex: none; text-decoration: none; }
 .icon-btn:hover { background: var(--surface-2); }
 
 /* Segmented control: dark pill marks the choice */
 .seg { --n: 2; --k: 0; position: relative; isolation: isolate; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); background: var(--surface-2); border-radius: 24px; padding: 4px; gap: 2px; }
-.seg button { appearance: none; border: 0; background: none; min-height: 40px; padding: 0 12px; border-radius: 20px; font-size: var(--fs-sm); cursor: pointer; color: var(--ink-2); font-weight: 500; white-space: nowrap; }
+.seg button { appearance: none; border: 0; background: none; min-height: 44px; padding: 0 12px; border-radius: 20px; font-size: var(--fs-sm); cursor: pointer; color: var(--ink-2); font-weight: 500; white-space: nowrap; }
 .seg button[aria-pressed="true"] { color: var(--btn-ink); font-weight: 600; }
 /* Two-line options (syringe sizes): the second line is smaller, so each label fits a 320px column. */
 .seg button small { display: block; font-size: 11px; font-weight: 500; opacity: .85; line-height: 1.2; }
@@ -296,7 +302,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .legal[data-l="restricted"], .legal[data-l="unapproved"] { box-shadow: inset 0 0 0 1.5px var(--danger); color: var(--danger); }
 .legal[data-l="interim"], .legal[data-l="pending"], .legal[data-l="investigational"] { box-shadow: inset 0 0 0 1.5px var(--t4); color: var(--peach-ink); }
 .wada { background: var(--surface-2); color: var(--ink-2); font-weight: 500; }
-.fchip { appearance: none; border: 0; box-shadow: var(--ring); background: var(--surface); min-height: 40px; padding: 0 14px; border-radius: 999px; font-size: var(--fs-sm); cursor: pointer; color: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; flex: none; }
+.fchip { appearance: none; border: 0; box-shadow: var(--ring); background: var(--surface); min-height: 44px; padding: 0 14px; border-radius: 999px; font-size: var(--fs-sm); cursor: pointer; color: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; flex: none; }
 .fchip:hover { color: var(--ink); }
 .fchip[aria-pressed="true"] { background: var(--btn); color: var(--btn-ink); box-shadow: none; }
 .usual-units { display: grid; gap: 6px; margin-top: -6px; }
@@ -341,7 +347,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .daybar .now { position: absolute; top: 12px; width: 2px; height: 30px; margin-left: -1px; border-radius: 1px; background: var(--on-dark); }
 .daybar .now span { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 600; white-space: nowrap; }
 .daybar .mark { position: absolute; top: 15px; width: 24px; height: 24px; margin-left: -12px; border-radius: 12px; display: grid; place-items: center; }
-.daybar .mark.done { background: var(--go); color: #1E2230; border: 3px solid var(--dark); }
+.daybar .mark.done { background: var(--go); color: var(--dark); border: 3px solid var(--dark); }
 .daybar .mark.todo { background: var(--dark); border: 2.5px solid var(--on-dark); }
 .daybar .t { position: absolute; top: 46px; transform: translateX(-50%); font-size: 11px; color: var(--on-dark-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .daybar .t.end { right: 0; transform: none; }
@@ -401,7 +407,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .pick { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -20px; padding: 0 20px 2px; }
 .pick::-webkit-scrollbar { display: none; }
 .tile.dark .pick .fchip { background: rgba(255,255,255,.1); color: var(--on-dark-2); box-shadow: none; }
-.tile.dark .pick .fchip[aria-pressed="true"] { background: var(--on-dark); color: #1E2230; }
+.tile.dark .pick .fchip[aria-pressed="true"] { background: var(--on-dark); color: var(--dark); }
 .bars { display: grid; gap: 12px; }
 .bars > div { display: grid; gap: 6px; }
 .bars .bar { height: 10px; border-radius: 5px; }
@@ -472,11 +478,17 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .example::after { content: "Example"; position: absolute; top: 14px; right: 14px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); border: 1px dashed var(--ink-3); border-radius: 6px; padding: 1px 6px; }
 .empty { background: var(--surface); box-shadow: var(--ring); border-radius: var(--r-lg); padding: 18px 18px 22px; display: grid; gap: 12px; justify-items: center; text-align: center; }
 .empty > .illo-ground { justify-self: stretch; }
+/* One empty-state layout everywhere: art on its ground, centred title, a line of copy, the main action. The dark Today card only swaps colours. */
+.empty h1 { font-size: var(--fs-xl); }
+.empty > p, .empty > .sub { max-width: 46ch; }
+.empty > .row-wrap { justify-content: center; }
 
 /* Learn */
 .filters { display: grid; gap: 10px; }
 .filter-row { display: flex; gap: 6px; align-items: center; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px 2px; }
 .filter-row::-webkit-scrollbar { display: none; }
+/* The right edge fades out, a hint that more chips sit off screen. */
+.filter-row { -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent); mask-image: linear-gradient(to right, black calc(100% - 28px), transparent); }
 .filter-row .label { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .08em; margin-right: 4px; flex: none; }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 12px; }
 .card { position: relative; display: grid; gap: 8px; align-content: start; grid-template-rows: auto auto 1fr auto; text-align: left; background: var(--surface); box-shadow: var(--ring); border-radius: var(--r-md); padding: 16px; color: var(--ink); text-decoration: none; min-width: 0; }
@@ -591,9 +603,11 @@ tr:last-child td { border-bottom: 0; }
 .bodymap svg { width: 100%; height: auto; display: block; }
 .bodymap svg path, .bodymap svg rect, .bodymap svg circle.head { fill: var(--surface); stroke: none; }
 .site { position: absolute; transform: translate(-50%, -50%); width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--sky-dot); background: var(--surface); color: var(--ink); font-size: 10px; font-weight: 600; cursor: pointer; display: grid; place-items: center; padding: 0; }
+/* The dot stays 36px so the figure isn't crowded; an invisible ring around it makes the tap target 44px or more. */
+.site::before { content: ""; position: absolute; inset: -7px; border-radius: 50%; }
 .site[data-age="fresh"] { background: var(--peach); border-color: var(--peach); color: var(--peach-deep); }
 .site[data-next="true"] { border: 2px dashed var(--sky-ink); color: var(--sky-ink); }
-.site[aria-pressed="true"] { background: var(--sky-ink); border: 3px solid var(--surface); color: var(--bg); box-shadow: 0 0 0 2px var(--sky-ink), 0 4px 10px rgba(29,79,184,.35); }
+.site[aria-pressed="true"] { background: var(--sky-ink); border: 3px solid var(--surface); color: var(--bg); box-shadow: 0 0 0 2px var(--sky-ink), 0 4px 10px color-mix(in srgb, var(--sky-ink) 35%, transparent); }
 .site-legend { display: flex; gap: 6px 14px; justify-content: center; flex-wrap: wrap; font-size: var(--fs-xs); color: var(--ink-2); }
 .site-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: -2px; }
 
@@ -612,7 +626,7 @@ tr:last-child td { border-bottom: 0; }
 .hour[data-recent="2"] { background: var(--recent-2); border-color: var(--recent-2); color: var(--recent-ink); }
 .hour[data-recent="3"] { background: var(--recent-3); border-color: var(--recent-3); color: var(--recent-ink); }
 .hour[data-next="true"] { border: 2px dashed var(--sky-ink); color: var(--sky-ink); background: var(--surface); }
-.hour[aria-pressed="true"] { background: var(--sky-ink); color: var(--bg); border: 3px solid var(--surface); box-shadow: 0 0 0 2px var(--sky-ink), 0 4px 10px rgba(29,79,184,.35); }
+.hour[aria-pressed="true"] { background: var(--sky-ink); color: var(--bg); border: 3px solid var(--surface); box-shadow: 0 0 0 2px var(--sky-ink), 0 4px 10px color-mix(in srgb, var(--sky-ink) 35%, transparent); }
 .recent { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .recent span { padding: 4px 10px; border-radius: 999px; font-size: var(--fs-xs); font-weight: 600; background: var(--recent-2); color: var(--recent-ink); }
 
@@ -667,8 +681,10 @@ input.code-input { font-family: var(--f-mono); font-size: 1.375rem; letter-spaci
 /* Tab bar */
 .tabbar { position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: min(440px, calc(100% - 32px)); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; padding: 6px; border-radius: var(--r-xl); background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); box-shadow: var(--shadow-3), inset 0 0 0 1px var(--glass-edge); view-transition-name: tabbar; isolation: isolate; }
 /* One pill behind the current tab: one fifth of the bar, moved a whole column at a time (never column 2, the log button). */
+/* Opaque fallback for both glass bars; it comes after both rules so it wins on equal specificity. */
+@supports not (backdrop-filter: blur(1px)) { .topbar, .tabbar { background: var(--bg); } }
 .tab-ind { position: absolute; z-index: -1; top: 6px; bottom: 6px; left: 6px; width: calc((100% - 12px) / 5); border-radius: 22px; background: var(--tab-pill); transform: translateX(calc(var(--k) * 100%)); pointer-events: none; }
-.tabbar a { color: var(--ink-4); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; font-size: 11px; font-weight: 500; text-decoration: none; border-radius: 22px; }
+.tabbar a { color: var(--ink-3); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; font-size: 11px; font-weight: 500; text-decoration: none; border-radius: 22px; }
 .tabbar a:hover { color: var(--ink); }
 .tabbar a[aria-current="page"] { color: var(--ink); font-weight: 700; }
 .tabbar .log { justify-self: center; width: 56px; height: 56px; border-radius: 28px; border: 0; background: var(--btn); color: var(--btn-ink); display: grid; place-items: center; cursor: pointer; }
@@ -685,10 +701,10 @@ a.tile, button.tile { position: relative; }
 /* Illustrations and skeletons */
 .illo { display: block; max-width: 100%; height: auto; }
 .illo-ground { display: grid; place-items: center; padding: 14px 12px 6px; border-radius: var(--r-md); background: radial-gradient(70% 90% at 50% 100%, var(--surface), transparent 70%), var(--surface-2); }
-/* On the instrument card the art is redrawn in the on-dark palette: translucent glass cells and vial, a soft blue header,
+/* On the instrument card the art is redrawn in the on-dark palette: an opaque outlined page with lighter cells and vial, a soft blue header,
    outlines in --on-dark-3, so it sits in the card instead of reading as a light sticker. */
 .tile.dark .illo-ground { background: radial-gradient(70% 90% at 50% 100%, var(--dark-line), transparent 70%); }
-.tile.dark .illo { --illo-line: var(--on-dark-3); --illo-shade: rgba(0,0,0,.22); --surface: var(--dark-line); --sky: var(--dark-line); --sky-ink: var(--dose-cell); --mint-ink: var(--dark); --ink-4: var(--on-dark-3); }
+.tile.dark .illo { --illo-line: var(--on-dark-3); --illo-shade: rgba(0,0,0,.22); --surface: color-mix(in srgb, var(--on-dark) 22%, var(--dark)); --sky: color-mix(in srgb, var(--on-dark) 9%, var(--dark)); --sky-ink: var(--dose-cell); --mint-ink: var(--dark); --ink-4: var(--on-dark-3); }
 .skel-page { display: grid; gap: 12px; }
 .skel { position: relative; overflow: hidden; border-radius: var(--r-lg); background: var(--skel); }
 
@@ -711,6 +727,7 @@ footer.foot p { max-width: 90ch; }
   @keyframes grow-up { from { transform: scaleY(0); } }
   .syringe .moves { transition: transform var(--dur-slow) var(--ease-out); }
   details > summary .chev { transition: transform var(--dur-med) var(--ease-out); }
+  .topbar, .brand { transition: transform var(--dur-med) var(--ease-out); }
 
   /* Tactile feedback: quick press, gentle lift */
   .btn, .fchip, .icon-btn, .tabbar .log, .tabbar a, .seg button, .hour { transition: transform var(--dur-fast) var(--ease-out), filter var(--dur-fast) var(--ease-out); }

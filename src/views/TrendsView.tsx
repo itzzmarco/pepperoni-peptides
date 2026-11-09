@@ -109,50 +109,54 @@ function History({ doses, checkins, onBackfill, art }: { doses: DoseEntry[]; che
     ...checkins.slice(0, 80).map(e => ({ kind: 'check' as const, at: e.at, e })),
   ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 60);
   let lastDay = '';
+  // Nothing logged yet: the same empty-state card as every other screen (art, title, one line, one action).
+  if (!items.length) return (
+    <section className="empty" aria-labelledby="hist-h">
+      {art}
+      <h3 id="hist-h">History</h3>
+      <p className="small muted">Logged doses and check-ins appear here. Kept a paper log before? Fill in past days to bring it in.</p>
+      <button type="button" className="btn" onClick={onBackfill}>Fill in past days</button>
+    </section>
+  );
   return (
     <section className="tile" aria-labelledby="hist-h">
-      {!items.length && art}
       <div className="spread" style={{ alignItems: 'center' }}>
         <h3 id="hist-h">History</h3>
         <button type="button" className="btn soft sm" onClick={onBackfill}>Fill in past days</button>
       </div>
-      {items.length ? (
-        <div className="timeline">
-          {(showAll ? items : items.slice(0, RECENT)).map(it => {
-            const d = new Date(it.at), k = dayKey(d);
-            const head = k !== lastDay ? <div className="tl-day">{fmtDay(d)}</div> : null;
-            lastDay = k;
-            return (
-              <div key={it.e.id}>
-                {head}
-                <div className="tl-item">
-                  <time>{fmtTime(d)}</time>
-                  {it.kind === 'dose' ? (
-                    <div className="what">
-                      <b>{it.e.name}</b> {fmtNum(Number(it.e.amount), 3)} {it.e.unit}
-                      <small>{[it.e.route, SITE_LABEL[it.e.site], it.e.notes].filter(Boolean).join(' · ')}</small>
-                    </div>
-                  ) : (
-                    <div className="what">
-                      <b>Check-in</b> {it.e.overall ? `feeling ${it.e.overall}/5` : ''}{it.e.weight ? ` · ${fmtNum(it.e.weight, 1)} ${it.e.weightUnit ?? ''}` : ''}
-                      <small>{it.e.effects.join(', ')}{it.e.notes ? ` · ${it.e.notes}` : ''}</small>
-                      {it.e.flags.length > 0 && <small className="flag-text">Emergency symptom: {it.e.flags.join('; ')}</small>}
-                    </div>
-                  )}
-                  <DeleteButton onConfirm={() => { if (it.kind === 'dose') store.deleteDose(it.e.id); else store.deleteCheckin(it.e.id); toast('Entry deleted.'); }} />
-                </div>
+      <div className="timeline">
+        {(showAll ? items : items.slice(0, RECENT)).map(it => {
+          const d = new Date(it.at), k = dayKey(d);
+          const head = k !== lastDay ? <div className="tl-day">{fmtDay(d)}</div> : null;
+          lastDay = k;
+          return (
+            <div key={it.e.id}>
+              {head}
+              <div className="tl-item">
+                <time>{fmtTime(d)}</time>
+                {it.kind === 'dose' ? (
+                  <div className="what">
+                    <b>{it.e.name}</b> {fmtNum(Number(it.e.amount), 3)} {it.e.unit}
+                    <small>{[it.e.route, SITE_LABEL[it.e.site], it.e.notes].filter(Boolean).join(' · ')}</small>
+                  </div>
+                ) : (
+                  <div className="what">
+                    <b>Check-in</b> {it.e.overall ? `feeling ${it.e.overall}/5` : ''}{it.e.weight ? ` · ${fmtNum(it.e.weight, 1)} ${it.e.weightUnit ?? ''}` : ''}
+                    <small>{it.e.effects.join(', ')}{it.e.notes ? ` · ${it.e.notes}` : ''}</small>
+                    {it.e.flags.length > 0 && <small className="flag-text">Emergency symptom: {it.e.flags.join('; ')}</small>}
+                  </div>
+                )}
+                <DeleteButton onConfirm={() => { if (it.kind === 'dose') store.deleteDose(it.e.id); else store.deleteCheckin(it.e.id); toast('Entry deleted.'); }} />
               </div>
-            );
-          })}
-          {items.length > RECENT && (
-            <button className="btn quiet sm" style={{ justifySelf: 'start', marginTop: 8 }} onClick={() => setShowAll(!showAll)}>
-              {showAll ? 'Show fewer' : `Show all ${items.length} entries`}
-            </button>
-          )}
-        </div>
-      ) : (
-        <p className="small muted">Logged doses and check-ins appear here. Kept a paper log before? Fill in past days to bring it in.</p>
-      )}
+            </div>
+          );
+        })}
+        {items.length > RECENT && (
+          <button className="btn quiet sm" style={{ justifySelf: 'start', marginTop: 8 }} onClick={() => setShowAll(!showAll)}>
+            {showAll ? 'Show fewer' : `Show all ${items.length} entries`}
+          </button>
+        )}
+      </div>
     </section>
   );
 }

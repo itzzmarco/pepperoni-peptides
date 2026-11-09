@@ -7,6 +7,7 @@ import { adherenceDays, freqText, regimenStatus } from '../lib/schedule';
 import { adherence } from '../lib/insights';
 import { DAY, dayKey, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
 import { LineChart } from '../components/LineChart';
+import { IlloPartner } from '../components/Illustration';
 import { regName } from './PeptidesView';
 
 const RANGES = [[30, 'Month'], [90, '3 months'], [0, 'Since start']] as const;
@@ -73,24 +74,22 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
       <section className="view">
         <p className="sr-only" aria-live="polite">{first ? 'Checking for a linked partner…' : ''}</p>
         {first ? (
-          /* A heading and one control, the size of the page either answer starts with, so nothing jumps far when it lands. */
-          <div className="skel-page head" aria-hidden="true">
+          /* The shape of the card either answer starts with (art, heading, a line, one control), so nothing jumps far when it lands. */
+          <div className="skel-page empty" aria-hidden="true">
+            <div className="skel" style={{ height: 150, justifySelf: 'stretch', borderRadius: 'var(--r-md)' }} />
             <span className="eyebrow">Partner</span>
-            <div className="skel" style={{ height: 34, width: '70%', borderRadius: 12 }} />
+            <div className="skel" style={{ height: 30, width: '70%', borderRadius: 12 }} />
             <div className="skel" style={{ height: 18, width: '90%', borderRadius: 8 }} />
             <div className="skel" style={{ height: 48, width: 180, borderRadius: 24 }} />
           </div>
         ) : (
-          <>
-            <header className="head rise">
-              <span className="eyebrow">Partner</span>
-              <h1>Track progress together.</h1>
-              <p>Link accounts with your partner and you'll each see the other's weight and shots next to your own. Neither of you can change the other's log.</p>
-            </header>
-            <div className="head-actions">
-              <button className="btn" onClick={onAccount}>{acct.user ? 'Link your partner' : 'Sign in to link'}</button>
-            </div>
-          </>
+          <header className="empty rise">
+            <IlloPartner />
+            <span className="eyebrow">Partner</span>
+            <h1>Track progress together.</h1>
+            <p className="small muted">Link accounts with your partner and you'll each see the other's weight and shots next to your own. Neither of you can change the other's log.</p>
+            <button className="btn" onClick={onAccount}>{acct.user ? 'Link your partner' : 'Sign in to link'}</button>
+          </header>
         )}
         {error && <p className="alert warn"><b>Couldn't load your partner.</b><span>{error}</span></p>}
       </section>

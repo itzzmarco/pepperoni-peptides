@@ -6,6 +6,7 @@ import { fmtNum } from '../lib/format';
 import { Ladder, LegalChip, TierChip } from '../components/Chips';
 import { FamilyGlyph } from '../components/FamilyGlyph';
 import { IlloSearch } from '../components/Illustration';
+import { prefersReducedMotion } from '../components/Motion';
 
 const TIER_LIST: Tier[] = [1, 2, 3, 4, 5];
 
@@ -111,6 +112,14 @@ export function LibraryView() {
   );
   const usedLegal = (Object.keys(LEGAL) as LegalKey[]).filter(k => PEPTIDES.some(p => p.legal === k));
   const trialBacked = PEPTIDES.filter(p => p.tier <= 2).length;
+  // A button, not a #tiers link: the hash is the route, so a fragment link would leave Learn.
+  const showTiers = () => {
+    const d = document.getElementById('tiers') as HTMLDetailsElement | null;
+    if (!d) return;
+    d.open = true;
+    d.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
+    d.querySelector('summary')?.focus({ preventScroll: true });
+  };
   return (
     <section className="view">
       <header className="head rise">
@@ -141,6 +150,8 @@ export function LibraryView() {
         <div className="filter-row"><span className="label muted">Evidence</span>{chip('tier', 'all', 'All')}{TIER_LIST.map(t => chip('tier', `${t}` as const, `T${t} ${TIERS[t].label}`, `var(--t${t})`))}</div>
         <div className="filter-row"><span className="label muted">Category</span>{chip('fam', 'all', 'All')}{(Object.keys(FAMILIES) as FamilyKey[]).map(k => chip('fam', k, FAMILIES[k].name))}</div>
         <div className="filter-row"><span className="label muted">US status</span>{chip('legal', 'all', 'All')}{usedLegal.map(k => chip('legal', k, LEGAL[k].label))}</div>
+        {/* Every card shows a tier, but the explainer sits after the library; this opens it and jumps there. */}
+        <button type="button" className="linkish small" style={{ justifySelf: 'start', minHeight: 44 }} onClick={showTiers}>What do tiers mean?</button>
       </div>
       <div className="cards">
         {list.length ? list.map(p => (
@@ -155,12 +166,12 @@ export function LibraryView() {
             <IlloSearch />
             <h3>No matches</h3>
             <p className="small muted">Try a different word or clear a filter.</p>
-            <button className="btn ghost sm" onClick={() => setF({ q: '', fam: 'all', tier: 'all', legal: 'all' })}>Clear filters</button>
+            <button className="btn" onClick={() => setF({ q: '', fam: 'all', tier: 'all', legal: 'all' })}>Clear filters</button>
           </div>
         )}
       </div>
 
-      <details className="tile mint">
+      <details className="tile mint" id="tiers">
         <summary className="spread" style={{ alignItems: 'center', flexWrap: 'nowrap' }}>
           <span className="stack" style={{ gap: 4 }}>
             <span className="label">How evidence tiers work</span>

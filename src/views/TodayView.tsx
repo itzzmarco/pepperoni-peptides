@@ -46,16 +46,16 @@ function DayBar({ done, todo, now }: { done: Date[]; todo: Date[]; now: Date }) 
   );
 }
 
-/** Today's doses as a ring: the arc is the share logged, the count sits in the middle. The sentence beside it carries the meaning. */
+/** Today's doses as a ring: the arc is the share logged, the count sits in the middle and the label reads it out. */
 function TodayRing({ done, total }: { done: number; total: number }) {
   const share = Math.min(1, done / total) * 100;
   return (
-    <span className="today-ring pop" aria-hidden="true" style={rise(3)}>
-      <svg viewBox="0 0 72 72" width="76" height="76">
+    <span className="today-ring pop" role="img" aria-label={`${done} of ${total} today`} style={rise(3)}>
+      <svg viewBox="0 0 72 72" width="76" height="76" aria-hidden="true">
         <circle cx="36" cy="36" r="30" className="track" />
         {done > 0 && <circle cx="36" cy="36" r="30" className="arc" pathLength={100} strokeDasharray={`${share} 100`} />}
       </svg>
-      <b className="num">{done}<small>/{total}</small></b>
+      <b className="num" aria-hidden="true">{done}<small>/{total}</small></b>
     </span>
   );
 }
@@ -87,7 +87,6 @@ function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now, site }: 
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
           Log now
         </button>
-        {total > 0 && <span className="sub">{doneToday} of {total} today</span>}
       </div>
     </section>
   );
@@ -183,9 +182,10 @@ export function TodayView(actions: Actions) {
         <NextUp r={next.r} st={next.st} actions={actions} now={now} done={done} todo={todo} site={shots.find(x => x.r === next.r)?.s ?? null}
           doneToday={loggedToday.length} dueToday={list.filter(x => x.st.s === 'due' || x.st.s === 'late').length} />
       ) : offerSignIn && seenHere ? (
-        <section className="tile dark rise" style={rise(2)}>
+        <section className="tile dark empty rise" style={rise(2)}>
+          <IlloStart />
           <span className="eyebrow">Signed out</span>
-          <span style={{ fontSize: '1.375rem', fontWeight: 600, lineHeight: 1.25 }}>Sign in and your peptides, shots and weights come back.</span>
+          <h3>Sign in and your peptides, shots and weights come back.</h3>
           <span className="sub">Your log is saved in your account. Anything added while signed out stays on this device only, so sign in before you log.</span>
           <div className="row-wrap">
             <button className="btn" onClick={actions.signIn}>Sign in</button>
@@ -193,10 +193,10 @@ export function TodayView(actions: Actions) {
           </div>
         </section>
       ) : (
-        <section className="tile dark rise" style={rise(2)}>
+        <section className="tile dark empty rise" style={rise(2)}>
           <IlloStart />
           <span className="eyebrow">Start your log</span>
-          <span style={{ fontSize: '1.375rem', fontWeight: 600, lineHeight: 1.25 }}>Track a peptide or medication your clinician prescribed.</span>
+          <h3>Track a peptide or medication your clinician prescribed.</h3>
           <span className="sub">You'll see what's due, how consistent you've been, and where to inject next. {signedIn ? 'It syncs to your account, and only you can see it.' : 'Nothing leaves this device.'}</span>
           <div className="row-wrap">
             <button className="btn" onClick={actions.addRegimen}>Add a peptide</button>
@@ -264,7 +264,7 @@ export function TodayView(actions: Actions) {
             </button>
           ))}
 
-          <button type="button" className="tile rise" style={{ ...rise(7), border: 0, textAlign: 'left', font: 'inherit', cursor: 'pointer', gap: 6 }} onClick={actions.checkin}>
+          <button type="button" className={`tile rise${comingUp?.st.due ? '' : ' wide-sm'}`} style={{ ...rise(7), border: 0, textAlign: 'left', font: 'inherit', cursor: 'pointer', gap: 6 }} onClick={actions.checkin}>
             <span className="label" style={{ color: 'var(--mint-ink)' }}>Check-in</span>
             {checkedIn ? (
               <>
@@ -287,8 +287,8 @@ export function TodayView(actions: Actions) {
             </a>
           )}
 
-          <a href={learnP ? `#${learnP.id}` : '#calculator'} className={`tile lemon rise ${comingUp?.st.due ? 'span-2' : ''}`} style={{ ...rise(9), display: 'flex', alignItems: 'center', gap: 14 }}>
-            <span className="stack" style={{ gap: 6, flex: 1 }}>
+          <a href={learnP ? `#${learnP.id}` : '#calculator'} className={`tile lemon rise ${comingUp?.st.due ? 'span-2' : 'wide-sm'}`} style={{ ...rise(9), display: 'flex', alignItems: 'center', gap: 14 }}>
+            <span className="stack" style={{ gap: 6, flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
               <span className="label">{learnP ? `Evidence · Tier ${learnP.tier} ${TIERS[learnP.tier].label}` : 'Guide'}</span>
               <span style={{ fontSize: '1.25rem', fontWeight: 600, lineHeight: 1.2 }}>{learnP ? `What the research says about ${learnP.name}` : 'Dose math, step by step'}</span>
             </span>

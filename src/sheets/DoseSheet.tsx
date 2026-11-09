@@ -14,6 +14,7 @@ import { Sheet } from '../components/Sheet';
 import { Syringe } from '../components/Syringe';
 import { UnitOptions } from '../components/UnitPicker';
 import { useToast } from '../components/Toast';
+import { useFieldError } from '../components/FieldError';
 import { regName } from '../views/PeptidesView';
 
 const blank = (r: Regimen, site = '') => ({ amount: r.dose, unit: r.unit, at: toLocalInput(new Date()), route: r.route, site, notes: '' });
@@ -25,6 +26,7 @@ const ago = (t: Date) => {
 /** `onFix` opens the regimen's settings, for vial details that don't add up. */
 export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose: () => void; onFix?: (r: Regimen) => void }) {
   const toast = useToast();
+  const { fail, errFor, invalid } = useFieldError('d-err');
   const { doses, regimens } = useLedger();
   const active = regimens.filter(x => !x.paused);
   const [r, setR] = useState(initial);
@@ -75,8 +77,8 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const at = new Date(d.at || Date.now());
-    if (isNaN(at.getTime())) { toast('Enter a valid date and time.'); return; }
-    if (!(amt > 0)) { toast('Enter the amount you took.'); return; }
+    if (!(amt > 0)) { fail('d-amount', 'Enter the amount you took.'); return; }
+    if (isNaN(at.getTime())) { fail('d-at', 'Enter a valid date and time.'); return; }
     store.addDose({ id: newId(), rid: r.id, name: regName(r), at: at.toISOString(), amount: d.amount, unit: d.unit, route: d.route, site: injectable && siteFits ? d.site : '', notes: d.notes.trim() });
     toast(`Logged ${regName(r)} at ${fmtTime(at)}.`);
     onClose();
@@ -141,9 +143,10 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
 
         <section className="tile" aria-label="What you took">
           <div className="grid-3">
-            <label className="field"><span>Amount</span><input type="number" id="d-amount" step="any" min="0" inputMode="decimal" value={d.amount} onChange={set('amount')} /></label>
+            <label className="field"><span>Amount</span><input type="number" id="d-amount" {...invalid('d-amount')} step="any" min="0" inputMode="decimal" value={d.amount} onChange={set('amount')} /></label>
             <label className="field"><span>Unit</span><select id="d-unit" value={d.unit} onChange={set('unit')}><UnitOptions compoundId={r.compoundId} /></select></label>
           </div>
+          {errFor('d-amount')}
           {(amountDiffers || unitDiffers) && (
             <p className="alert warn" role="status">
               {unitDiffers
@@ -152,9 +155,10 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
             </p>
           )}
           <div className="grid-2">
-            <label className="field"><span>When</span><input type="datetime-local" id="d-at" value={d.at} onChange={set('at')} /></label>
+            <label className="field"><span>When</span><input type="datetime-local" id="d-at" {...invalid('d-at')} value={d.at} onChange={set('at')} /></label>
             <label className="field"><span>How it was taken</span><select id="d-route" value={d.route} onChange={setRoute}>{ROUTES.map(x => <option key={x}>{x}</option>)}</select></label>
           </div>
+          {errFor('d-at')}
         </section>
 
         {injectable && plan && (

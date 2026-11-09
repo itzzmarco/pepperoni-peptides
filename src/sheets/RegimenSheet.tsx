@@ -17,6 +17,7 @@ import { FamilyGlyph } from '../components/FamilyGlyph';
 import { TierChip } from '../components/Chips';
 import { regName } from '../views/PeptidesView';
 import { matches } from '../views/LibraryView';
+import { useFieldError } from '../components/FieldError';
 
 const OTHER = '__other';
 
@@ -103,18 +104,8 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved, onLog, onSignIn
   const [r, setR] = useState<Regimen>(initial);
   const [pick, setPick] = useState(initial.compoundId || (initial.name ? OTHER : ''));
   const [ack, setAck] = useState(false);
-  // A rejected save names the field at fault: its error shows right under it, and focus moves there so the message
-  // is on screen even with the sticky Save row below.
-  const [err, setErr] = useState<{ at: string; msg: string } | null>(null);
-  useEffect(() => {
-    if (!err) return;
-    const el = document.getElementById(err.at);
-    const target = el?.matches('input, select, textarea, button') ? el : el?.querySelector<HTMLElement>('button');
-    target?.scrollIntoView({ block: 'center' });
-    target?.focus({ preventScroll: true });
-  }, [err]);
-  const errFor = (at: string) => err?.at === at ? <p id="r-err" className="small field-err" role="alert">{err.msg}</p> : null;
-  const invalid = (at: string) => err?.at === at ? { 'aria-invalid': true, 'aria-describedby': 'r-err' } : {};
+  // A rejected save names the field at fault, under it and with focus on it (see useFieldError).
+  const { err, fail, errFor, invalid } = useFieldError('r-err');
   const [armed, setArmed] = useState(false);
   const firstTime = isNew && regimens.length === 0;
   const p = PEP[pick];
@@ -148,7 +139,7 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved, onLog, onSignIn
       : out.freq === 'custom' && !(Number(out.everyDays) >= 1) ? ['r-every', 'Enter how many days between doses.']
       : out.freq === 'days' && !weekdaysOf(out).length ? ['r-days', 'Choose at least one day of the week.']
       : firstTime && !ack ? ['r-ack', "Please confirm you understand this log isn't medical advice."] : null;
-    if (problem) { setErr({ at: problem[0], msg: problem[1] }); return; }
+    if (problem) { fail(...problem); return; }
     if (isNew) out.createdAt = new Date().toISOString();
     const relabeled = relabel ? oldUnitDoses.map(x => ({ ...x, unit: out.unit })) : [];
     if (relabeled.length) store.applyBatch({ doses: relabeled });

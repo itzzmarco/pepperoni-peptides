@@ -251,7 +251,7 @@ export function LibraryView() {
         {list.length ? list.map(p => (
           // The name leads; family and tier share one quiet line under it, and legal status is the only chip.
           // The tapped card marks its glyph, which travels into the profile header as the page opens (styles.css).
-          <a className="card" href={`#${p.id}`} key={p.id} style={{ ['--vt' as string]: `c-${p.id}` }} onClick={open}>
+          <a className="card" href={`#${p.id}`} key={p.id} data-t={p.tier} style={{ ['--vt' as string]: `c-${p.id}` }} onClick={open}>
             <div className="card-top">
               <div><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 2).join(' · ')}</div> : null}</div>
               <FamilyGlyph family={p.family} size={32} />

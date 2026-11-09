@@ -178,6 +178,9 @@ export function App() {
     return () => clearTimeout(t);
   }, [closing]);
   const close = useCallback(() => setSheet(null), []);
+  // Closing a regimen edit that started in a dose sheet goes back to that dose sheet. One function for the sheet's whole
+  // life, so App re-rendering (a sync status update) never re-runs Sheet's focus effect and pulls the cursor out of a field.
+  const backToDose = useCallback(() => setSheet(s => (s?.kind === 'regimen' ? { kind: 'dose', r: s.r } : s)), []);
   const goPeptides = useCallback(() => {
     setSheet(null);
     if (window.location.hash !== '#peptides') window.location.hash = 'peptides';
@@ -224,7 +227,7 @@ export function App() {
               </a>
             )}
             {/* The link is the vial and wordmark. Once the headline scrolls away, the page name takes the wordmark's
-                place as text laid over it that lets taps through, so the whole spot stays the link. */}
+                place as plain text that takes no taps, and only the vial stays the link (styles.css). */}
             <div className="brand-wrap">
             <a className="brand" href="#today" aria-label="Peptide Ledger, today">
               {/* The installed icon's vial, drawn the same way: a pink cap on a dark rounded tile. */}
@@ -266,7 +269,7 @@ export function App() {
       <TabBar current={route.id ? 'learn' : tab} exact={!route.id && tab === route.tab} onLog={logNext} logLabel={nextDue ? 'Log a dose' : 'Add a peptide'} logWord={nextDue ? 'Log' : 'Add'} inert={bg} />
       <SheetClosing.Provider key={session} value={closing}>
         {shown?.kind === 'regimen' && (shown.back
-          ? <RegimenSheet initial={shown.r} isNew={false} onClose={() => setSheet({ kind: 'dose', r: shown.r })} onSaved={x => setSheet(x ? { kind: 'dose', r: x } : null)} />
+          ? <RegimenSheet initial={shown.r} isNew={false} onClose={backToDose} onSaved={x => setSheet(x ? { kind: 'dose', r: x } : null)} />
           : <RegimenSheet initial={shown.r} isNew={shown.isNew} onClose={close} onSaved={goPeptides} onLog={actions.logDose} onSignIn={actions.signIn} />)}
         {shown?.kind === 'dose' && <DoseSheet r={shown.r} onClose={close} onFix={r => setSheet({ kind: 'regimen', r, isNew: false, back: true })} />}
         {shown?.kind === 'checkin' && <CheckinSheet onClose={close} onBackfill={() => setSheet({ kind: 'backfill' })} />}

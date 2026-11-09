@@ -5,11 +5,13 @@ import { newId, toLocalInput } from '../lib/format';
 import { EFFECTS, RED_FLAGS, SCALES } from '../data/options';
 import { Sheet } from '../components/Sheet';
 import { useToast } from '../components/Toast';
+import { useFieldError } from '../components/FieldError';
 
 const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter(x => x !== v) : [...list, v]);
 
 export function CheckinSheet({ onClose, onBackfill }: { onClose: () => void; onBackfill?: () => void }) {
   const toast = useToast();
+  const { fail, errFor, invalid } = useFieldError('c-err');
   const { checkins } = useLedger();
   const [vals, setVals] = useState<Partial<Record<(typeof SCALES)[number][0], number>>>({});
   const [effects, setEffects] = useState<string[]>([]);
@@ -22,8 +24,8 @@ export function CheckinSheet({ onClose, onBackfill }: { onClose: () => void; onB
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const at = when ? new Date(when) : new Date();
-    if (isNaN(at.getTime())) { toast('Enter a valid date and time.'); return; }
-    if (at.getTime() > Date.now() + 5 * 60e3) { toast("That's in the future. Pick today or an earlier day."); return; }
+    if (isNaN(at.getTime())) { fail('c-at', 'Enter a valid date and time.'); return; }
+    if (at.getTime() > Date.now() + 5 * 60e3) { fail('c-at', "That's in the future. Pick today or an earlier day."); return; }
     const entry: Checkin = { id: newId(), at: at.toISOString(), effects, flags, notes: notes.trim(), ...vals };
     if (Number(weight) > 0) { entry.weight = Number(weight); entry.weightUnit = wUnit; }
     store.addCheckin(entry);
@@ -52,19 +54,20 @@ export function CheckinSheet({ onClose, onBackfill }: { onClose: () => void; onB
             </div>
           </div>
         ))}
-        <label className="field"><span>When</span><input type="datetime-local" id="c-at" value={when} max={toLocalInput(new Date())} onChange={e => setWhen(e.target.value)} /></label>
+        <label className="field"><span>When</span><input type="datetime-local" id="c-at" {...invalid('c-at')} value={when} max={toLocalInput(new Date())} onChange={e => setWhen(e.target.value)} /></label>
+        {errFor('c-at')}
         <div className="grid-2">
           <label className="field"><span>Weight <small>(optional)</small></span><input type="number" id="c-weight" step="any" min="0" inputMode="decimal" value={weight} onChange={e => setWeight(e.target.value)} /></label>
           <label className="field"><span>Unit</span><select id="c-wunit" value={wUnit} onChange={e => setWUnit(e.target.value)}><option>lb</option><option>kg</option></select></label>
         </div>
-        <fieldset className="field" style={{ border: 0, padding: 0, margin: 0 }}>
-          <legend style={{ fontSize: 'var(--fs-sm)', fontWeight: 600, marginBottom: 6 }}>Side effects today</legend>
+        <fieldset className="field">
+          <legend>Side effects today</legend>
           <div className="checks peachy">
             {EFFECTS.map(x => <label key={x}><input type="checkbox" checked={effects.includes(x)} onChange={() => setEffects(toggle(effects, x))} />{x}</label>)}
           </div>
         </fieldset>
-        <fieldset className="field" style={{ border: 0, padding: 0, margin: 0 }}>
-          <legend style={{ fontSize: 'var(--fs-sm)', fontWeight: 600, marginBottom: 6, color: 'var(--danger)' }}>Emergency symptoms</legend>
+        <fieldset className="field">
+          <legend className="tone-danger">Emergency symptoms</legend>
           <div className="checks red">
             {RED_FLAGS.map(x => <label key={x}><input type="checkbox" checked={flags.includes(x)} onChange={() => setFlags(toggle(flags, x))} />{x}</label>)}
           </div>

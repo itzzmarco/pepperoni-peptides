@@ -189,6 +189,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .bar-title { padding-left: 34px; font-weight: 600; font-size: var(--fs-md); color: var(--ink); min-width: 0; opacity: 0; transform: translateY(6px); pointer-events: none; }
 .topbar[data-titled] .wordmark { opacity: 0; transform: translateY(-6px); }
 .topbar[data-titled] .bar-title { opacity: 1; transform: none; }
+/* While the page name shows, only the vial mark is the home link; the name over the wordmark's spot takes no taps. */
+.topbar[data-titled] .brand { pointer-events: none; }
+.topbar[data-titled] .brand svg { pointer-events: auto; }
 .sync { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--ink-2); background: var(--surface); box-shadow: var(--ring); border-radius: 999px; padding: 6px 12px 6px 10px; white-space: nowrap; min-height: 44px; }
 .sync i { width: 7px; height: 7px; border-radius: 50%; background: var(--good); display: inline-block; }
 .or { display: flex; align-items: center; gap: 12px; color: var(--ink-3); font-size: var(--fs-xs); }
@@ -218,7 +221,7 @@ main { padding-block: 8px 40px; }
 .view { display: grid; gap: 16px; }
 .head { display: grid; gap: 8px; padding: 0 4px; }
 /* A headline's second line steps down to large body text, so its first line is clearly where the page starts. */
-.head h1 .soft { display: block; margin-top: var(--sp-2); color: var(--ink-3); font-size: var(--fs-lg); font-weight: 500; letter-spacing: 0; line-height: 1.3; }
+:is(.head, .empty) h1 .soft { display: block; margin-top: var(--sp-2); color: var(--ink-3); font-size: var(--fs-lg); font-weight: 500; letter-spacing: 0; line-height: 1.3; }
 .head p { color: var(--ink-3); max-width: 62ch; }
 .head .lede { color: var(--ink); }
 .head-actions { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 4px; }
@@ -226,7 +229,7 @@ main { padding-block: 8px 40px; }
 .head.hero { padding: 20px 20px 16px; gap: 10px; border-radius: var(--r-xl); background: var(--surface); box-shadow: var(--ring), var(--shadow-1); }
 .head.hero .eyebrow { color: var(--lilac-ink); }
 .head.hero h1 { font-size: clamp(2.125rem, 9vw, 2.75rem); letter-spacing: -.02em; }
-.hero-bars { position: relative; display: flex; align-items: flex-end; gap: 3px; height: 56px; margin-top: 20px; touch-action: pan-y; cursor: ew-resize; border-radius: 4px; }
+.hero-bars { position: relative; display: flex; align-items: flex-end; gap: 3px; height: 56px; margin-top: 20px; touch-action: pan-y; border-radius: 4px; }
 .hero-bars[data-n="30"] { gap: 2px; }
 .hero-bars i { flex: 1 1 0; min-width: 0; border-radius: 3px; background: var(--lilac-line); }
 .hero-cap { display: flex; justify-content: space-between; gap: 8px; font-size: var(--fs-xs); color: var(--ink-3); font-variant-numeric: tabular-nums; margin-top: -4px; }
@@ -346,7 +349,10 @@ a.tile { color: var(--ink); }
 
 /* Form */
 .field { display: grid; gap: 6px; min-width: 0; }
-.field > span { font-size: var(--fs-sm); font-weight: 600; }
+.field > span, .field > legend { font-size: var(--fs-sm); font-weight: 600; }
+/* A group of checkboxes reads as one field: its legend is the field's label, with no fieldset frame. */
+fieldset.field { border: 0; padding: 0; margin: 0; }
+fieldset.field > legend { padding: 0; margin-bottom: 6px; }
 .field small { color: var(--ink-3); font-size: var(--fs-xs); font-weight: 400; }
 input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="search"], input[type="date"], input[type="datetime-local"], input[type="time"], select, textarea {
   width: 100%; background: var(--surface); border: 0; box-shadow: var(--ring); border-radius: var(--r-sm); padding: 10px 14px; min-height: 48px;
@@ -614,7 +620,9 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 @media (hover: hover) { .filter-more:hover { background: var(--surface-2); } }
 /* One column on phones, so chips like "Compoundable with Rx" stay on one line; more columns as the page widens. */
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 12px; }
-.card { position: relative; display: grid; gap: 8px; align-content: start; grid-template-rows: auto auto 1fr auto; text-align: left; background: var(--surface); box-shadow: var(--ring), var(--shadow-1); border-radius: var(--r-md); padding: 16px; color: var(--ink); text-decoration: none; min-width: 0; }
+/* Each card carries a faint wash of its evidence tier's colour from the corner behind its glyph, so a screen of
+   results varies by tier as well as by family (the same --t{n} colours as the profile band). */
+.card { --tc: var(--t1); position: relative; display: grid; gap: 8px; align-content: start; grid-template-rows: auto auto 1fr auto; text-align: left; background: radial-gradient(90% 70% at 100% 0%, color-mix(in srgb, var(--tc) 10%, transparent), transparent 70%), var(--surface); box-shadow: var(--ring), var(--shadow-1); border-radius: var(--r-md); padding: 16px; color: var(--ink); text-decoration: none; min-width: 0; }
 .glyph { display: inline-grid; place-items: center; border-radius: 14px; flex: none; }
 .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 /* Family and tier on one quiet line under the name: the ladder carries the tier colour, the words stay grey. */
@@ -643,8 +651,8 @@ details[open] > summary .chev { transform: rotate(90deg); }
 /* Peptide profile: a header band washed with the evidence tier's tint */
 .band { --tc: var(--t1); --tb: var(--t1-bg); padding: 20px; border-radius: var(--r-xl); box-shadow: var(--shadow-1);
   background: radial-gradient(120% 100% at 100% 0%, color-mix(in srgb, var(--tc) 16%, transparent), transparent 60%), linear-gradient(180deg, var(--tb), color-mix(in srgb, var(--tb) 45%, var(--surface))); }
-.band[data-t="2"] { --tc: var(--t2); --tb: var(--t2-bg); } .band[data-t="3"] { --tc: var(--t3); --tb: var(--t3-bg); }
-.band[data-t="4"] { --tc: var(--t4); --tb: var(--t4-bg); } .band[data-t="5"] { --tc: var(--t5); --tb: var(--t5-bg); }
+:is(.band, .card)[data-t="2"] { --tc: var(--t2); --tb: var(--t2-bg); } :is(.band, .card)[data-t="3"] { --tc: var(--t3); --tb: var(--t3-bg); }
+:is(.band, .card)[data-t="4"] { --tc: var(--t4); --tb: var(--t4-bg); } :is(.band, .card)[data-t="5"] { --tc: var(--t5); --tb: var(--t5-bg); }
 .band { position: relative; overflow: hidden; isolation: isolate; }
 .band-art { position: absolute; z-index: -1; top: -6px; right: -18px; pointer-events: none; }
 @media (max-width: 480px) { .band-art { width: 180px; height: 120px; right: -28px; } }
@@ -785,7 +793,10 @@ tr:last-child td { border-bottom: 0; }
 .bf-d { font-size: var(--fs-2xs); font-weight: 600; line-height: 1.2; color: var(--ink-3); padding-left: 4px; text-align: left; font-variant-numeric: tabular-nums; }
 /* Weight days are buttons that show the value and pick the day; the editor under the grid takes the typing at full size. */
 .bf-cell.wt { appearance: none; border: 0; font: inherit; color: var(--ink); cursor: pointer; justify-items: stretch; }
-.bf-v { align-self: center; text-align: center; font-size: var(--fs-sm); font-size: min(var(--fs-md), 32cqi); font-weight: 600; letter-spacing: -.03em; font-variant-numeric: tabular-nums; overflow: hidden; }
+.bf-v { align-self: center; text-align: center; font-size: var(--fs-sm); font-size: clamp(var(--fs-xs), 32cqi, var(--fs-md)); font-weight: 600; letter-spacing: -.03em; font-variant-numeric: tabular-nums; overflow: hidden; }
+/* Narrow phones: the grid reaches into the tile's side padding and its gaps tighten, so each day stays wide enough for a
+   weight like 182.4 at the --fs-xs floor instead of the text shrinking with the cell. */
+@media (max-width: 419px) { .tile.bf .bf-grid { margin-inline: -8px; gap: 2px; } .bf-cell { padding-inline: 1px; } }
 .bf-cell.saved .bf-v { color: var(--ink-3); font-weight: 500; }
 .bf-cell.sel { outline: 2px solid var(--accent); outline-offset: 1px; }
 .bf-edit input[type="text"] { font-size: var(--fs-md); font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -829,11 +840,14 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 .tabbar { position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: min(440px, calc(100% - 32px)); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; padding: 6px; border-radius: var(--r-xl); background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); box-shadow: var(--shadow-3), inset 0 0 0 1px var(--glass-edge); view-transition-name: tabbar; isolation: isolate; overflow: hidden; }
 /* Opaque fallback for both glass bars; it comes after both rules so it wins on equal specificity. */
 @supports not (backdrop-filter: blur(1px)) { .topbar, .tabbar { background: var(--bg); } }
+/* People who ask the OS for less transparency get the same opaque bars, with no blur behind them. */
+@media (prefers-reduced-transparency: reduce) { .topbar, .tabbar { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; } }
 /* One pill behind the current tab: one fifth of the track. It slides from tab to tab in one piece; the track only cuts a
    round hole a little wider than the log button, so crossing sides the pill passes around the button (a thin gap rings
    it) instead of fading out and back, and never paints or rests behind it. */
 .tab-track { position: absolute; z-index: -1; inset: 6px; pointer-events: none;
-  -webkit-mask: radial-gradient(circle at 50% 50%, transparent 31px, black 32px); mask: radial-gradient(circle at 50% 50%, transparent 31px, black 32px); }
+  --hole: min(31px, (100vw - 44px) / 10 - 1px);
+  -webkit-mask: radial-gradient(circle at 50% 50%, transparent var(--hole), black calc(var(--hole) + 1px)); mask: radial-gradient(circle at 50% 50%, transparent var(--hole), black calc(var(--hole) + 1px)); }
 .tab-ind { position: absolute; top: 0; bottom: 0; left: 0; width: 20%; border-radius: 22px; background: var(--tab-pill); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); }
 .tabbar a { color: var(--ink-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; font-size: var(--fs-xs); font-weight: 500; text-decoration: none; border-radius: 22px; }
 @media (hover: hover) { .tabbar a:hover { color: var(--ink); } }
@@ -938,7 +952,8 @@ footer.foot p { max-width: 90ch; }
   details > summary .chev, .btn > .chev { transition: transform var(--dur-med) var(--ease-out); }
 
   /* Tactile feedback: quick press, gentle lift */
-  .btn, .fchip, .icon-btn, .tabbar .log, .tabbar a, .hour, .scale button, .checks label, .pattern .c, button.bf-cell, button.sync, .find-row { transition: transform var(--dur-fast) var(--ease-out), filter var(--dur-fast) var(--ease-out); }
+  .btn, .fchip, .icon-btn, .tabbar .log, .tabbar a, .hour, .scale button, .checks label, .pattern .c, button.bf-cell, button.sync, .find-row { transition: transform var(--dur-fast) var(--ease-out), filter var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
+  .tabbar .log-dot { transition: background-color var(--dur-fast) var(--ease-out); }
   .btn:active, .fchip:active, .icon-btn:active, .tabbar .log:active { transform: scale(.97); }
   .tabbar a:active, .seg button:active, .scale button:active, .checks:not(.block) label:active { transform: scale(.97); }
   .checks.block label:active, .find-row:active { transform: scale(.99); }
@@ -971,6 +986,8 @@ footer.foot p { max-width: 90ch; }
      Nothing runs on mount, so a control opens already filled in. */
   .seg button { transition: transform var(--dur-fast) var(--ease-out), color 0s var(--ease-out); }
   .seg button[aria-pressed="true"] { transition: transform var(--dur-fast) var(--ease-out), color 0s var(--ease-out) calc(var(--dur-med) / 3); }
+  /* Tab labels do the same, so the new tab's label darkens as its pill arrives, not before. */
+  .tabbar a[aria-current] { transition: transform var(--dur-fast) var(--ease-out), color 0s var(--ease-out) calc(var(--dur-med) / 3); }
   .tab-ind { animation: fade-in var(--dur-med) var(--ease-out) backwards; }
 
   /* Sheets: scrim fades; phones slide up from the bottom, wider screens fade and scale from .96. Exit reverses. */

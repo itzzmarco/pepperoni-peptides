@@ -104,7 +104,21 @@ export function IlloShelf({ size = 120 }: Props) {
   );
 }
 
-/** Learn, no matches: a magnifier whose lens shows nothing under it. */
+/** One small capped vial in the brand mark's material (pink or tinted cap, light glass, a coloured dose), for scenes
+ *  that set the app's own object beside another. `x`, `y` is the top left of the cap; it is 26 wide and 57 tall. */
+const MiniVial = ({ u, x, y, cap, dose }: { u: string; x: number; y: number; cap: string; dose: string }) => (
+  <g transform={`translate(${x} ${y}) scale(1.3)`}>
+    <rect x="1" y="0" width="18" height="9" rx="3" fill={cap} />
+    <rect x="4" y="9" width="12" height="4" fill="var(--ink-4)" />
+    <path d="M0 19q0-6 6-6h8q6 0 6 6v19q0 6-6 6H6q-6 0-6-6z" fill="var(--surface)" stroke="var(--illo-line)" strokeWidth="1.5" />
+    <path d="M1.5 28h17v10q0 4.5-4.5 4.5H6q-4.5 0-4.5-4.5z" fill={dose} />
+    <path d="M0 19q0-6 6-6h8q6 0 6 6v19q0 6-6 6H6q-6 0-6-6z" fill={`url(#${u}illo-lo)`} />
+    <path d="M4 19v18" stroke="var(--surface)" strokeWidth="2.5" strokeLinecap="round" opacity=".85" />
+  </g>
+);
+
+/** Learn, no matches: one of the library's own cards (name, family glyph, an empty evidence ladder) with a magnifier
+ *  over it whose lens finds nothing, so the scene reads as "no card here" rather than a generic search icon. */
 export function IlloSearch({ size = 120 }: Props) {
   const u = useId();
   return (
@@ -113,17 +127,25 @@ export function IlloSearch({ size = 120 }: Props) {
         <radialGradient id={`${u}se-lens`} cx=".35" cy=".3" r=".75"><stop offset="0" stopColor="var(--surface)" /><stop offset=".7" stopColor="var(--sky)" stopOpacity=".7" /><stop offset="1" stopColor="var(--sky-dot)" stopOpacity=".6" /></radialGradient>
         <Fade id={`${u}se-grip`} a="var(--peach-bar)" b="var(--peach-ink)" />
       </defs>
-      <ellipse cx="50" cy="88" rx="30" ry="4" fill="var(--illo-shade)" />
-      <path d="M60 60l20 20" stroke={`url(#${u}se-grip)`} strokeWidth="12" strokeLinecap="round" />
-      <path d="M54 54l8 8" stroke="var(--ink-3)" strokeWidth="8" strokeLinecap="round" />
-      <circle cx="40" cy="40" r="25" fill={`url(#${u}se-lens)`} stroke="var(--ink-2)" strokeWidth="6" />
-      <circle cx="40" cy="40" r="22" fill={`url(#${u}illo-lo)`} />
-      <path d="M24 34q4-12 16-15" stroke="var(--surface)" strokeWidth="5" strokeLinecap="round" fill="none" />
+      <ellipse cx="46" cy="88" rx="34" ry="4" fill="var(--illo-shade)" />
+      <rect x="8" y="14" width="62" height="58" rx="12" fill="var(--surface)" stroke="var(--illo-line)" strokeWidth="1.5" />
+      <rect x="8" y="14" width="62" height="58" rx="12" fill={`url(#${u}illo-hi)`} />
+      <rect x="16" y="23" width="28" height="6" rx="3" fill="var(--ink-3)" />
+      <rect x="16" y="33" width="18" height="4" rx="2" fill="var(--surface-3)" />
+      <rect x="50" y="21" width="13" height="13" rx="4" fill="var(--lilac)" />
+      <g fill="var(--surface-3)">{[0, 1, 2, 3, 4].map(i => <rect key={i} x={16 + i * 7} y="43" width="5.5" height="5.5" rx="1.8" />)}</g>
+      <path d="M16 56h34M16 63h24" stroke="var(--surface-3)" strokeWidth="3" strokeLinecap="round" />
+      <path d="M72 72l12 12" stroke={`url(#${u}se-grip)`} strokeWidth="10" strokeLinecap="round" />
+      <path d="M67 67l6 6" stroke="var(--ink-3)" strokeWidth="7" strokeLinecap="round" />
+      <circle cx="58" cy="58" r="17" fill={`url(#${u}se-lens)`} stroke="var(--ink-2)" strokeWidth="5" />
+      <circle cx="58" cy="58" r="14.5" fill={`url(#${u}illo-lo)`} />
+      <path d="M47 53q3-8 11-10" stroke="var(--surface)" strokeWidth="4" strokeLinecap="round" fill="none" />
     </Spot>
   );
 }
 
-/** Trends with an empty log: one chart card with a short rising line, its latest point marked. */
+/** Trends with an empty log: the Trends card itself, a rising check-in line over a week of dose days, two of them
+ *  logged in the brand pink, the latest point marked. */
 export function IlloTrends({ size = 120 }: Props) {
   const u = useId();
   return (
@@ -136,29 +158,27 @@ export function IlloTrends({ size = 120 }: Props) {
       <rect x="12" y="12" width="72" height="70" rx="16" fill={`url(#${u}tr-board)`} stroke="var(--illo-line)" strokeWidth="1.5" />
       <rect x="12" y="12" width="72" height="70" rx="16" fill={`url(#${u}illo-hi)`} />
       <rect x="12" y="12" width="72" height="70" rx="16" fill={`url(#${u}illo-lo)`} />
-      <path d="M24 70h48" stroke="var(--illo-line)" strokeWidth="1.5" strokeLinecap="round" opacity=".6" />
-      <path d="M26 60l14-10 12 6 18-22V70H26z" fill={`url(#${u}tr-area)`} />
-      <path d="M26 60l14-10 12 6 18-22" fill="none" stroke="var(--lilac-line)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="70" cy="34" r="6" fill="var(--lilac-line)" stroke="var(--surface)" strokeWidth="3" />
+      <path d="M24 52l12-8 12 4 18-18V56H24z" fill={`url(#${u}tr-area)`} />
+      <path d="M24 52l12-8 12 4 18-18" fill="none" stroke="var(--lilac-line)" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="66" cy="30" r="5.5" fill="var(--lilac-line)" stroke="var(--surface)" strokeWidth="3" />
+      {/* A week of dose days along the foot, like Today's adherence dots: logged days in pink, the rest still open. */}
+      {[0, 1, 2, 3, 4, 5, 6].map(i => <circle key={i} cx={24 + i * 8} cy="68" r="3.2" fill={i === 1 || i === 4 ? 'var(--brand)' : 'var(--illo-line)'} opacity={i === 1 || i === 4 ? 1 : 0.3} />)}
     </Spot>
   );
 }
 
-/** Partner, nobody linked yet: one chain link, a peach half and a sky half hooked together. */
+/** Partner, nobody linked yet: two of the app's vials, a peach cap and a sky cap, with one shared arc between their
+ *  caps, so linking reads as two logs joined rather than a stock chain icon. */
 export function IlloPartner({ size = 120 }: Props) {
   const u = useId();
   return (
     <Spot u={u} size={size}>
-      <ellipse cx="48" cy="88" rx="30" ry="4" fill="var(--illo-shade)" />
-      <g transform="rotate(-35 48 48)" fill="none" strokeWidth="9">
-        <rect x="12" y="36" width="42" height="24" rx="12" stroke="var(--peach-ink)" />
-        <rect x="42" y="36" width="42" height="24" rx="12" stroke="var(--sky-ink)" />
-        {/* The peach link passes back over the sky one at the bottom, so the two read as hooked together. */}
-        <path d="M54 48a12 12 0 0 1-12 12" stroke="var(--peach-ink)" />
-        {/* The same bottom shade as the other drawings, laid along each link. */}
-        <g stroke={`url(#${u}illo-lo)`}><rect x="12" y="36" width="42" height="24" rx="12" /><rect x="42" y="36" width="42" height="24" rx="12" /></g>
-        <g stroke="var(--surface)" strokeWidth="1.6" strokeLinecap="round" opacity=".5"><path d="M24 38h16" /><path d="M58 38h18" /></g>
-      </g>
+      <ellipse cx="48" cy="88" rx="32" ry="4" fill="var(--illo-shade)" />
+      <path d="M27 26q21-22 42 0" fill="none" stroke="var(--illo-line)" strokeWidth="2" strokeDasharray="1 5" strokeLinecap="round" />
+      <circle cx="48" cy="13" r="7" fill="var(--surface)" stroke="var(--brand)" strokeWidth="2.5" />
+      <path d="M44.5 13h7M48 9.5v7" stroke="var(--brand)" strokeWidth="2.5" strokeLinecap="round" />
+      <MiniVial u={u} x={14} y={30} cap="var(--peach-ink)" dose="var(--peach-bar)" />
+      <MiniVial u={u} x={56} y={30} cap="var(--sky-ink)" dose="var(--sky-dot)" />
     </Spot>
   );
 }

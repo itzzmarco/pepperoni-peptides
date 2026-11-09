@@ -207,6 +207,9 @@ export function TodayView(actions: Actions) {
   else { line1 = "You're all set today."; line2 = next?.st.due ? `Next: ${regName(next.r)}, ${fmtShort(next.st.due)}.` : 'Nothing scheduled.'; }
 
   // A linked partner's tile shows whether or not this user has logged anything yet: it is the only way to their progress.
+  // On the four-column board the two-wide partner and shot tiles fill half rows; when an even number of them leaves
+  // Check-in and the guide a row of their own (nothing coming up), each takes half of it instead of a quarter.
+  const pairWide = ((partner ? 1 : 0) + shots.length) % 2 ? '' : ' wide-lg';
   const partnerTile = partner && (
     <a href="#partner" className="tile span-2 partner-tile rise" style={rise(6)}>
       <span className="avatar" aria-hidden="true">{firstName(partner.name)[0]}</span>
@@ -319,7 +322,7 @@ export function TodayView(actions: Actions) {
             </button>
           ))}
 
-          <button type="button" className={`tile rise gap-2${comingUp?.st.due ? '' : ' wide-sm'}`} style={rise(7)} onClick={actions.checkin}>
+          <button type="button" className={`tile rise gap-2${comingUp?.st.due ? '' : ` wide-sm${pairWide}`}`} style={rise(7)} onClick={actions.checkin}>
             <span className="label">Check-in</span>
             {checkedIn ? (
               <>
@@ -342,7 +345,7 @@ export function TodayView(actions: Actions) {
             </a>
           )}
 
-          <a href={learnP ? `#${learnP.id}` : '#calculator'} className={`tile rise row-tile gap-4 ${comingUp?.st.due ? 'span-2' : 'wide-sm'}`} style={rise(9)}>
+          <a href={learnP ? `#${learnP.id}` : '#calculator'} className={`tile rise row-tile gap-4 ${comingUp?.st.due ? 'span-2' : `wide-sm${pairWide}`}`} style={rise(9)}>
             <span className="stack gap-2 flex-1 min-0 break-any">
               <span className="label">{learnP ? `Evidence · Tier ${learnP.tier} ${TIERS[learnP.tier].label}` : 'Guide'}</span>
               <span className="tile-title">{learnP ? `What the research says about ${learnP.name}` : 'Dose math, step by step'}</span>

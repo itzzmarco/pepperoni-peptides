@@ -250,6 +250,14 @@ main { padding-block: 8px 40px; }
 /* A headline's second line steps down to large body text, so its first line is clearly where the page starts. */
 :is(.head, .empty) h1 .soft { display: block; margin-top: var(--sp-2); color: var(--ink-2); font-size: var(--fs-lg); font-weight: 500; letter-spacing: 0; line-height: 1.3; }
 .head p { color: var(--ink-3); max-width: 62ch; }
+/* Learn's header on a phone: the cards are the screen's job, so the two-part headline runs on as one smaller sentence
+   and the intro is set at the small step, which brings the first card about a hundred pixels higher. */
+@media (max-width: 559px) {
+  .head.compact h1 { font-size: var(--fs-xl); }
+  .head.compact h1 br { display: none; }
+  .head.compact h1 .soft { display: inline; margin: 0; font-size: inherit; }
+  .head.compact p { font-size: var(--fs-sm); line-height: 1.45; }
+}
 .head .lede { color: var(--ink); }
 .head-actions { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 4px; }
 /* Hero header (Trends): a neutral card with a display headline; the range's dose bars along the bottom carry the colour. */
@@ -403,15 +411,17 @@ textarea { min-height: 80px; resize: vertical; }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
 .search { position: relative; }
 /* Learn's finder: the search field pins under the top bar (its measured --bar-h) and the evidence row pins under it,
-   each on a band of the bar's own frosted glass, so the bar and the finder read as one surface over the cards. While the
+   each on an opaque band of the page colour, so the cards never show through the finder. While the
    list scrolls down the evidence row tucks up behind the search band, leaving only search pinned; it comes back on any
    scroll up, at the top, or when a chip in it takes focus. Both let go after the last card, before the tier explainer. */
 .lib-find { display: grid; gap: 16px; }
 .lib-pin { display: contents; }
 .lib-pin > :is(.search, .filter-wrap) { position: sticky; z-index: 21; isolation: isolate; }
 .lib-pin > .search { top: calc(var(--bar-h, calc(env(safe-area-inset-top, 0px) + 68px)) + 6px); }
-.lib-pin > .filter-wrap { z-index: 20; top: calc(var(--bar-h, calc(env(safe-area-inset-top, 0px) + 68px)) + 64px); margin-top: -6px; }
-.lib-pin > :is(.search, .filter-wrap)::before { content: ""; position: absolute; z-index: -1; inset: -6px -16px -10px; background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); pointer-events: none; }
+/* The row sits under the search field's measured height (--find-h, written by LibraryView), so larger text never slides it under the band. */
+.lib-pin > .filter-wrap { z-index: 20; top: calc(var(--bar-h, calc(env(safe-area-inset-top, 0px) + 68px)) + 16px + var(--find-h, 48px)); margin-top: -6px; }
+/* The bands are the page colour with no blur of their own: only the top bar and tab bar pay for a live blur while the list scrolls. */
+.lib-pin > :is(.search, .filter-wrap)::before { content: ""; position: absolute; z-index: -1; inset: -6px -16px -10px; background: var(--bg); pointer-events: none; }
 .lib-pin > .filter-wrap::before { top: 0; }
 .lib-pin[data-tuck] > .filter-wrap:not(:focus-within) { transform: translateY(-100%); opacity: 0; pointer-events: none; }
 .search svg { position: absolute; left: 16px; top: 15px; color: var(--ink-3); pointer-events: none; }
@@ -465,8 +475,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .ladder[data-t="1"] { --lc: var(--t1); } .ladder[data-t="2"] { --lc: var(--t2); } .ladder[data-t="3"] { --lc: var(--t3); } .ladder[data-t="4"] { --lc: var(--t4); } .ladder[data-t="5"] { --lc: var(--t5); }
 
 /* Sequence strip */
-.seq { display: flex; flex-wrap: wrap; gap: 2px; font-family: var(--f-mono); font-size: var(--fs-2xs); line-height: 1; }
-.seq span { display: inline-grid; place-items: center; min-width: 17px; height: 19px; padding: 0 3px; border-radius: 4px; background: var(--surface-2); color: var(--ink-2); }
+.seq { display: flex; flex-wrap: wrap; gap: 2px; font-family: var(--f-mono); font-size: var(--fs-xs); line-height: 1; }
+.seq span { display: inline-grid; place-items: center; min-width: 19px; height: 22px; padding: 0 3px; border-radius: 4px; background: var(--surface-2); color: var(--ink-2); }
 .seq span.mod { background: var(--lilac); color: var(--lilac-ink); }
 .seq-text { font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--ink-3); overflow-wrap: anywhere; }
 
@@ -704,14 +714,16 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
   background: var(--surface); box-shadow: var(--ring), var(--shadow-1); border-radius: var(--r-md); padding: 16px; color: var(--ink); text-decoration: none; min-width: 0; }
 .glyph { display: inline-grid; place-items: center; border-radius: 14px; flex: none; }
 .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-/* Family and tier on one quiet line under the name: the family in grey words, the tier as the ladder alone. */
+/* Family and tier on one quiet line under the name: the family in grey words, then the ladder with its tier number and label. */
 .card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: var(--fs-xs); font-weight: 500; color: var(--ink-3); }
+.ladder-l { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.ladder-l > span { color: var(--ink-2); font-weight: 600; }
 .card h3 { font-size: var(--fs-lg); overflow-wrap: anywhere; }
 .card .aka { font-size: var(--fs-xs); color: var(--ink-3); margin-top: 2px; }
 .card .sum { font-size: var(--fs-sm); line-height: 1.4; color: var(--ink-3); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .card .row-wrap { gap: 6px; padding-right: 20px; }
-/* The same quiet chevron Today's opening tiles carry, at the end of the card's last line, so touch users can tell cards open. */
-.card::before { content: ""; position: absolute; right: 20px; bottom: 24px; width: 8px; height: 8px; border: solid var(--ink-3); border-width: 2px 2px 0 0; transform: rotate(45deg); pointer-events: none; }
+/* A quiet stroked chevron, drawn like the family glyph beside the name, at the end of the card's last line, so touch users can tell cards open. */
+.card-go { position: absolute; right: 14px; bottom: 20px; color: var(--ink-3); pointer-events: none; }
 :is(.card, .band) .chip { white-space: normal; }
 .count { font-size: var(--fs-sm); color: var(--ink-3); }
 .tiers { display: grid; }
@@ -750,9 +762,18 @@ details[open] > summary .chev { transform: rotate(90deg); }
 .sec.caution { background: var(--lemon); box-shadow: none; } .sec.caution > h2 { color: var(--lemon-ink); }
 /* Each guide section's heading leads with a small mark in a tinted disc of the heading's own colour. */
 .sec-h { display: flex; align-items: center; gap: 10px; }
+/* Safety topics are disclosures: the title row is a 44px target, set like a card heading, with a chevron that turns open. */
+summary.sec-h { min-height: 44px; font-size: var(--fs-md); font-weight: 600; line-height: 1.3; }
+summary.sec-h > .chev { flex: none; color: var(--ink-3); }
+/* A disclosure's body flows as one block after its summary, so its parts take the tile's gap as margins; shut, no gap is left under the title. */
+details.sec:not([open]) { gap: 0; }
+details.sec > summary ~ * + * { margin-top: 12px; }
 .sec-mark { flex: none; width: 32px; height: 32px; border-radius: 16px; display: grid; place-items: center; background: color-mix(in srgb, currentColor 12%, transparent); }
-.sources { font-size: var(--fs-sm); display: grid; gap: 6px; padding-left: 18px; margin: 0; }
-.sources a { overflow-wrap: anywhere; }
+/* One source per row, each link a 44px-tall target with a hairline between rows, so neighbouring links are hard to mistap. */
+.sources { font-size: var(--fs-sm); display: grid; padding-left: 18px; margin: 0; }
+.sources li + li { border-top: 1px solid var(--line); }
+.sources a { display: flex; align-items: center; min-height: 44px; padding-block: 6px; overflow-wrap: anywhere; }
+ul.sources { list-style: none; padding-left: 0; }
 .badge-icon { width: 56px; height: 56px; border-radius: 28px; display: grid; place-items: center; background: var(--mint); color: var(--mint-ink); }
 
 /* Dose math */
@@ -872,7 +893,7 @@ tr:last-child td { border-bottom: 0; }
 .bf-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
 .bf-wd { font-size: var(--fs-xs); font-weight: 600; text-align: center; color: var(--ink-3); padding-bottom: 2px; }
 .bf-cell { container-type: inline-size; display: grid; grid-template-rows: auto 1fr; min-height: 56px; min-width: 0; border-radius: 12px; background: var(--surface); padding: 3px 2px 2px; }
-.bf-d { font-size: var(--fs-2xs); font-weight: 600; line-height: 1.2; color: var(--ink-3); padding-left: 4px; text-align: left; font-variant-numeric: tabular-nums; }
+.bf-d { font-size: var(--fs-xs); font-weight: 600; line-height: 1.2; color: var(--ink-3); padding-left: 4px; text-align: left; font-variant-numeric: tabular-nums; }
 /* Weight days are buttons that show the value and pick the day; the editor under the grid takes the typing at full size. */
 .bf-cell.wt { appearance: none; border: 0; font: inherit; color: var(--ink); cursor: pointer; justify-items: stretch; }
 .bf-v { align-self: center; text-align: center; font-size: var(--fs-sm); font-size: clamp(var(--fs-xs), 32cqi, var(--fs-md)); font-weight: 600; letter-spacing: -.03em; font-variant-numeric: tabular-nums; overflow: hidden; }
@@ -951,7 +972,8 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 /* On the narrowest phones the bar spans all but 8px a side, so a five-column cell (about 59px) fits "Peptides" with room each side. */
 @media (max-width: 359px) { .tabbar { width: calc(100% - 16px); } }
 .app-end { height: calc(96px + env(safe-area-inset-bottom, 0px)); }
-.toast { position: fixed; left: 50%; width: max-content; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 12px 18px; border-radius: 999px; font-size: var(--fs-sm); z-index: 60; box-shadow: var(--shadow-3); max-width: calc(100% - 32px); }
+/* --r-md is half a one-line toast's height, so one line is a full pill and a message that wraps keeps rounded-box corners. */
+.toast { position: fixed; left: 50%; width: max-content; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 12px 18px; border-radius: var(--r-md); font-size: var(--fs-sm); z-index: 60; box-shadow: var(--shadow-3); max-width: calc(100% - 32px); }
 /* Mouse and keyboard widths: the same five destinations become a full-height rail along the left edge, from the
    top of the window down, with a hairline where the page starts; the page makes room for it, so nothing ever scrolls
    under the rail and it is opaque, with no blur to pay for. The tabs stack from the top

@@ -4,14 +4,13 @@ import { PEPTIDES } from '../data/peptides';
 import { RED_FLAGS } from '../data/options';
 import { LegalChip } from '../components/Chips';
 
+/** One source per row, each a full-height tap target, like the profile's source list, so neighbours are hard to mistap. */
 function Sources({ list }: { list: Source[] }) {
   return (
-    <p className="xsmall muted">
-      Sources:{' '}
-      {list.map((s, i) => (
-        <span key={s.u}>{i > 0 && ' · '}<a href={s.u} target="_blank" rel="noopener noreferrer">{s.t}</a></span>
-      ))}
-    </p>
+    <div className="stack gap-1">
+      <span className="xsmall muted">Sources</span>
+      <ul className="sources">{list.map(s => <li key={s.u}><a href={s.u} target="_blank" rel="noopener noreferrer">{s.t}</a></li>)}</ul>
+    </div>
   );
 }
 
@@ -55,19 +54,22 @@ export function SafetyView() {
         <p className="small">Bring the vial or packaging with you so the care team knows what you took.</p>
       </section>
 
+      {/* After the emergency card the topics fold to one row each, their mark and title, so a phone shows the whole list
+          on a screen or two and each opens where it is read. Warning-toned topics start open. */}
       <div className="sections">
         {SAFETY.cards.map((c, i) => (
-          <section key={c.title} className={`tile sec rise${c.tone === 'flag' ? ' flag' : c.tone === 'caution' ? ' caution' : ''}`} style={rise(3 + i)}>
-            <h4 className="sec-h">
+          <details key={c.title} className={`tile sec rise${c.tone === 'flag' ? ' flag' : c.tone === 'caution' ? ' caution' : ''}`} style={rise(3 + i)} open={c.tone === 'flag'}>
+            <summary className="sec-h">
               <span className="sec-mark" aria-hidden="true">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d={MARK[c.title] ?? INFO} /></svg>
               </span>
-              {c.title}
-            </h4>
+              <span className="flex-1">{c.title}</span>
+              <svg className="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+            </summary>
             {c.body && <p>{c.body}</p>}
             {c.items && <ul>{c.items.map(x => <li key={x}>{x}</li>)}</ul>}
             {c.sources && <Sources list={c.sources} />}
-          </section>
+          </details>
         ))}
       </div>
 

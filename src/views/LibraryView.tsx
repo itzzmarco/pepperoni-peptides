@@ -215,7 +215,11 @@ export function LibraryView() {
       setTuck(d > 0 && stuck);
     };
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    // The search field's real height (it grows with larger text) places the evidence row under it (--find-h, styles.css).
+    const s = pin.current?.querySelector<HTMLElement>('.search');
+    const ro = s && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => pin.current?.style.setProperty('--find-h', `${s.offsetHeight}px`)) : null;
+    if (s) ro?.observe(s);
+    return () => { window.removeEventListener('scroll', onScroll); ro?.disconnect(); };
   }, []);
   const fresh = useRef(true);
   useEffect(() => { fresh.current = false; }, []);
@@ -250,9 +254,11 @@ export function LibraryView() {
   };
   return (
     <section className="view" ref={sectionRef} onClickCapture={remember}>
-      <header className="head rise">
+      {/* compact: on a phone the headline runs as one smaller sentence and the intro steps down a size, so the
+          first card shows sooner under the finder (styles.css). */}
+      <header className="head compact rise">
         <span className="eyebrow">Learn</span>
-        <h1>What the evidence says.<br /><span className="soft">{PEPTIDES.length} peptides, graded.</span></h1>
+        <h1>What the evidence says.<br />{' '}<span className="soft">{PEPTIDES.length} peptides, graded.</span></h1>
         <p>Compounds that trend online, with what studies show, how they're regulated in the US, and the warning signs to know. Updated {AS_OF}.</p>
         {/* The two guides are one tap from the top, so the spot after the library goes to the tier explainer. */}
         <nav className="row-wrap" aria-label="Guides">
@@ -297,7 +303,7 @@ export function LibraryView() {
       <p className="sr-only" aria-live="polite">{count}</p>
       <div className="cards" ref={grid}>
         {list.length ? list.map((p, i) => (
-          // The name leads; the family and the tier ladder (which names its tier to screen readers) share one quiet line under it,
+          // The name leads; the family and the tier ladder with its tier number and label share one quiet line under it,
           // and legal status is the only chip.
           // The tapped card marks its glyph, which travels into the profile header as the page opens (styles.css).
           // On the page's first paint the first few cards rise in on the same capped stagger as the other tabs' blocks;
@@ -307,9 +313,10 @@ export function LibraryView() {
               <div><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 2).join(' · ')}</div> : null}</div>
               <FamilyGlyph family={p.family} />
             </div>
-            <div className="card-meta"><span>{FAMILIES[p.family]?.name}</span><Ladder t={p.tier} /></div>
+            <div className="card-meta"><span>{FAMILIES[p.family]?.name}</span><Ladder t={p.tier} labelled /></div>
             <p className="sum">{p.summary}</p>
             <div className="row-wrap"><LegalChip k={p.legal} /></div>
+            <svg className="card-go" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
           </a>
         )) : (
           <div className="empty" style={{ gridColumn: '1 / -1' }}>

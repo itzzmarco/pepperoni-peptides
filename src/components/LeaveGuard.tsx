@@ -1,3 +1,4 @@
+import { flushSync } from 'react-dom';
 import { useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { SheetClosing } from './Sheet';
 
@@ -25,10 +26,13 @@ export function useLeaveGuard(snapshot: string, onClose: () => void, from?: stri
   const keep = useRef<HTMLButtonElement>(null);
   // What "Discard and leave" does: close the sheet, or the in-sheet action (a link away, a swap to another sheet) that asked.
   const next = useRef(onClose);
+  // Where focus was when the question came up (the field being typed in), so Keep editing puts it back there.
+  const was = useRef<HTMLElement | null>(null);
   const ask = useCallback((go: () => void) => {
     if (!dirty.current) { go(); return; }
     if (leavingRef.current) { keep.current?.focus(); return; }
     next.current = go;
+    was.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setLeaving(true);
   }, []);
   const close = useCallback(() => ask(onClose), [ask, onClose]);
@@ -43,7 +47,15 @@ export function useLeaveGuard(snapshot: string, onClose: () => void, from?: stri
   }, [ask]);
   useEffect(() => { setLeaving(false); }, [snapshot]);
   useEffect(() => { if (leaving) keep.current?.focus(); }, [leaving]);
-  return { start, close, ask, leaving, stay: () => setLeaving(false), keep, leave: () => { released.current = true; next.current(); } };
+  // Keep editing: back to the interrupted field, or, if it is gone (a footer button that the question replaced, a scrim
+  // tap that left nothing focused), to the sheet itself, so the next Tab starts inside the form.
+  const stay = () => {
+    const to = was.current?.isConnected && was.current !== document.body ? was.current : keep.current?.closest<HTMLElement>('[role="dialog"]');
+    was.current = null;
+    flushSync(() => setLeaving(false));
+    (to?.isConnected ? to : null)?.focus({ preventScroll: true });
+  };
+  return { start, close, ask, leaving, stay, keep, leave: () => { released.current = true; next.current(); } };
 }
 
 /** The footer of a guarded sheet: its own buttons, or the leave question in their place. */

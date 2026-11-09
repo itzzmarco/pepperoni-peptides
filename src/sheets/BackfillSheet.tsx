@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { useLeaveGuard } from '../components/LeaveGuard';
 import { store, useLedger } from '../lib/store';
 import { dayKey, fmtDay, fmtNum } from '../lib/format';
 import { convertEntries, dayAt, dueDayKeys, monthGrid, parsePasted, planBackfill, readWeight, weightsByDay } from '../lib/backfill';
@@ -138,22 +139,12 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
     toast(`Filled in ${plural(values.length, 'day')}${bad.length ? `, skipped ${plural(bad.length, 'line')}` : ''}. Check them, then save.`);
   };
 
-  // Sheet re-focuses itself whenever onClose changes, so this must keep one identity while typing.
-  // With unsaved entries, the first close (Escape, scrim, close button, Cancel, a drag) arms a confirmation in the footer
-  // instead of leaving; further closes keep it up (focus goes back to Keep editing), so only Discard leaves. Any new edit disarms it.
-  const pendingRef = useRef(0);
-  pendingRef.current = pending;
-  const [leaving, setLeaving] = useState(false);
-  const leavingRef = useRef(false);
-  leavingRef.current = leaving;
-  const keep = useRef<HTMLButtonElement>(null);
-  const close = useCallback(() => {
-    if (!pendingRef.current) { onClose(); return; }
-    if (leavingRef.current) keep.current?.focus();
-    else setLeaving(true);
-  }, [onClose]);
-  useEffect(() => { setLeaving(false); }, [weights, ticks]);
-  useEffect(() => { if (leaving) keep.current?.focus(); }, [leaving]);
+  // A dismiss with unsaved entries (Escape, scrim, close button, Cancel, a drag, or browser Back) first asks in the footer,
+  // through the same LeaveGuard as the other forms; any new edit takes the question away. `close` keeps one identity,
+  // since Sheet re-focuses itself whenever onClose changes. The snapshot is empty while nothing is pending, so a form
+  // whose entries were all cleared again counts as unchanged.
+  const guard = useLeaveGuard(pending ? JSON.stringify([weights, ticks, unit]) : '', onClose, '');
+  const { close, leaving, keep } = guard;
 
   const save = () => {
     if (invalid.length) {
@@ -284,8 +275,8 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
         {leaving ? (
           <>
             <p className="small ask" aria-hidden="true"><b>Leave without saving?</b> {pending} {pending === 1 ? 'entry' : 'entries'} you filled in will be lost.</p>
-            <button ref={keep} type="button" className="btn ghost" onClick={() => setLeaving(false)}>Keep editing</button>
-            <button type="button" className="btn danger" onClick={onClose} style={{ flex: '1 1 160px' }}>Discard and leave</button>
+            <button ref={keep} type="button" className="btn ghost" onClick={guard.stay}>Keep editing</button>
+            <button type="button" className="btn danger" onClick={guard.leave} style={{ flex: '1 1 160px' }}>Discard and leave</button>
           </>
         ) : (
           <>

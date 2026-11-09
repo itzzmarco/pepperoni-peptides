@@ -224,8 +224,9 @@ export function App() {
     signIn: () => setSheet({ kind: 'account' }),
   };
   // The middle tab-bar button opens the dose sheet on whatever is overdue or due first, else the next dose coming up;
-  // the sheet's peptide chips switch to any other. Its word says what is meant: the peptide's name when exactly one
-  // is due now, else "Log". With nothing set up it adds a peptide instead, and its word says so.
+  // the sheet's peptide chips switch to any other. Its visible word is always the short "Log" (a fifth of the bar can't
+  // hold a peptide's name whole); its accessible name and the sheet's title say which peptide. With nothing set up it
+  // adds a peptide instead, and its word says so.
   const list = upcoming(regimens, doses);
   const dueNow = list.filter(x => x.st.s === 'due' || x.st.s === 'late');
   const nextDue = list[0]?.r;
@@ -234,7 +235,7 @@ export function App() {
     else actions.addRegimen();
   };
   const [logWord, logLabel] = !nextDue ? ['Add', 'Add a peptide']
-    : dueNow.length === 1 ? [regName(nextDue), `Log ${regName(nextDue)}, due now`]
+    : dueNow.length === 1 ? ['Log', `Log ${regName(nextDue)}, due now`]
     : dueNow.length > 1 ? ['Log', `Log a dose, ${dueNow.length} due now`]
     : ['Log', 'Log a dose, none due now'];
 
@@ -267,13 +268,24 @@ export function App() {
                 back to the top. The wordmark is hidden (not just faded) while either shows, so no tap lands on it. */}
             <div className="brand-wrap">
             <a className="brand" href="#today" aria-label="Peptide Ledger, today">
-              {/* The installed icon's vial, drawn the same way: a pink cap on a dark rounded tile. */}
+              {/* The same vial as Today's start card, in the same light: glass lit from the left with a sheen down that side,
+                  a liquid line and scale ticks, and a soft floor shadow, on the installed icon's dark tile. */}
               <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
+                <defs>
+                  <linearGradient id="brand-glass" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="var(--on-dark)" /><stop offset=".6" stopColor="var(--on-dark)" stopOpacity=".92" /><stop offset="1" stopColor="var(--on-dark-3)" /></linearGradient>
+                  <linearGradient id="brand-lo" x1="0" y1="0" x2="0" y2="1"><stop offset=".5" stopColor="var(--illo-shade-on-dark)" stopOpacity="0" /><stop offset="1" stopColor="var(--illo-shade-on-dark)" /></linearGradient>
+                </defs>
                 <rect width="32" height="32" rx="7" fill="var(--dark)" />
-                <rect x="10" y="4" width="12" height="5" rx="1.5" fill="var(--brand)" />
-                <rect x="11.5" y="9" width="9" height="2.5" fill="var(--on-dark-3)" />
-                <path d="M9 13.5 Q9 12 10.5 12 H21.5 Q23 12 23 13.5 V25 Q23 28 20 28 H12 Q9 28 9 25 Z" fill="var(--on-dark)" />
-                <path d="M10.3 21 H21.7 V25 Q21.7 26.7 20 26.7 H12 Q10.3 26.7 10.3 25 Z" fill="var(--on-dark-3)" />
+                <ellipse cx="16" cy="28.6" rx="7.5" ry="1.2" fill="var(--illo-shade-on-dark)" />
+                <rect x="10" y="3.5" width="12" height="5" rx="1.5" fill="var(--brand)" />
+                <rect x="10" y="3.5" width="12" height="2.2" rx="1.1" fill="var(--on-dark)" opacity=".18" />
+                <rect x="11.5" y="8.5" width="9" height="2.5" fill="var(--on-dark-3)" />
+                <path d="M9 13.5 Q9 11 11.5 11 H20.5 Q23 11 23 13.5 V25 Q23 28 20 28 H12 Q9 28 9 25 Z" fill="url(#brand-glass)" />
+                <path d="M9.8 20.5 H22.2 V25 Q22.2 27.2 20 27.2 H12 Q9.8 27.2 9.8 25 Z" fill="var(--on-dark-3)" />
+                <path d="M9.8 20.5 H22.2" stroke="var(--dose-cell)" strokeWidth=".8" />
+                <path d="M9 13.5 Q9 11 11.5 11 H20.5 Q23 11 23 13.5 V25 Q23 28 20 28 H12 Q9 28 9 25 Z" fill="url(#brand-lo)" />
+                <g stroke="var(--dark)" strokeWidth=".7" strokeLinecap="round" opacity=".35"><path d="M19 15h2.6M19.8 17.5h1.8M19 23h2.6" /></g>
+                <path d="M11 14v10" stroke="var(--on-dark)" strokeWidth="1.3" strokeLinecap="round" />
               </svg>
               <span className="wordmark">Peptide Ledger</span>
             </a>

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { leftToday, upcoming, type RegimenStatus } from '../lib/schedule';
@@ -115,7 +115,7 @@ function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now, site }: 
       <div className="next-hero">
         <div className="stack gap-2">
           <span className="next-name">{regName(r)}</span>
-          <span className="next-dose">{fmtNum(Number(r.dose), 3)} {r.unit}</span>
+          <span className="next-dose">{fmtNum(Number(r.dose), 3)}<small> {r.unit}</small></span>
           <span className="sub">
             {[usual && st.s !== 'ok' ? `Usually around ${fmtTime(usual)}` : '', math ? (isVolumeUnit(r.unit) ? `about ${drugAmount(math.doseMg, PEP[r.compoundId]?.defaultUnit)}` : `draw ${fmtNum(math.units, 1)} units`) : checks.length ? 'check the vial details' : '', site ? siteLabel(site.site, r.route) : r.route].filter(Boolean).join(' · ')}
           </span>
@@ -137,6 +137,14 @@ export function TodayView(actions: Actions) {
   const acct = useAccount();
   const signedIn = !!acct.user;
   const seenHere = acct.seenHere;
+  // Left open, the page keeps its date, Now marker and due states current: it re-renders each minute and on return to the tab.
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => tick(n => n + 1), 60_000);
+    const onShow = () => { if (document.visibilityState === 'visible') tick(n => n + 1); };
+    document.addEventListener('visibilitychange', onShow);
+    return () => { clearInterval(t); document.removeEventListener('visibilitychange', onShow); };
+  }, []);
   const now = new Date();
   const today = dayKey(now);
   const list = upcoming(regimens, doses, now);
@@ -268,7 +276,7 @@ export function TodayView(actions: Actions) {
         <div className="bento quad">
           <a href="#trends" className="tile mint row-2 rise" style={rise(3)}>
             <span className="label">Adherence</span>
-            <span className="big">{adh.pct == null ? '–' : `${Math.round(pct)}%`}</span>
+            <span className="stat">{adh.pct == null ? '–' : `${Math.round(pct)}%`}</span>
             <span className="sub tone-mint">{adh.expected ? `${adh.logged} of ${adh.expected} doses · 4 weeks` : 'Log a few doses to see this.'}</span>
             <span className="dots7" role="img" aria-label={`Last 7 days: dose logged on ${week.filter(w => w.on).length}`}>
               {week.map((w, i) => <i key={i} className={`pop${w.on ? ' on' : ''}${w.today && !w.on ? ' today' : ''}`} style={rise(i)} />)}

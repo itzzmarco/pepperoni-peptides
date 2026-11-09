@@ -239,14 +239,18 @@ export function LibraryView() {
         </nav>
       </header>
       {/* Finding a peptide is the main job here, so search, one filter row and the results sit together right under the
-          title, and the first cards show on a phone's first screen. The other filters fold away under More filters. */}
+          title, and the first cards show on a phone's first screen. The other filters fold away under More filters.
+          Search and the evidence row stay pinned under the top bar while the cards scroll, and let go after the last card. */}
+      <div className="lib-find">
+      <div className="lib-pin">
       <div className="search">
         <label className="sr-only" htmlFor="lib-q">Search peptides</label>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
         <input type="search" id="lib-q" value={f.q} onChange={e => setF({ ...f, q: e.target.value })} placeholder="Search name, nickname or goal" autoComplete="off" />
       </div>
+      <FilterRow label="Evidence">{chip('tier', 'all', 'All')}{TIER_LIST.map(t => chip('tier', `${t}` as const, `T${t} ${TIERS[t].label}`, `var(--t${t})`))}</FilterRow>
+      </div>
       <div className="filters">
-        <FilterRow label="Evidence">{chip('tier', 'all', 'All')}{TIER_LIST.map(t => chip('tier', `${t}` as const, `T${t} ${TIERS[t].label}`, `var(--t${t})`))}</FilterRow>
         <details className="more-filters" open={moreAtStart}>
           <summary>
             <span className="fchip">
@@ -266,7 +270,8 @@ export function LibraryView() {
       <p className="sr-only" aria-live="polite">{count}</p>
       <div className="cards" ref={grid}>
         {list.length ? list.map((p, i) => (
-          // The name leads; family and tier share one quiet line under it, and legal status is the only chip.
+          // The name leads; the family and the tier ladder (which names its tier to screen readers) share one quiet line under it,
+          // and legal status is the only chip.
           // The tapped card marks its glyph, which travels into the profile header as the page opens (styles.css).
           // On the page's first paint the first few cards rise in on the same capped stagger as the other tabs' blocks;
           // cards a filter brings in later are left to the filter's own transition.
@@ -275,7 +280,7 @@ export function LibraryView() {
               <div><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 2).join(' · ')}</div> : null}</div>
               <FamilyGlyph family={p.family} ground="surface" />
             </div>
-            <div className="card-meta"><span>{FAMILIES[p.family]?.name}</span><Ladder t={p.tier} /><span>T{p.tier} · {TIERS[p.tier].label}</span></div>
+            <div className="card-meta"><span>{FAMILIES[p.family]?.name}</span><Ladder t={p.tier} /></div>
             <p className="sum">{p.summary}</p>
             <div className="row-wrap"><LegalChip k={p.legal} /></div>
           </a>
@@ -289,6 +294,7 @@ export function LibraryView() {
             <button className="btn" onClick={() => setF({ q: '', fam: 'all', tier: 'all', legal: 'all' })}>Clear filters</button>
           </div>
         )}
+      </div>
       </div>
 
       <details className="tile mint" id="tiers">

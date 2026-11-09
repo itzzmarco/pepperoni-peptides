@@ -72,6 +72,43 @@ function weekdayStatus(r: Regimen, last: Date | undefined, now: Date): RegimenSt
   return { s: 'ok', text: daysBetween(today, next) === 1 ? 'Next: tomorrow' : `Next: ${fmtDay(next)}`, last, due: sameTime(next, last) };
 }
 
+/**
+ * How close, in days, two doses of a regimen can be before the second one is probably the same dose logged
+ * twice (or a real double): 3 days for weekly or longer schedules, half the gap for schedules every 2 to 7 days.
+ * Null for daily, twice-a-day and as-needed schedules, where doses close together are normal.
+ */
+export function minGapDays(r: Sched): number | null {
+  const iv = intervalDays(r);
+  if (!iv || iv < 2) return null;
+  return iv >= 7 ? 3 : iv / 2;
+}
+
+/** The dose of `r` closest to `at`, before or after it, when it's closer than `minGapDays(r)`; otherwise null. */
+export function nearbyDose(r: Pick<Regimen, 'id'> & Sched, doses: DoseEntry[], at: Date): DoseEntry | null {
+  const gap = minGapDays(r);
+  const t = at.getTime();
+  if (!gap || Number.isNaN(t)) return null;
+  let best: DoseEntry | null = null;
+  let bestMs = gap * DAY;
+  for (const d of doses) {
+    if (d.rid !== r.id) continue;
+    const ms = Math.abs(Date.parse(d.at) - t);
+    if (ms < bestMs) { best = d; bestMs = ms; }
+  }
+  return best;
+}
+
+/** "2 days", "5 hours" or "less than an hour": the time between two moments, in words. */
+export function spanText(ms: number): string {
+  const h = Math.abs(ms) / 36e5;
+  if (h < 1) return 'less than an hour';
+  if (h < 36) {
+    const n = Math.round(h);
+    return `${n} hour${n === 1 ? '' : 's'}`;
+  }
+  return `${Math.round(h / 24)} days`;
+}
+
 /** True when a set-weekday regimen is scheduled on this day. */
 export const scheduledOn = (r: Regimen, d: Date) => r.freq === 'days' && weekdaysOf(r).includes(d.getDay());
 

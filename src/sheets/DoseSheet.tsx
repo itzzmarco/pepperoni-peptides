@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import type { Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
-import { freqText } from '../lib/schedule';
+import { freqText, nearbyDose, spanText } from '../lib/schedule';
 import { drugAmount, isVolumeUnit } from '../lib/doseMath';
 import { checkDose } from '../lib/vial';
-import { DAY, fmtNum, fmtTime, newId, toLocalInput } from '../lib/format';
+import { DAY, fmtDay, fmtNum, fmtTime, newId, toLocalInput } from '../lib/format';
 import { BELLY, bellyHour, lastUsedBySite, nextBellyHour, nextSite, siteLabel, sitePlan } from '../lib/sites';
 import { INJECTABLE, ROUTES } from '../data/options';
 import { PEP } from '../data/peptides';
@@ -32,6 +32,8 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
   const [first] = useState(() => nextSite(initial, doses));
   const [d, setD] = useState(() => blank(initial, first?.site));
   const [auto, setAuto] = useState(!!first);
+  // Set once Save has asked "Is this a new shot?", so the next Save goes through.
+  const [asked, setAsked] = useState(false);
   const last = useMemo(() => lastUsedBySite(doses), [doses]);
   // This regimen's belly-clock history, newest first.
   const bellyDoses = useMemo(() => doses.filter(x => x.rid === r.id && bellyHour(x.site)).slice(0, 3), [doses, r.id]);
@@ -66,9 +68,15 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
   const siteFits = !d.site || !plan || plan.sites.includes(d.site) || (plan.belly && !!bellyHour(d.site));
   const { math, checks } = checkDose(r, d.amount, d.unit);
   const hour = bellyHour(d.site);
+  const word = injectable ? 'shot' : 'dose';
+  // Another dose of this peptide logged too close to this one's time for its schedule: a duplicate, or a real double.
+  const when = new Date(d.at || Date.now());
+  const near = nearbyDose(r, doses, when);
+  const nearAt = near ? new Date(near.at) : null;
 
   const switchTo = (x: Regimen) => {
     setR(x);
+    setAsked(false);
     setD(blank(x, suggest(x, x.route)));
   };
 
@@ -77,6 +85,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
     const at = new Date(d.at || Date.now());
     if (isNaN(at.getTime())) { toast('Enter a valid date and time.'); return; }
     if (!(amt > 0)) { toast('Enter the amount you took.'); return; }
+    if (near && !asked) { setAsked(true); return; }
     store.addDose({ id: newId(), rid: r.id, name: regName(r), at: at.toISOString(), amount: d.amount, unit: d.unit, route: d.route, site: injectable && siteFits ? d.site : '', notes: d.notes.trim() });
     toast(`Logged ${regName(r)} at ${fmtTime(at)}.`);
     onClose();
@@ -193,8 +202,18 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
 
         <label className="field tile" style={{ gap: 8 }}><span>Notes <small>(optional)</small></span><input type="text" id="d-notes" maxLength={200} placeholder="e.g. new vial, mild sting" value={d.notes} onChange={set('notes')} /></label>
         <div className="sheet-foot">
-          <button type="button" className="btn ghost" onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn">Save dose</button>
+          {asked && nearAt && (
+            <div className="alert warn" role="alert" style={{ flex: '1 1 100%' }}>
+              <b>Is this a new {word}?</b>
+              <span>
+                You already logged {regName(r)} on {fmtDay(nearAt)} at {fmtTime(nearAt)},
+                {' '}{spanText(nearAt.getTime() - when.getTime())} {nearAt < when ? 'before' : 'after'} this one.
+              </span>
+              <span>If it's the same {word} logged twice, don't save it. If you did take another, let your prescriber know.</span>
+            </div>
+          )}
+          <button type="button" className="btn ghost" onClick={onClose}>{asked && near ? "Don't save" : 'Cancel'}</button>
+          <button type="submit" className="btn">{asked && near ? `Yes, it's a new ${word}` : 'Save dose'}</button>
         </div>
       </form>
     </Sheet>

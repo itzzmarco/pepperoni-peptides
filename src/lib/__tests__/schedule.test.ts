@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DoseEntry, Regimen } from '../types';
-import { adherenceDays, freqText, intervalDays, regimenStatus } from '../schedule';
+import { adherenceDays, freqText, intervalDays, minGapDays, nearbyDose, regimenStatus, spanText } from '../schedule';
 
 const reg = (over: Partial<Regimen> = {}): Regimen => ({
   id: 'r1', compoundId: 'tirzepatide', name: '', dose: '2.5', unit: 'mg', freq: 'weekly', everyDays: '',
@@ -103,5 +103,43 @@ describe('set weekdays', () => {
 
   it('asks for days when none are set', () => {
     expect(regimenStatus(reg({ freq: 'days', weekdays: [] }), [], NOW)).toMatchObject({ s: 'prn', text: 'Choose the days' });
+  });
+});
+
+describe('nearbyDose', () => {
+  it('sets the gap by schedule: 3 days for weekly or longer, half the gap below that, none for daily or as needed', () => {
+    expect(minGapDays(reg())).toBe(3);
+    expect(minGapDays(reg({ freq: 'biweekly' }))).toBe(3);
+    expect(minGapDays(reg({ freq: 'days', weekdays: [5] }))).toBe(3);
+    expect(minGapDays(reg({ freq: '2w' }))).toBe(1.75);
+    expect(minGapDays(reg({ freq: 'eod' }))).toBe(1);
+    expect(minGapDays(reg({ freq: 'daily' }))).toBeNull();
+    expect(minGapDays(reg({ freq: 'bid' }))).toBeNull();
+    expect(minGapDays(reg({ freq: 'prn' }))).toBeNull();
+    expect(minGapDays(reg({ freq: 'days', weekdays: [1, 2, 3, 4, 5] }))).toBeNull();
+  });
+
+  it('finds a weekly shot logged 2 days before or after, and lets 3 days or more through', () => {
+    const fri = dose(at(2026, 10, 30));
+    expect(nearbyDose(reg(), [fri], at(2026, 11, 1))).toBe(fri);
+    expect(nearbyDose(reg(), [dose(at(2026, 11, 1))], at(2026, 10, 30))?.at).toBe(at(2026, 11, 1).toISOString());
+    expect(nearbyDose(reg(), [fri], at(2026, 11, 2))).toBeNull();
+    expect(nearbyDose(reg(), [fri], at(2026, 11, 6))).toBeNull();
+  });
+
+  it('picks the closest dose, and ignores other peptides and bad dates', () => {
+    const a = dose(at(2026, 10, 30)), b = dose(at(2026, 10, 31));
+    expect(nearbyDose(reg(), [a, b], at(2026, 11, 1))).toBe(b);
+    expect(nearbyDose(reg(), [dose(at(2026, 10, 31), 'r2')], at(2026, 11, 1))).toBeNull();
+    expect(nearbyDose(reg(), [{ ...a, at: 'not a date' }], at(2026, 11, 1))).toBeNull();
+    expect(nearbyDose(reg(), [a], new Date('nope'))).toBeNull();
+    expect(nearbyDose(reg({ freq: 'daily' }), [a], at(2026, 10, 30, 21))).toBeNull();
+  });
+
+  it('says how far apart two doses are', () => {
+    expect(spanText(20 * 6e4)).toBe('less than an hour');
+    expect(spanText(-36e5)).toBe('1 hour');
+    expect(spanText(30 * 36e5)).toBe('30 hours');
+    expect(spanText(2 * 864e5)).toBe('2 days');
   });
 });

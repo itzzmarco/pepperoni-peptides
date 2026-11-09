@@ -236,7 +236,7 @@ export function TodayView(actions: Actions) {
         <section className="tile dark empty rise" style={rise(2)}>
           <IlloStart />
           <span className="eyebrow">Signed out</span>
-          <h3>Sign in and your peptides, shots and weights come back.</h3>
+          <h2>Sign in and your peptides, shots and weights come back.</h2>
           <span className="sub">Your log is saved in your account. Anything added while signed out stays on this device only, so sign in before you log.</span>
           <div className="row-wrap">
             <button className="btn" onClick={actions.signIn}>Sign in</button>
@@ -247,7 +247,7 @@ export function TodayView(actions: Actions) {
         <section className="tile dark empty rise" style={rise(2)}>
           <IlloStart />
           <span className="eyebrow">Start your log</span>
-          <h3>Track a peptide or medication your clinician prescribed.</h3>
+          <h2>Track a peptide or medication your clinician prescribed.</h2>
           <span className="sub">You'll see what's due, how consistent you've been, and where to inject next. {signedIn ? 'It syncs to your account, and only you can see it.' : 'Nothing leaves this device.'}</span>
           <div className="row-wrap">
             <button className="btn" onClick={actions.addRegimen}>Add a peptide</button>
@@ -286,7 +286,7 @@ export function TodayView(actions: Actions) {
             ) : <span className="sub">Add your weight in a daily check-in.</span>}
           </a>
 
-          <a href="#trends" className="tile rise gap-2" style={rise(5)}>
+          <a href="#trends" className="tile rise gap-2 wide-lg" style={rise(5)}>
             <span className="label">Side effects</span>
             {effects.length ? (
               <>

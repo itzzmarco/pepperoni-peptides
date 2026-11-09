@@ -12,7 +12,7 @@ function ListSec({ title, items, tone = '' }: { title: string; items?: string[];
   if (!items?.length) return null;
   return (
     <section className={`tile sec ${tone}`}>
-      <h4>{title}</h4>
+      <h2>{title}</h2>
       <ul>{items.map((x, i) => <li key={i}>{x}</li>)}</ul>
     </section>
   );
@@ -130,7 +130,7 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
         <ListSec title="Interactions" items={p.interactions} />
         {p.studied && (
           <section className="tile lilac sec">
-            <h4 className="label">Doses used in approved labeling or trials</h4>
+            <h2 className="label">Doses used in approved labeling or trials</h2>
             <p>{p.studied}</p>
             <p className="xsmall muted">Shown for context, not as a recommendation. Only a prescriber can set your dose.</p>
           </section>
@@ -138,7 +138,7 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
         <ListSec title="What's still unknown" items={p.unknowns} />
         {p.sources?.length ? (
           <section className="tile sec">
-            <h4>Sources</h4>
+            <h2>Sources</h2>
             <ol className="sources">{p.sources.map(s => <li key={s.u}><a href={s.u} target="_blank" rel="noopener noreferrer">{s.t}</a></li>)}</ol>
           </section>
         ) : null}

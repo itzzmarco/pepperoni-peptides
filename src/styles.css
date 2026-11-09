@@ -155,6 +155,8 @@ h1 { font-size: var(--fs-2xl); letter-spacing: -.01em; line-height: 1.1; }
 h2 { font-size: var(--fs-xl); letter-spacing: -.01em; }
 h3 { font-size: var(--fs-lg); }
 h4 { font-size: var(--fs-md); }
+/* Profile sections are top-level parts of the page, so they are h2 like the eyebrows beside them, at body-plus size. */
+.sec > h2:not(.label) { font-size: var(--fs-md); letter-spacing: 0; }
 p { margin: 0; }
 a { color: var(--accent); text-underline-offset: 2px; }
 a:hover { text-decoration-thickness: 2px; }
@@ -189,14 +191,15 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .topbar .bar-back { background: transparent; box-shadow: none; margin-left: -9px; justify-self: start; opacity: 0; visibility: hidden; pointer-events: none; }
 .topbar[data-sub] .bar-back { opacity: 1; visibility: visible; }
 .topbar[data-sub] .brand svg { opacity: 0; }
-/* Once the page title scrolls under the bar, the wordmark gives its place to the route or peptide name. The name is its
-   own button over the wordmark's spot that scrolls back to the top, with an up arrow; the vial beside it stays the home link. */
+/* Once the page title scrolls under the bar, the wordmark gives its place to the route or peptide name. The name, with
+   an up arrow, is one button over the whole cluster, vial included, that scrolls back to the top; the home link under it
+   goes inert meanwhile, so no tap in the cluster lands on a different action. */
 .brand-wrap { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; margin-right: auto; min-width: 0; }
 .brand-wrap > * { grid-area: 1 / 1; }
 .wordmark, .bar-title > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-/* Its up arrow says what a tap does (back to the top), unlike the vial's link home beside it. */
+/* Its up arrow says what a tap does: back to the top. */
 .bar-title > svg { flex: none; color: var(--ink-3); }
-.bar-title { display: flex; align-items: center; gap: 4px; appearance: none; border: 0; background: none; padding: 0; font: inherit; text-align: left; cursor: pointer; align-self: stretch; margin-left: 34px; font-weight: 600; font-size: var(--fs-md); color: var(--ink); min-width: 0; opacity: 0; transform: translateY(6px); pointer-events: none; }
+.bar-title { display: flex; align-items: center; gap: 4px; appearance: none; border: 0; background: none; padding: 0; font: inherit; text-align: left; cursor: pointer; align-self: stretch; padding-left: 34px; font-weight: 600; font-size: var(--fs-md); color: var(--ink); min-width: 0; opacity: 0; transform: translateY(6px); pointer-events: none; }
 .topbar[data-titled] .wordmark { opacity: 0; transform: translateY(-6px); }
 .topbar[data-titled] .bar-title { opacity: 1; transform: none; pointer-events: auto; }
 /* The brand row keeps a 44px target in both states. */
@@ -529,6 +532,12 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .pattern .c.future { cursor: default; }
 /* The inspected day: a ring outside the cell, and its date and events read out under the grid. */
 .pattern .c[aria-pressed="true"] { outline: 2px solid var(--on-dark); outline-offset: 2px; }
+/* On phones the grid reaches into the card's side padding (6px from its edge, as the backfill month does), so a day
+   is about 47px wide at 390px and 37px at 320px instead of 42px and 32px. The ring tucks in to fit the narrower gap. */
+@media (max-width: 419px) {
+  .pattern .wk { margin-inline: -12px; gap: 3px; }
+  .pattern .c[aria-pressed="true"] { outline-offset: 1px; }
+}
 .pattern-day { font-size: var(--fs-sm); font-weight: 600; color: var(--on-dark); min-height: 1.5em; }
 .tile.dark .legend { color: var(--on-dark-2); }
 .pattern .legend { padding-top: 4px; }
@@ -624,10 +633,14 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .illo-ground > .illo { width: clamp(96px, 30%, 136px); }
 /* On a short screen, and in an empty state inside a list (Trends' History), it drops to 88px; the shapes are bold enough to read there. */
 @media (max-height: 700px) { .illo-ground > .illo { width: 88px; } }
+/* A whole-page empty (its own h1) and Today's first-run scene are the welcome, so their art is the main image of the screen. */
+.empty:has(> h1) .illo-ground > .illo { width: clamp(144px, 44%, 192px); }
+.illo-ground > .illo.scene { width: clamp(200px, 64%, 280px); }
+@media (max-height: 700px) { .empty:has(> h1) .illo-ground > .illo { width: 120px; } .illo-ground > .illo.scene { width: 176px; } }
 .empty.compact .illo-ground > .illo { width: 88px; }
 /* One empty-state layout everywhere, by job. An empty state that is the whole page (Peptides, Trends, Partner) opens on the
    page's eyebrow and h1 at display size, then the art, the copy and the main action. One that sits under the page's own
-   headline (Today's start card, Learn's No matches, History) leads with its art over an h3 at --fs-xl. */
+   headline (Today's start card, Learn's No matches, History) leads with its art over an h2 or h3 at --fs-xl. */
 .empty :is(h2, h3) { font-size: var(--fs-xl); }
 .empty > .eyebrow { margin-bottom: -6px; }
 .empty > p, .empty > .sub { max-width: 46ch; }
@@ -699,8 +712,8 @@ details[open] > summary .chev { transform: rotate(90deg); }
 .sec ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
 .sec li, .sec p { font-size: var(--fs-label); line-height: 1.45; }
 .sec p { max-width: 72ch; }
-.sec.flag { background: var(--danger-bg); box-shadow: none; } .sec.flag h4 { color: var(--danger); }
-.sec.caution { background: var(--lemon); box-shadow: none; } .sec.caution h4 { color: var(--lemon-ink); }
+.sec.flag { background: var(--danger-bg); box-shadow: none; } .sec.flag > h2 { color: var(--danger); }
+.sec.caution { background: var(--lemon); box-shadow: none; } .sec.caution > h2 { color: var(--lemon-ink); }
 /* Each guide section's heading leads with a small mark in a tinted disc of the heading's own colour. */
 .sec-h { display: flex; align-items: center; gap: 10px; }
 .sec-mark { flex: none; width: 32px; height: 32px; border-radius: 16px; display: grid; place-items: center; background: color-mix(in srgb, currentColor 12%, transparent); }
@@ -883,9 +896,9 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 @supports not (backdrop-filter: blur(1px)) { .topbar, .tabbar { background: var(--bg); } }
 /* People who ask the OS for less transparency get the same opaque bars, with no blur behind them. */
 @media (prefers-reduced-transparency: reduce) { .topbar, .tabbar { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; } }
-/* One pill behind the current tab: one fifth of the track. It slides between the tabs on one side of the log button;
-   crossing sides it fades in afresh on the far side (TabBar keys it by side), so it never passes through or rests under the button. */
-.tab-track { position: absolute; z-index: -1; inset: 6px; pointer-events: none; }
+/* One pill behind the current tab: one fifth of the track. It slides to every tab; the track is masked over the log
+   button's column (the middle fifth), so crossing sides it passes out of sight there and never shows behind the button. */
+.tab-track { position: absolute; z-index: -1; inset: 6px; pointer-events: none; -webkit-mask-image: linear-gradient(to right, black 40%, transparent 40% 60%, black 60%); mask-image: linear-gradient(to right, black 40%, transparent 40% 60%, black 60%); }
 .tab-ind { position: absolute; top: 0; bottom: 0; left: 0; width: 20%; border-radius: 22px; background: var(--btn); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); }
 /* The log button is in the markup twice, once where each layout shows it: the middle of the phone bar, the top of the rail. */
 .tabbar .log.log-rail { display: none; }
@@ -902,7 +915,7 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 .toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 12px 18px; border-radius: 999px; font-size: var(--fs-sm); z-index: 60; box-shadow: var(--shadow-3); max-width: calc(100% - 32px); }
 /* Mouse and keyboard widths: the same five destinations become a full-height glass rail along the left edge, from the
    top of the window down, with a hairline where the page starts; the page makes room for it. The tabs stack from the top
-   and the pill slides down them instead of along, around the log button the same way (the track spans just the five). */
+   and the pill slides down them instead of along, with no mask, since the log button sits above the track. */
 @media (min-width: 900px) {
   body { padding-left: 100px; }
   .tabbar { left: 0; top: 0; bottom: 0; transform: none; width: calc(88px + env(safe-area-inset-left, 0px)); padding: 12px 6px 12px calc(6px + env(safe-area-inset-left, 0px)); border-radius: 0; align-content: start; box-shadow: inset -1px 0 0 var(--line); grid-template-columns: minmax(0, 1fr); grid-template-rows: 88px; grid-auto-rows: 64px; }
@@ -911,7 +924,7 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
   .tabbar .log.log-bar { display: none; }
   .tabbar .log { align-self: start; min-height: 64px; position: relative; }
   .tabbar .log::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: -12px; height: 1px; background: var(--line); }
-  .tab-track { inset: 100px 6px auto calc(6px + env(safe-area-inset-left, 0px)); height: calc(4 * 64px); }
+  .tab-track { inset: 100px 6px auto calc(6px + env(safe-area-inset-left, 0px)); height: calc(4 * 64px); -webkit-mask-image: none; mask-image: none; }
   .tab-ind { right: 0; bottom: auto; width: auto; height: 25%; transform: translateY(calc(var(--r) * 100%)); }
   .app-end { height: 32px; }
   .toast { left: calc(50% + 50px); bottom: 32px; }
@@ -946,7 +959,11 @@ button.tile { appearance: none; border: 0; text-align: left; font: inherit; curs
 @media (min-width: 900px) {
   .wrap { max-width: 1040px; }
   .cols, .sections { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
-  .bento.quad { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-flow: dense; }
+  /* No dense packing, so tiles sit in DOM (and Tab) order. The first row is filled by Adherence, Weight and a two-wide
+     Side effects; after that every tile is one or two wide in an order that leaves no gap before the last row. */
+  .bento.quad { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .bento.quad > .row-2 { grid-row: auto; }
+  .bento.quad > .wide-lg { grid-column: span 2; }
 }
 
 footer.foot { padding-block: 8px 0; font-size: var(--fs-xs); color: var(--ink-3); }
@@ -1054,8 +1071,9 @@ footer.foot p { max-width: 90ch; }
   .seg button { transition: transform var(--dur-fast) var(--ease-out), color 0s var(--ease-out) calc(var(--dur-med) / 4); }
   .seg button[aria-pressed="true"] { transition: transform var(--dur-fast) var(--ease-out), color 0s var(--ease-out) calc(var(--dur-med) / 3); }
   /* Tab labels do the same, so the new tab's label darkens as its pill arrives, not before. */
+  /* The label losing the pill keeps its selected ink until the pill has slid off it, then changes in one step. */
+  .tabbar a { transition: transform var(--dur-fast) var(--ease-out), color 0s var(--ease-out) calc(var(--dur-med) / 4); }
   .tabbar a[aria-current] { transition: transform var(--dur-fast) var(--ease-out), color 0s var(--ease-out) calc(var(--dur-med) / 3); }
-  .tab-ind { animation: fade-in var(--dur-med) var(--ease-out) backwards; }
 
   /* Sheets: scrim fades; phones slide up from the bottom, wider screens fade and scale from .96. Exit reverses. */
   .scrim { animation: fade-in var(--dur-med) var(--ease-out) backwards; }

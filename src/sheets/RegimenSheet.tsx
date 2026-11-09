@@ -24,14 +24,14 @@ const OTHER = '__other';
 
 export const isRisky = (p?: Peptide) => !!p && (p.tier >= 3 || ['restricted', 'unapproved', 'investigational', 'pending', 'interim'].includes(p.legal));
 
-function Caution({ p }: { p?: Peptide }) {
+function Caution({ p, ask }: { p?: Peptide; ask: (go: () => void) => void }) {
   if (!p || !isRisky(p)) return null;
   return (
     <div className={`alert ${p.tier >= 4 ? 'danger' : 'warn'}`}>
       <b>{p.name}: Tier {p.tier} ({TIERS[p.tier].label}) · {LEGAL[p.legal]?.label}</b>
       <span>{TIERS[p.tier].long}. Logging it here doesn't make it safer. Share this log with a clinician who knows you're using it.</span>
       {p.avoid?.length ? <span><b>Avoid if:</b> {p.avoid.slice(0, 3).join('; ')}</span> : null}
-      <a href={`#${p.id}`}>Read the full {p.name} entry</a>
+      <a href={`#${p.id}`} onClick={e => { e.preventDefault(); ask(() => { location.hash = `#${p.id}`; }); }}>Read the full {p.name} entry</a>
     </div>
   );
 }
@@ -185,7 +185,7 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved, onLog, onSignIn
               {onLog && <div className="mt-2"><button type="button" className="btn sm" onClick={() => onLog(already)}>Log a {regName(already)} dose</button></div>}
             </div>
           )}
-          <Caution p={p} />
+          <Caution p={p} ask={guard.ask} />
         </section>
         <section className="tile lilac" aria-labelledby="r-dose-h">
           <h3 id="r-dose-h" className="eyebrow tone-lilac">Prescribed</h3>

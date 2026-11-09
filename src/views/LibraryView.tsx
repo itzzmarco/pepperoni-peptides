@@ -49,7 +49,7 @@ function TopChart() {
     <section className="tile rise" style={{ ['--i' as string]: 2 }}>
       <div className="stack gap-1">
         <span className="eyebrow">Hype vs evidence</span>
-        <h3>The most-discussed peptides mostly have the weakest evidence</h3>
+        <h2>The most-discussed peptides mostly have the weakest evidence</h2>
         <p className="small muted">
           30-day engagement on Reddit and YouTube as of October 2026 (from the source overview, via humanpeptides.fyi), colored by evidence tier.
         </p>

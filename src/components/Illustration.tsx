@@ -23,25 +23,45 @@ export const Defs = ({ u }: { u: string }) => (
   </defs>
 );
 
-/** Today, nothing tracked yet. Drawn for the dark instrument card it sits on, in that card's own colours:
- *  a calendar page with the first day checked and the rest still open. */
-export function IlloStart({ size = 120 }: Props) {
+/** Today, nothing tracked yet: the first-run scene, wider than the spot drawings. Drawn for the dark instrument card it
+ *  sits on, in that card's own colours: a calendar page with the first day checked, a capped vial leaning on its right,
+ *  and a check-in face on its left, the three things the log keeps. */
+export function IlloStart({ size = 200 }: Props) {
   const u = useId();
   return (
-    <Ground><svg {...svg(size)}>
+    <Ground><svg {...svg(size)} viewBox="0 0 160 100" height={size * 100 / 160} className="illo scene">
       <defs>
         <linearGradient id={`${u}st-page`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="var(--on-dark)" stopOpacity=".18" /><stop offset="1" stopColor="var(--on-dark)" stopOpacity=".07" /></linearGradient>
+        <linearGradient id={`${u}st-liq`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="var(--dose-cell)" /><stop offset="1" stopColor="var(--dose-cell)" stopOpacity=".7" /></linearGradient>
       </defs>
-      <ellipse cx="48" cy="88" rx="30" ry="4" fill="var(--illo-shade-on-dark)" />
-      <rect x="14" y="14" width="68" height="68" rx="16" fill={`url(#${u}st-page)`} stroke="var(--dark-edge)" strokeWidth="1.5" />
-      <path d="M14 30a16 16 0 0 1 16-16h36a16 16 0 0 1 16 16v4H14z" fill="var(--dose-cell)" />
-      <g fill="var(--dark)"><circle cx="34" cy="14" r="4" /><circle cx="62" cy="14" r="4" /></g>
-      <g fill="var(--on-dark)" opacity=".16">
-        <rect x="46" y="42" width="14" height="14" rx="5" /><rect x="64" y="42" width="10" height="14" rx="5" />
-        <rect x="24" y="60" width="16" height="14" rx="5" /><rect x="46" y="60" width="14" height="14" rx="5" /><rect x="64" y="60" width="10" height="14" rx="5" />
+      <ellipse cx="80" cy="92" rx="62" ry="4" fill="var(--illo-shade-on-dark)" />
+      {/* The calendar page, centred. */}
+      <g transform="translate(46 10)">
+        <rect width="68" height="68" rx="16" fill={`url(#${u}st-page)`} stroke="var(--dark-edge)" strokeWidth="1.5" />
+        <path d="M0 16a16 16 0 0 1 16-16h36a16 16 0 0 1 16 16v4H0z" fill="var(--dose-cell)" />
+        <g fill="var(--dark)"><circle cx="20" cy="0" r="4" /><circle cx="48" cy="0" r="4" /></g>
+        <g fill="var(--on-dark)" opacity=".16">
+          <rect x="32" y="28" width="14" height="14" rx="5" /><rect x="50" y="28" width="10" height="14" rx="5" />
+          <rect x="10" y="46" width="16" height="14" rx="5" /><rect x="32" y="46" width="14" height="14" rx="5" /><rect x="50" y="46" width="10" height="14" rx="5" />
+        </g>
+        <rect x="10" y="28" width="16" height="14" rx="5" fill="var(--go)" />
+        <path d="M13.5 35l3 3 5.5-6" fill="none" stroke="var(--dark)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
       </g>
-      <rect x="24" y="42" width="16" height="14" rx="5" fill="var(--go)" />
-      <path d="M27.5 49l3 3 5.5-6" fill="none" stroke="var(--dark)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+      {/* A vial leaning on the page's right edge: pink cap, blue dose, a sheen down its lit side. */}
+      <g transform="rotate(10 132 88)">
+        <rect x="122" y="30" width="20" height="9" rx="3" fill="var(--brand)" />
+        <rect x="125" y="39" width="14" height="4" fill="var(--on-dark-3)" />
+        <rect x="120" y="43" width="24" height="45" rx="8" fill="var(--dark)" stroke="var(--dark-edge)" strokeWidth="1.5" />
+        <rect x="120" y="43" width="24" height="45" rx="8" fill={`url(#${u}st-page)`} />
+        <path d="M122 64h20v16a6 6 0 0 1-6 6h-8a6 6 0 0 1-6-6z" fill={`url(#${u}st-liq)`} />
+        <path d="M125 49v30" stroke="var(--on-dark)" strokeWidth="2.5" strokeLinecap="round" opacity=".5" />
+      </g>
+      {/* A check-in face resting against the page's left edge. */}
+      <circle cx="30" cy="70" r="18" fill="var(--dark)" stroke="var(--dark-edge)" strokeWidth="1.5" />
+      <circle cx="30" cy="70" r="14" fill="var(--go)" />
+      <g fill="var(--dark)"><circle cx="25" cy="66" r="2" /><circle cx="35" cy="66" r="2" /></g>
+      <path d="M24 73q6 6 12 0" fill="none" stroke="var(--dark)" strokeWidth="2.4" strokeLinecap="round" />
+      <g fill="var(--on-dark)" opacity=".5"><circle cx="18" cy="42" r="2" /><circle cx="148" cy="16" r="2.5" /><circle cx="10" cy="58" r="1.5" /></g>
     </svg></Ground>
   );
 }

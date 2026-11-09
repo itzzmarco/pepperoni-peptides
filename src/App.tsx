@@ -32,8 +32,8 @@ export type Route = (typeof ROUTES)[number];
 const ALIASES: Record<string, Route> = { log: 'today', library: 'learn' };
 
 /** Hash routes work on any static host: #today, #trends, #learn, #peptides, #calculator, #safety, or a peptide id such as #bpc-157. */
-function parseHash(): { tab: Route; id: string | null } {
-  const h = decodeURIComponent(window.location.hash.slice(1));
+function parseHash(hash = window.location.hash): { tab: Route; id: string | null } {
+  const h = decodeURIComponent(hash.slice(1));
   if (PEP[h]) return { tab: 'learn', id: h };
   if ((ROUTES as readonly string[]).includes(h)) return { tab: h as Route, id: null };
   return { tab: ALIASES[h] ?? 'today', id: null };
@@ -60,6 +60,9 @@ export function App() {
   const [sheet, setSheet] = useState<SheetState>(null);
   // The bar shows the page's name once its h1 has scrolled under it (see the observer below).
   const [titled, setTitled] = useState(false);
+  // The in-app page this history entry was reached from (onHash records it on the entry), so a sub-page's back control
+  // returns there; null when the entry before is not this app's (a direct link, a fresh tab).
+  const [from, setFrom] = useState<string | null>(() => history.state?.from ?? null);
   const { regimens, doses } = useLedger();
   const { recovering, linkError } = useAccount();
   // A password-reset link, or an email link that failed, lands here: open the account sheet to finish.
@@ -90,10 +93,12 @@ export function App() {
       root.dataset.dir = step > 0 ? 'next' : step < 0 ? 'prev' : at.id && !next.id ? 'back' : 'forward';
       at = next;
       arrived.current = true;
-      setRoute(next); setSheet(null); setTitled(false); window.scrollTo(0, 0);
+      setRoute(next); setFrom(history.state?.from ?? null); setSheet(null); setTitled(false); window.scrollTo(0, 0);
     };
     const go = transitionGate(swap);
-    const onHash = () => {
+    const onHash = (e: HashChangeEvent) => {
+      // A new entry (a link followed here) remembers the page it came from; an entry revisited with Back or Forward keeps its own.
+      if (history.state == null) history.replaceState({ from: new URL(e.oldURL).hash }, '');
       // The page being left is snapshotted with no direction, so a profile's header glyph (named only while data-dir is
       // "forward") stays in the page fade instead of dissolving on its own when no glyph is there to meet it.
       delete document.documentElement.dataset.dir;
@@ -229,18 +234,22 @@ export function App() {
   const tab = route.tab === 'calculator' || route.tab === 'safety' ? 'learn' : route.tab === 'partner' ? 'today' : route.tab;
   // A profile and the two guides sit one level under Learn: the bar carries their way back up.
   const sub = !!route.id || route.tab === 'calculator' || route.tab === 'safety';
+  // Its way back goes to the page it was opened from, as a native back button does, or up to Learn when there is none.
+  const origin = from == null ? null : parseHash(from);
+  const backName = origin ? (origin.id ? PEP[origin.id].name : TITLES[origin.tab]) : 'Learn';
   return (
     <>
       <header ref={barRef} className="topbar gutter" inert={bg} data-scrolled={scrolled ? 'true' : undefined} data-titled={titled && !sub ? '' : undefined} data-sub={sub ? '' : undefined}>
         <div className="wrap">
           <div className="row">
             {/* The link is the vial and wordmark. Once the headline scrolls away, the page name takes the wordmark's
-                place as its own button that scrolls back to the top, marked with an up arrow so it reads differently from the
-                vial beside it, which stays the home link. On a sub-page the whole
-                cluster is one way back: a chevron crossfades in over the vial and the word reads Learn, so nothing in the
-                bar shifts sideways (styles.css) and every part of it does the same thing. */}
+                place, and the whole cluster, vial included, becomes one button that scrolls back to the top (the home link
+                is inert under it; Today stays in the tab bar). On a sub-page the whole cluster is one way back: a chevron
+                crossfades in over the vial and the word names where it goes, so nothing in the bar shifts sideways
+                (styles.css) and every part of it does the same thing. */}
             <div className="brand-wrap">
-            <a className="brand" href={sub ? '#learn' : '#today'} aria-label={sub ? 'Back to Learn' : 'Peptide Ledger, today'}>
+            <a className="brand" href={sub ? (origin ? from! || '#today' : '#learn') : '#today'} aria-label={sub ? `Back to ${backName}` : 'Peptide Ledger, today'}
+              inert={titled && !sub ? true : undefined} onClick={sub && origin ? e => { e.preventDefault(); history.back(); } : undefined}>
               {/* The installed icon's vial, drawn the same way: a pink cap on a dark rounded tile. */}
               <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
                 <rect width="32" height="32" rx="7" fill="var(--dark)" />
@@ -249,7 +258,7 @@ export function App() {
                 <path d="M9 13.5 Q9 12 10.5 12 H21.5 Q23 12 23 13.5 V25 Q23 28 20 28 H12 Q9 28 9 25 Z" fill="var(--on-dark)" />
                 <path d="M10.3 21 H21.7 V25 Q21.7 26.7 20 26.7 H12 Q10.3 26.7 10.3 25 Z" fill="var(--on-dark-3)" />
               </svg>
-              <span className="wordmark">{sub ? 'Learn' : 'Peptide Ledger'}</span>
+              <span className="wordmark">{sub ? backName : 'Peptide Ledger'}</span>
             </a>
             <button type="button" className="bar-title" inert={titled && !sub ? undefined : true} aria-label={`${pageName}, back to top`}
               onClick={() => window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })}>

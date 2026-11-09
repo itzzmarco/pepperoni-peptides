@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { calcAlerts, doseMath, mgInUnits } from '../lib/doseMath';
 import { fmtNum } from '../lib/format';
 import { Syringe } from '../components/Syringe';
-import { useCountUp } from '../components/Motion';
 
 const SYRINGES: [string, string, string][] = [['30', '0.3 mL', '30u'], ['50', '0.5 mL', '50u'], ['100', '1 mL', '100u']];
 const rise = (i: number) => ({ ['--i' as string]: i });
@@ -13,7 +12,6 @@ export function CalculatorView() {
   const m = doseMath(c.dose, c.unit, c.vial, c.ml);
   const cap = Number(c.syr);
   const drawn = Number(c.drawn);
-  const units = useCountUp(m?.units ?? 0, 0, 600);
   return (
     <section className="view">
       <div className="head-actions rise"><a className="btn ghost sm" href="#learn">
@@ -62,7 +60,8 @@ export function CalculatorView() {
         ) : (
           <>
             <div className="spread"><span className="eyebrow">Draw to</span><span className="sub xsmall">Math only, not dosing advice</span></div>
-            <div className="result-big"><span className="n">{fmtNum(units, 1)}</span><span className="u">units</span><span className="sub">= {fmtNum(m.vol, 3)} mL</span></div>
+            {/* The units are shown exact at once; a new answer remounts the block, which gives it a small nudge. */}
+            <div className="result-big" key={`${fmtNum(m.units, 1)}-${fmtNum(m.vol, 3)}`}><span className="n">{fmtNum(m.units, 1)}</span><span className="u">units</span><span className="sub">= {fmtNum(m.vol, 3)} mL</span></div>
             <div className="white-inset syringe-wrap"><Syringe units={m.units} cap={cap} /></div>
             <dl className="kv">
               <div><dt>Concentration</dt><dd>{fmtNum(m.conc, 3)} mg/mL</dd></div>

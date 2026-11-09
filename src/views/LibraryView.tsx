@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { FamilyKey, LegalKey, Peptide, Tier } from '../lib/types';
 import { PEPTIDES } from '../data/peptides';
 import { AS_OF, FAMILIES, LEGAL, TIERS } from '../data/reference';
@@ -90,6 +90,26 @@ function TierOverview() {
   );
 }
 
+/** A sideways-scrolling chip row. Its right edge fades only while more chips sit off screen. */
+function FilterRow({ label, children }: { label: string; children: ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [more, setMore] = useState(false);
+  const check = useCallback(() => {
+    const el = ref.current;
+    if (el) setMore(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
+  }, []);
+  useEffect(() => {
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, [check]);
+  return (
+    <div className="filter-row" ref={ref} onScroll={check} data-more={more || undefined}>
+      <span className="label muted">{label}</span>{children}
+    </div>
+  );
+}
+
 const GUIDES = [
   { href: '#calculator', tone: 'lilac', title: 'Dose math, step by step', sub: 'Vial, water and syringe units', icon: 'M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5V2M8.5 2h7M14.5 16h-5' },
   { href: '#safety', tone: 'peach', title: 'Safety & law', sub: 'Warning signs and US rules', icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
@@ -121,19 +141,47 @@ export function LibraryView() {
     d.querySelector('summary')?.focus({ preventScroll: true });
   };
   return (
-    <section className="view">
+    <section className="view wide">
       <header className="head rise">
         <span className="eyebrow">Learn</span>
         <h1>What the evidence says.<br /><span className="soft">{PEPTIDES.length} peptides, graded.</span></h1>
         <p>Compounds that trend online, with what studies show, how they're regulated in the US, and the warning signs to know. Updated {AS_OF}.</p>
       </header>
-      {/* Finding a peptide is the main job here, so search sits right under the title; the overview comes after the library. */}
+      {/* Finding a peptide is the main job here, so search, filters and results sit together right under the title;
+          the guides and the overview come after the library, so a query never filters a grid that is out of view. */}
+      <div className="section-title"><h2>Library</h2><span className="count" aria-live="polite">{list.length === PEPTIDES.length ? `All ${list.length}` : `${list.length} of ${PEPTIDES.length}`}</span></div>
       <div className="search">
         <label className="sr-only" htmlFor="lib-q">Search peptides</label>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
         <input type="search" id="lib-q" value={f.q} onChange={e => setF({ ...f, q: e.target.value })} placeholder="Search name, nickname or goal" autoComplete="off" />
       </div>
-      <div className="bento rise" style={{ ['--i' as string]: 1 }}>
+      <div className="filters">
+        <FilterRow label="Evidence">{chip('tier', 'all', 'All')}{TIER_LIST.map(t => chip('tier', `${t}` as const, `T${t} ${TIERS[t].label}`, `var(--t${t})`))}</FilterRow>
+        <FilterRow label="Category">{chip('fam', 'all', 'All')}{(Object.keys(FAMILIES) as FamilyKey[]).map(k => chip('fam', k, FAMILIES[k].name))}</FilterRow>
+        <FilterRow label="US status">{chip('legal', 'all', 'All')}{usedLegal.map(k => chip('legal', k, LEGAL[k].label))}</FilterRow>
+        {/* Every card shows a tier, but the explainer sits after the library; this opens it and jumps there. */}
+        <button type="button" className="linkish small" style={{ justifySelf: 'start', minHeight: 44 }} onClick={showTiers}>What do tiers mean?</button>
+      </div>
+      <div className="cards">
+        {list.length ? list.map(p => (
+          <a className="card" href={`#${p.id}`} key={p.id}>
+            <div className="card-top"><FamilyGlyph family={p.family} size={36} /><Ladder t={p.tier} /></div>
+            <div><span className="fam">{FAMILIES[p.family]?.name}</span><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 2).join(' · ')}</div> : null}</div>
+            <p className="sum">{p.summary}</p>
+            <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /></div>
+          </a>
+        )) : (
+          <div className="empty" style={{ gridColumn: '1 / -1' }}>
+            <IlloSearch />
+            <span className="eyebrow">Library</span>
+            <h3>No matches</h3>
+            <p className="small muted">Try a different word or clear a filter.</p>
+            <button className="btn" onClick={() => setF({ q: '', fam: 'all', tier: 'all', legal: 'all' })}>Clear filters</button>
+          </div>
+        )}
+      </div>
+
+      <div className="bento">
         {GUIDES.map(g => (
           <a key={g.href} href={g.href} className={`tile ${g.tone}`} style={{ gap: 10 }}>
             <span className="badge-icon" style={{ width: 44, height: 44, background: 'var(--surface)', color: `var(--${g.tone}-ink)` }} aria-hidden="true">
@@ -143,32 +191,6 @@ export function LibraryView() {
             <span className="sub">{g.sub}</span>
           </a>
         ))}
-      </div>
-
-      <div className="section-title"><h2>Library</h2><span className="count" aria-live="polite">{list.length === PEPTIDES.length ? `All ${list.length}` : `${list.length} of ${PEPTIDES.length}`}</span></div>
-      <div className="filters">
-        <div className="filter-row"><span className="label muted">Evidence</span>{chip('tier', 'all', 'All')}{TIER_LIST.map(t => chip('tier', `${t}` as const, `T${t} ${TIERS[t].label}`, `var(--t${t})`))}</div>
-        <div className="filter-row"><span className="label muted">Category</span>{chip('fam', 'all', 'All')}{(Object.keys(FAMILIES) as FamilyKey[]).map(k => chip('fam', k, FAMILIES[k].name))}</div>
-        <div className="filter-row"><span className="label muted">US status</span>{chip('legal', 'all', 'All')}{usedLegal.map(k => chip('legal', k, LEGAL[k].label))}</div>
-        {/* Every card shows a tier, but the explainer sits after the library; this opens it and jumps there. */}
-        <button type="button" className="linkish small" style={{ justifySelf: 'start', minHeight: 44 }} onClick={showTiers}>What do tiers mean?</button>
-      </div>
-      <div className="cards">
-        {list.length ? list.map(p => (
-          <a className="card" href={`#${p.id}`} key={p.id}>
-            <div className="card-top"><FamilyGlyph family={p.family} size={36} /><Ladder t={p.tier} /></div>
-            <div><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 2).join(' · ')}</div> : null}</div>
-            <p className="sum">{p.summary}</p>
-            <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /></div>
-          </a>
-        )) : (
-          <div className="empty" style={{ gridColumn: '1 / -1' }}>
-            <IlloSearch />
-            <h3>No matches</h3>
-            <p className="small muted">Try a different word or clear a filter.</p>
-            <button className="btn" onClick={() => setF({ q: '', fam: 'all', tier: 'all', legal: 'all' })}>Clear filters</button>
-          </div>
-        )}
       </div>
 
       <details className="tile mint" id="tiers">

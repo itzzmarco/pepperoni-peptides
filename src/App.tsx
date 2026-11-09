@@ -61,14 +61,18 @@ export function App() {
     if (recovering || linkError) setSheet({ kind: 'account' });
   }, [recovering, linkError]);
   useEffect(() => {
-    const swap = () => { setRoute(parseHash()); setSheet(null); window.scrollTo(0, 0); };
     // Fade the new route in while the top bar and tab bar stay put; reduced motion keeps the instant swap.
-    // The new page is snapshotted as it will look, so first-paint reveals (.rise and friends) stay off once routing starts.
+    // First-paint reveals (.rise) switch off for the rest of the session once a fade is used, so the root fade is the only page motion.
+    // The switch flips inside the swap, after the old page is snapshotted, so the page being left never moves.
     // A second tap while a fade is still running swaps at once instead of starting another one (see transitionGate).
+    let fade = false;
+    const swap = () => {
+      if (fade) document.documentElement.dataset.routed = '';
+      setRoute(parseHash()); setSheet(null); window.scrollTo(0, 0);
+    };
     const go = transitionGate(swap);
     const onHash = () => {
-      const fade = 'startViewTransition' in document && !prefersReducedMotion();
-      if (fade) document.documentElement.dataset.routed = '';
+      fade = 'startViewTransition' in document && !prefersReducedMotion();
       go(fade ? update => (document as WithTransitions).startViewTransition(() => flushSync(update)) : null);
     };
     window.addEventListener('hashchange', onHash);

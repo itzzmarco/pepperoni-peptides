@@ -6,14 +6,19 @@ import type { ReactNode } from 'react';
  */
 type Props = { size?: number };
 const svg = (size: number) => ({ width: size, height: Math.round(size * 0.75), viewBox: '0 0 160 120', className: 'illo', 'aria-hidden': true as const, focusable: 'false' as const });
-/** Every empty state shares one block: the art centred on a soft tinted ground above the copy. */
+/** Every empty state shares one block: the art centred on a soft tinted ground above the copy.
+ *  All the scenes share one light from the top left: the ground is brighter there, and each object
+ *  casts a soft shadow down and to the right (the `Cast` group), which gives them a little depth. */
 const Ground = ({ children }: { children: ReactNode }) => <div className="illo-ground" aria-hidden="true">{children}</div>;
+/** Shadow copies of a scene's main shapes, offset away from the top-left light. */
+const Cast = ({ children }: { children: ReactNode }) => <g transform="translate(5 5)" fill="var(--illo-shade)">{children}</g>;
 
 /** Today, nothing tracked yet: a vial beside a calendar page with a first check mark. */
 export function IlloStart({ size = 168 }: Props) {
   return (
     <Ground><svg {...svg(size)}>
-      <ellipse cx="80" cy="108" rx="62" ry="7" fill="var(--illo-shade)" />
+      <ellipse cx="84" cy="108" rx="62" ry="7" fill="var(--illo-shade)" />
+      <Cast><rect x="62" y="22" width="78" height="80" rx="14" /><path d="M24 50q0-6 6-6h18q6 0 6 6v44q0 8-8 8H32q-8 0-8-8z" /></Cast>
       <rect x="62" y="22" width="78" height="80" rx="14" fill="var(--sky)" stroke="var(--illo-line)" strokeWidth="2.5" />
       <rect x="62" y="22" width="78" height="20" rx="10" fill="var(--sky-ink)" />
       <g fill="var(--surface)" opacity=".9">
@@ -35,7 +40,8 @@ export function IlloStart({ size = 168 }: Props) {
 export function IlloShelf({ size = 168 }: Props) {
   return (
     <Ground><svg {...svg(size)}>
-      <ellipse cx="80" cy="108" rx="62" ry="7" fill="var(--illo-shade)" />
+      <ellipse cx="84" cy="108" rx="62" ry="7" fill="var(--illo-shade)" />
+      <Cast><rect x="20" y="84" width="120" height="8" rx="4" /><path d="M66 40q0-6 6-6h16q6 0 6 6v36q0 8-8 8H74q-8 0-8-8z" /><circle cx="122" cy="26" r="11" /></Cast>
       <rect x="20" y="84" width="120" height="8" rx="4" fill="var(--surface-3)" />
       <g stroke="var(--illo-line)" strokeWidth="2.5" strokeDasharray="5 5" fill="none" opacity=".55">
         <rect x="36" y="40" width="22" height="44" rx="7" /><rect x="102" y="40" width="22" height="44" rx="7" />
@@ -54,7 +60,8 @@ export function IlloShelf({ size = 168 }: Props) {
 export function IlloSearch({ size = 168 }: Props) {
   return (
     <Ground><svg {...svg(size)}>
-      <ellipse cx="80" cy="108" rx="58" ry="7" fill="var(--illo-shade)" />
+      <ellipse cx="84" cy="108" rx="58" ry="7" fill="var(--illo-shade)" />
+      <Cast><rect x="30" y="20" width="76" height="80" rx="14" /><circle cx="104" cy="64" r="24" /><path d="M120 80l16 16" stroke="var(--illo-shade)" strokeWidth="7" strokeLinecap="round" /></Cast>
       <rect x="30" y="20" width="76" height="80" rx="14" fill="var(--surface)" stroke="var(--illo-line)" strokeWidth="2.5" />
       <rect x="42" y="34" width="34" height="8" rx="4" fill="var(--surface-3)" />
       <rect x="42" y="50" width="50" height="6" rx="3" fill="var(--surface-2)" />
@@ -71,8 +78,9 @@ export function IlloSearch({ size = 168 }: Props) {
 export function IlloTrends({ size = 168 }: Props) {
   return (
     <Ground><svg {...svg(size)}>
-      <ellipse cx="80" cy="108" rx="62" ry="7" fill="var(--illo-shade)" />
-      <rect x="20" y="16" width="120" height="84" rx="16" fill="var(--lilac)" />
+      <ellipse cx="84" cy="108" rx="62" ry="7" fill="var(--illo-shade)" />
+      <Cast><rect x="20" y="16" width="120" height="84" rx="16" /></Cast>
+      <rect x="20" y="16" width="120" height="84" rx="16" fill="var(--lilac)" stroke="var(--illo-line)" strokeWidth="2.5" />
       <path d="M36 82h88M36 62h88M36 42h88" stroke="var(--surface)" strokeWidth="2" opacity=".8" />
       <path d="M36 74q14-2 22-12t22-6 20-14 24-10" fill="none" stroke="var(--lilac-line)" strokeWidth="3.5" strokeLinecap="round" strokeDasharray="2 8" />
       <circle cx="36" cy="74" r="6" fill="var(--lilac-line)" stroke="var(--surface)" strokeWidth="3" />
@@ -85,7 +93,8 @@ export function IlloTrends({ size = 168 }: Props) {
 export function IlloPartner({ size = 168 }: Props) {
   return (
     <Ground><svg {...svg(size)}>
-      <ellipse cx="80" cy="108" rx="62" ry="7" fill="var(--illo-shade)" />
+      <ellipse cx="84" cy="108" rx="62" ry="7" fill="var(--illo-shade)" />
+      <Cast><rect x="14" y="30" width="56" height="70" rx="16" /><rect x="90" y="30" width="56" height="70" rx="16" /></Cast>
       <rect x="14" y="30" width="56" height="70" rx="16" fill="var(--peach)" stroke="var(--illo-line)" strokeWidth="2.5" />
       <circle cx="42" cy="54" r="11" fill="var(--peach-ink)" />
       <path d="M26 92q0-18 16-18t16 18" fill="var(--peach-ink)" />

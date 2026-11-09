@@ -86,17 +86,27 @@ function ExportPanel({ ledger }: { ledger: Ledger }) {
 /** How many timeline entries show before "Show all". */
 const RECENT = 12;
 
-/** Header chart: one bar per day in the range, as tall as that day's dose count, so the page opens on the shape of the log. */
+/** Header chart: one bar per day in the range, as tall as that day's dose count, so the page opens on the shape of the log.
+ *  A caption under it gives the total and the range's first and last day. With no doses in range it isn't drawn at all. */
 function DoseBars({ doses, days, now }: { doses: DoseEntry[]; days: number; now: Date }) {
   const perDay = new Map<string, number>();
   for (const d of doses) { const k = dayKey(new Date(d.at)); perDay.set(k, (perDay.get(k) ?? 0) + 1); }
   const counts = Array.from({ length: days }, (_, i) => perDay.get(dayKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - (days - 1) + i))) ?? 0);
   const max = Math.max(1, ...counts);
   const total = counts.reduce((a, b) => a + b, 0);
+  if (!total) return null;
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (days - 1));
   return (
-    <div className="hero-bars" data-n={days} role="img" aria-label={`Doses logged each day over the last ${days} days: ${total} in total.`}>
-      {counts.map((n, i) => <i key={i} className={`grow up${n ? '' : ' none'}`} style={{ height: n ? `${(n / max) * 100}%` : undefined, ['--i' as string]: Math.round((i / days) * 12) }} />)}
-    </div>
+    <>
+      <div className="hero-bars" data-n={days} role="img" aria-label={`Doses logged each day over the last ${days} days: ${total} in total.`}>
+        {counts.map((n, i) => <i key={i} className={`grow up${n ? '' : ' none'}`} style={{ height: n ? `${(n / max) * 100}%` : undefined, ['--i' as string]: Math.round((i / days) * 12) }} />)}
+      </div>
+      <div className="hero-cap" aria-hidden="true">
+        <span>{fmtShort(start)}</span>
+        <span><b>{total} dose{total === 1 ? '' : 's'}</b> logged</span>
+        <span>Today</span>
+      </div>
+    </>
   );
 }
 
@@ -113,7 +123,8 @@ function History({ doses, checkins, onBackfill, art }: { doses: DoseEntry[]; che
   if (!items.length) return (
     <section className="empty" aria-labelledby="hist-h">
       {art}
-      <h3 id="hist-h">History</h3>
+      <span className="eyebrow">History</span>
+      <h3 id="hist-h">Nothing logged yet</h3>
       <p className="small muted">Logged doses and check-ins appear here. Kept a paper log before? Fill in past days to bring it in.</p>
       <button type="button" className="btn" onClick={onBackfill}>Fill in past days</button>
     </section>
@@ -267,7 +278,7 @@ export function TrendsView({ onBackfill }: { onBackfill: () => void }) {
   const empty = !regimens.length && !doses.length && !checkins.length;
 
   return (
-    <section className="view">
+    <section className="view wide">
       <header className={`head rise${empty ? '' : ' hero'}`}>
         {/* No range control on an empty log, so the eyebrow doesn't name one. */}
         <span className="eyebrow">{empty ? 'Trends' : `Trends · ${RANGES.find(r => r[0] === days)![1]}`}</span>
@@ -285,6 +296,8 @@ export function TrendsView({ onBackfill }: { onBackfill: () => void }) {
         {RANGES.map(([d, l]) => <button key={d} type="button" aria-pressed={days === d} onClick={() => setDays(d)}>{l}</button>)}
       </div>
 
+      {/* Two by two on wide screens, one column on phones. */}
+      <div className="trend-grid">
       <section className="tile mint rise" aria-labelledby="adh-h" style={rise(2)}>
         <div className="spread" style={{ alignItems: 'flex-end' }}>
           <div className="stack" style={{ gap: 2 }}>
@@ -363,6 +376,7 @@ export function TrendsView({ onBackfill }: { onBackfill: () => void }) {
           </>
         ) : <p className="small muted">Pick a site when you log an injection to see your rotation here.</p>}
       </section>
+      </div>
 
       <ExportPanel ledger={ledger} />
       <History doses={doses} checkins={checkins} onBackfill={onBackfill} />

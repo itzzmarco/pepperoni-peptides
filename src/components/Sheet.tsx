@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
 import { dragOffset, releaseVelocity, shouldDismiss } from '../lib/sheetDrag';
+import { FOCUSABLE, trapTarget } from '../lib/focusTrap';
 
 /** True while App keeps a closed sheet mounted so its exit animation can play. */
 export const SheetClosing = createContext(false);
@@ -28,7 +29,15 @@ export function Sheet({ onClose, children, label }: { onClose: () => void; child
     const prev = opener;
     // Focus the dialog itself rather than a field, so phones don't pop the keyboard over the form.
     ref.current?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key !== 'Tab' || !ref.current) return;
+      // Keep Tab and Shift+Tab inside the dialog: past the last control it wraps to the first, and back.
+      const els = [...ref.current.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(el => el.getClientRects().length > 0);
+      if (!els.length) { e.preventDefault(); return; }
+      const to = trapTarget(els.length, els.indexOf(document.activeElement as HTMLElement), e.shiftKey);
+      if (to != null) { e.preventDefault(); els[to].focus(); }
+    };
     document.addEventListener('keydown', onKey);
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';

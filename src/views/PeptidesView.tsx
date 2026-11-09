@@ -107,14 +107,14 @@ function Reminders({ r, doses }: { r: Regimen; doses: DoseEntry[] }) {
   );
 }
 
-function RegimenCard({ r, doses, actions, example, i = 0 }: { r: Regimen; doses: DoseEntry[]; actions?: Actions; example?: boolean; i?: number }) {
+function RegimenCard({ r, doses, actions, i = 0 }: { r: Regimen; doses: DoseEntry[]; actions: Actions; i?: number }) {
   const toast = useToast();
   const [remind, setRemind] = useState(false);
   const p = PEP[r.compoundId];
-  const st = example ? { s: 'due', text: 'Due today' } : regimenStatus(r, doses);
+  const st = regimenStatus(r, doses);
   const { math, checks } = checkRegimen(r);
   return (
-    <article className={`tile regimen rise${r.paused ? ' paused' : ''}${example ? ' example' : ''}`} style={{ ['--i' as string]: i + 2 }} aria-hidden={example || undefined}>
+    <article className={`tile regimen rise${r.paused ? ' paused' : ''}`} style={{ ['--i' as string]: i + 2 }}>
       <div className="top">
         <div className="stack" style={{ gap: 4 }}>
           <h3>{regName(r)}</h3>
@@ -132,25 +132,23 @@ function RegimenCard({ r, doses, actions, example, i = 0 }: { r: Regimen; doses:
       {checks.length > 0 && (
         <div className="alert danger"><b>The dose and vial numbers don't add up.</b><span>{checks[0].title} Tap Edit to check them.</span></div>
       )}
-      {!example && <NextShot r={r} doses={doses} />}
+      <NextShot r={r} doses={doses} />
       {p && <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /></div>}
       {r.prescriber && <div className="small muted">Prescribed by {r.prescriber}</div>}
       {r.source === UNREGULATED_SOURCE && (
         <div className="alert warn"><b>Unregulated source.</b><span>Products sold online as "research use only" aren't checked for identity, dose, sterility, or endotoxin. See Safety for testing data.</span></div>
       )}
-      <Strip rid={r.id} doses={example ? [] : doses} />
-      {remind && !example && <Reminders r={r} doses={doses} />}
-      {!example && actions && (
-        <div className="row-wrap">
-          {!r.paused && <button className="btn sm" onClick={() => actions.logDose(r)}>Log dose</button>}
-          <button className="btn ghost sm" onClick={() => actions.editRegimen(r)}>Edit</button>
-          {!r.paused && r.freq !== 'prn' && <button className="btn quiet sm" aria-expanded={remind} onClick={() => setRemind(!remind)}>Reminders</button>}
-          <button className="btn quiet sm" onClick={() => { store.saveRegimen({ ...r, paused: !r.paused }); toast(r.paused ? 'Resumed.' : 'Paused. Your history is kept.'); }}>
-            {r.paused ? 'Resume' : 'Pause'}
-          </button>
-          {p && <a className="btn quiet sm" href={`#${p.id}`}>About {p.name}</a>}
-        </div>
-      )}
+      <Strip rid={r.id} doses={doses} />
+      {remind && <Reminders r={r} doses={doses} />}
+      <div className="row-wrap">
+        {!r.paused && <button className="btn sm" onClick={() => actions.logDose(r)}>Log dose</button>}
+        <button className="btn ghost sm" onClick={() => actions.editRegimen(r)}>Edit</button>
+        {!r.paused && r.freq !== 'prn' && <button className="btn quiet sm" aria-expanded={remind} onClick={() => setRemind(!remind)}>Reminders</button>}
+        <button className="btn quiet sm" onClick={() => { store.saveRegimen({ ...r, paused: !r.paused }); toast(r.paused ? 'Resumed.' : 'Paused. Your history is kept.'); }}>
+          {r.paused ? 'Resume' : 'Pause'}
+        </button>
+        {p && <a className="btn quiet sm" href={`#${p.id}`}>About {p.name}</a>}
+      </div>
     </article>
   );
 }
@@ -165,7 +163,6 @@ export function PeptidesView(actions: Actions) {
   const active = regimens.filter(r => !r.paused);
   const paused = regimens.filter(r => r.paused);
   const due = active.filter(r => ['due', 'late'].includes(regimenStatus(r, doses).s)).length;
-  const example: Regimen = { id: 'example', compoundId: 'tirzepatide', name: '', dose: '2.5', unit: 'mg', freq: 'weekly', everyDays: '', route: 'Subcutaneous injection', prescriber: 'your clinician', source: '', start: '', vialMg: '', diluentMl: '', notes: '' };
 
   return (
     <section className="view">
@@ -205,21 +202,22 @@ export function PeptidesView(actions: Actions) {
       )}
 
       {regimens.length === 0 ? (
-        <>
-          <div className="empty">
-            <IlloShelf />
-            <h3>Nothing tracked yet</h3>
-            <p className="muted small">Add a peptide or medication you've been prescribed. You'll get a due-date status, a 4-week history strip, and injection-site rotation.</p>
-            <button className="btn" onClick={actions.addRegimen}>Add a peptide</button>
-          </div>
-          <RegimenCard r={example} doses={[]} example />
-        </>
+        <div className="empty">
+          <IlloShelf />
+          <span className="eyebrow">Start your log</span>
+          <h3>Nothing tracked yet</h3>
+          <p className="muted small">Add a peptide or medication you've been prescribed. You'll get a due-date status, a 4-week history strip, and injection-site rotation.</p>
+          <button className="btn" onClick={actions.addRegimen}>Add a peptide</button>
+        </div>
       ) : (
         <>
           {active.map((r, i) => <RegimenCard key={r.id} r={r} doses={doses} actions={actions} i={i} />)}
           {paused.length > 0 && (
             <details className="tile">
-              <summary className="spread"><b>Paused ({paused.length})</b><span className="chev" aria-hidden="true">›</span></summary>
+              <summary className="spread" style={{ alignItems: 'center', flexWrap: 'nowrap' }}>
+                <b>Paused ({paused.length})</b>
+                <span className="arrow" aria-hidden="true"><svg className="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+              </summary>
               <div className="stack">{paused.map(r => <RegimenCard key={r.id} r={r} doses={doses} actions={actions} />)}</div>
             </details>
           )}

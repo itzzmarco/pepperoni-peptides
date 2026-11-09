@@ -53,7 +53,17 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
         <SeqStrip p={p} />
         {p.seqNote && <p className="xsmall">{p.seqNote}</p>}
       </header>
-      <div className="head-actions rise" style={rise(2)}>
+      {/* The warning comes straight after the header, before any invitation to track the compound. */}
+      {banner && (
+        <div className={`alert ${banner.tone} rise`} style={rise(2)}>
+          <b>{banner.title}</b>
+          <span>
+            {TIERS[p.tier].long}.{' '}
+            {GREY_MARKET.has(p.legal) && <>Products sold online aren't regulated, and lab tests have found wrong amounts, the wrong peptide, and bacterial toxins. <a href="#safety">Safety basics</a></>}
+          </span>
+        </div>
+      )}
+      <div className="head-actions rise" style={rise(3)}>
         <button className="btn" onClick={() => onTrack(p.id)}>{mine.length ? 'Track another regimen' : 'Track this in my log'}</button>
         <a className="btn ghost" href="#calculator">Dose math</a>
       </div>
@@ -62,7 +72,7 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
       {mine.map(r => {
         const st = regimenStatus(r, doses);
         return (
-          <section key={r.id} className="tile dark rise" aria-label={`${p.name} in your log`} style={rise(3)}>
+          <section key={r.id} className="tile dark rise" aria-label={`${p.name} in your log`} style={rise(4)}>
             <div className="spread"><span className="eyebrow">In your log</span><span className="sub">{st.text}</span></div>
             <div className="stack" style={{ gap: 4 }}>
               <span style={{ fontSize: '1.375rem', fontWeight: 600 }}>{fmtNum(Number(r.dose), 3)} {r.unit} · {freqText(r)}</span>
@@ -76,16 +86,6 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
           </section>
         );
       })}
-
-      {banner && (
-        <div className={`alert ${banner.tone} rise`} style={rise(4)}>
-          <b>{banner.title}</b>
-          <span>
-            {TIERS[p.tier].long}.{' '}
-            {GREY_MARKET.has(p.legal) && <>Products sold online aren't regulated, and lab tests have found wrong amounts, the wrong peptide, and bacterial toxins. <a href="#safety">Safety basics</a></>}
-          </span>
-        </div>
-      )}
 
       <section className="tile rise" aria-labelledby="ev-h" style={rise(5)}>
         <h2 id="ev-h" className="eyebrow">Evidence strength</h2>

@@ -34,7 +34,7 @@ function Recent({ log, name }: { log: Ledger; name: string }) {
             return (
               <div key={`${it.kind}${it.e.id}`}>
                 {head}
-                <div className="tl-item" style={{ gridTemplateColumns: '64px minmax(0, 1fr)' }}>
+                <div className="tl-item two">
                   <time>{fmtTime(d)}</time>
                   {it.kind === 'dose' ? (
                     <div className="what"><b>{it.e.name}</b> {fmtNum(Number(it.e.amount), 3)} {it.e.unit}<small>{[it.e.route, it.e.notes].filter(Boolean).join(' · ')}</small></div>

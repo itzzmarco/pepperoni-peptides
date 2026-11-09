@@ -221,7 +221,7 @@ export function App() {
   const sub = !!route.id || route.tab === 'calculator' || route.tab === 'safety';
   return (
     <>
-      <header ref={barRef} className="topbar gutter" inert={bg} data-scrolled={scrolled ? 'true' : undefined} data-titled={titled ? '' : undefined}>
+      <header ref={barRef} className="topbar gutter" inert={bg} data-scrolled={scrolled ? 'true' : undefined} data-titled={titled ? '' : undefined} data-sub={sub ? '' : undefined}>
         <div className="wrap">
           <div className="row">
             {sub && (
@@ -230,7 +230,7 @@ export function App() {
               </a>
             )}
             {/* The link is the vial and wordmark. Once the headline scrolls away, the page name takes the wordmark's
-                place as a separate plain label that covers it, so only the vial is still the home link (styles.css). */}
+                place as a plain label laid over it that lets taps through, so the whole spot stays the home link (styles.css). */}
             <div className="brand-wrap">
             <a className="brand" href="#today" aria-label="Peptide Ledger, today">
               {/* The installed icon's vial, drawn the same way: a pink cap on a dark rounded tile. */}

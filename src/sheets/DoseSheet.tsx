@@ -119,7 +119,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
         </div>
 
         {active.length > 1 && (
-          <div className="pick" role="group" aria-label="Peptide" style={{ margin: '0 -16px', padding: '0 16px 2px' }}>
+          <div className="pick in-sheet" role="group" aria-label="Peptide">
             {active.map(x => <button key={x.id} type="button" className="fchip" aria-pressed={x.id === r.id} onClick={() => x.id !== r.id && switchTo(x)}>{regName(x)}</button>)}
           </div>
         )}

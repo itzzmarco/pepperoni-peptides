@@ -77,7 +77,7 @@ function DayBar({ done, todo, now }: { done: Date[]; todo: Date[]; now: Date }) 
           <span className={`mark pop ${m.done ? 'done' : 'todo'}`} style={{ left: `${pos(m.d)}%`, ...rise(4 + i) }}>
             {m.done && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>}
           </span>
-          {lefts[i] != null && <span className="t" style={{ left: lefts[i]!, width: LABEL, color: m.done ? undefined : 'var(--on-dark)', fontWeight: m.done ? 400 : 600 }}>{fmtTime(m.d)}</span>}
+          {lefts[i] != null && <span className={`t${m.done ? '' : ' todo'}`} style={{ left: lefts[i]!, width: LABEL }}>{fmtTime(m.d)}</span>}
         </span>
       ))}
       {showEnd && <span className="t end">12 AM</span>}

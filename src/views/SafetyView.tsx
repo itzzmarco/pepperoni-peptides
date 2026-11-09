@@ -28,7 +28,7 @@ export function SafetyView() {
         <p>What to watch for, how to handle vials safely, and the state of US rules as of {AS_OF}.</p>
       </header>
 
-      <section className="tile emerg rise" style={{ ...rise(2), background: 'var(--danger-bg)', boxShadow: 'none' }}>
+      <section className="tile sec flag rise" style={rise(2)}>
         <h2 className="tone-danger">Get emergency help now if you have</h2>
         <ul>{RED_FLAGS.map(f => <li key={f}>{f}</li>)}</ul>
         <div className="callout-nums">
@@ -41,8 +41,8 @@ export function SafetyView() {
 
       <div className="sections">
         {SAFETY.cards.map((c, i) => (
-          <section key={c.title} className={`tile sec rise${c.tone === 'flag' ? ' flag' : c.tone === 'caution' ? ' peach' : ''}`} style={rise(3 + i)}>
-            <h4 className={c.tone === 'caution' ? 'label' : undefined}>{c.title}</h4>
+          <section key={c.title} className={`tile sec rise${c.tone === 'flag' ? ' flag' : c.tone === 'caution' ? ' caution' : ''}`} style={rise(3 + i)}>
+            <h4>{c.title}</h4>
             {c.body && <p>{c.body}</p>}
             {c.items && <ul>{c.items.map(x => <li key={x}>{x}</li>)}</ul>}
             {c.sources && <Sources list={c.sources} />}

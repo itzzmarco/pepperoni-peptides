@@ -197,7 +197,7 @@ export function LibraryView() {
   );
   const chip = <K extends keyof Filters>(key: K, val: Filters[K], label: string, dot?: string) => (
     <button key={String(val)} className="fchip" aria-pressed={f[key] === val} onClick={() => setF({ ...f, [key]: val })}>
-      {dot && <span style={{ width: 8, height: 8, borderRadius: '50%', background: dot }} />}
+      {dot && <span className="dot" style={{ background: dot }} />}
       {label}
     </button>
   );

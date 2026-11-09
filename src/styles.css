@@ -35,7 +35,7 @@
   --shadow-2: 0 2px 4px rgba(30,34,48,.06), 0 10px 24px rgba(30,34,48,.10);
   --shadow-3: 0 3px 6px rgba(30,34,48,.08), 0 18px 40px rgba(30,34,48,.18);
   /* Glass chrome (top bar, tab bar) and the pill that marks the current tab. */
-  --glass: rgba(246,246,248,.74); --glass-edge: rgba(30,34,48,.08); --tab-pill: #FFFFFF;
+  --glass: rgba(246,246,248,.74); --glass-edge: rgba(30,34,48,.08); --tab-pill: rgba(30,34,48,.09);
   /* Instrument card: highlights layered over --dark, plus a 1px top light. */
   --dark-glow: rgba(141,180,255,.26); --dark-glow-2: rgba(127,224,181,.12); --dark-hi: rgba(255,255,255,.14);
   /* Dark themes only: a bright edge and a soft sky halo, since a black shadow can't lift the card off a near-black page. */
@@ -187,9 +187,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .wordmark, .bar-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bar-title { margin-left: 34px; font-weight: 600; font-size: var(--fs-md); color: var(--ink); min-width: 0; opacity: 0; transform: translateY(6px); pointer-events: none; }
 .topbar[data-titled] .wordmark { opacity: 0; transform: translateY(-6px); }
-/* Shown, the page name is its own label beside the vial: it sits over the hidden wordmark and takes the taps there, so
-   only the vial stays the home link and tapping the title does nothing. */
-.topbar[data-titled] .bar-title { opacity: 1; transform: none; pointer-events: auto; cursor: default; }
+.topbar[data-titled] .bar-title { opacity: 1; transform: none; }
 /* The whole brand row stays the home link at 44px in both states: the page name lets taps through to the link under it. */
 .brand { min-height: 44px; }
 .sync { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--ink-2); background: var(--surface); box-shadow: var(--ring); border-radius: 999px; padding: 6px 12px 6px 10px; white-space: nowrap; min-height: 44px; }
@@ -212,7 +210,10 @@ button.sync[data-s="error"] i { border-radius: 1px; transform: rotate(45deg); }
 /* At the narrowest phones the signed-out pill drops its person icon, the status pills keep their word and drop the mark
    instead (touch has no tooltip, so the word is what tells Synced from Offline), and the row tightens, so the wordmark keeps its whole name. */
 @media (max-width: 359px) { .topbar .row { gap: 6px; } button.sync:not([data-s]) { padding-inline: 12px; } button.sync:not([data-s]) > svg { display: none; } span.sync, button.sync[data-s] { padding-inline: 10px; } :is(span.sync, button.sync[data-s]) > i { display: none; } }
-@media (max-width: 420px) { .hide-sm { display: none; } .show-sm { display: inline; } button.sync[data-s] { min-width: 44px; justify-content: center; padding: 0 10px; } }
+@media (max-width: 420px) { .hide-sm { display: none; } .show-sm { display: inline; } button.sync[data-s] { min-width: 44px; justify-content: center; padding: 0 10px; }
+  /* On a profile or guide the back chevron and the page name lead, so the status pill gives way to its mark alone (each
+     status has its own shape, and the button keeps its full label for screen readers). */
+  .topbar[data-sub] button.sync[data-s] > span { display: none; } .topbar[data-sub] button.sync[data-s] > i { display: inline-block; } }
 /* One quiet line of small print under the bar (no card, no edge), so each page's greeting or hero leads. */
 .notice { margin-top: 2px; padding: 0 4px; color: var(--ink-3); font-size: var(--fs-xs); line-height: 1.4; text-wrap: pretty; }
 .notice b { color: var(--ink-2); font-weight: 600; }
@@ -221,7 +222,7 @@ main { padding-block: 8px 40px; }
 .view { display: grid; gap: 16px; }
 .head { display: grid; gap: 8px; padding: 0 4px; }
 /* A headline's second line steps down to large body text, so its first line is clearly where the page starts. */
-:is(.head, .empty) h1 .soft { display: block; margin-top: var(--sp-2); color: var(--ink-3); font-size: var(--fs-lg); font-weight: 500; letter-spacing: 0; line-height: 1.3; }
+:is(.head, .empty) h1 .soft { display: block; margin-top: var(--sp-2); color: var(--ink-2); font-size: var(--fs-lg); font-weight: 500; letter-spacing: 0; line-height: 1.3; }
 .head p { color: var(--ink-3); max-width: 62ch; }
 .head .lede { color: var(--ink); }
 .head-actions { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 4px; }
@@ -388,7 +389,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 
 /* Chips */
 .chip { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 600; padding: 5px 10px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; line-height: 1.3; }
-.chip .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+:is(.chip, .fchip) .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
 .tier { color: var(--ink); }
 .tier[data-t="1"] { background: var(--t1-bg); color: var(--t1); } .tier[data-t="1"] .dot { background: var(--t1); }
 .tier[data-t="2"] { background: var(--t2-bg); color: var(--t2); } .tier[data-t="2"] .dot { background: var(--t2); }
@@ -452,6 +453,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .daybar .mark.todo { background: var(--dark); border: 2.5px solid var(--on-dark); }
 .daybar .t { position: absolute; top: 46px; text-align: center; font-size: var(--fs-xs); color: var(--on-dark-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .daybar .t.end { right: 0; text-align: right; }
+.daybar .t.todo { color: var(--on-dark); font-weight: 600; }
 /* Next up: the name at display size, with a ring of today's doses beside it */
 .next-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: center; }
 /* The name wraps only between words; the dose gets its own line under it. */
@@ -517,6 +519,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .tile.dark .legend { color: var(--on-dark-2); }
 .pick { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -20px; padding: 0 20px 2px; }
 .pick::-webkit-scrollbar { display: none; }
+.sheet .pick.in-sheet { margin: 0 -16px; padding: 0 16px 2px; }
 .tile.dark .pick .fchip { background: var(--dark-fill-2); color: var(--on-dark-2); box-shadow: none; }
 .tile.dark .pick .fchip[aria-pressed="true"] { background: var(--on-dark); color: var(--dark); }
 .bars { display: grid; gap: 12px; }
@@ -534,11 +537,12 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .tl-day { font-size: var(--fs-xs); color: var(--ink-3); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; padding: 14px 0 6px; border-bottom: 1px solid var(--line); }
 .tl-day:first-child { padding-top: 0; }
 .tl-item { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); align-items: center; }
+.tl-item.two { grid-template-columns: 64px minmax(0, 1fr); }
 .tl-item time { font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--ink-3); }
 .tl-item .what { font-size: var(--fs-sm); min-width: 0; overflow-wrap: anywhere; }
 .hist-more { display: grid; gap: 8px; justify-items: start; margin-top: 12px; }
 .tl-item .what small { display: block; color: var(--ink-3); }
-.flag-text { color: var(--danger); font-weight: 600; }
+.flag-text, .tl-item .what .flag-text { color: var(--danger); font-weight: 600; }
 
 /* Charts */
 .chart { width: 100%; height: auto; display: block; overflow: visible; }
@@ -600,7 +604,6 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 @media (max-height: 700px) { .illo-ground > .illo { width: 128px; } }
 /* One empty-state layout everywhere: art, centred title, a line of copy, the main action. Today's dark card has its own drawing. */
 .empty :is(h2, h3) { font-size: var(--fs-xl); }
-.empty h1 .soft { color: var(--ink-4); }
 .empty > .eyebrow { margin-bottom: -6px; }
 .empty > p, .empty > .sub { max-width: 46ch; }
 .empty > .row-wrap { justify-content: center; }
@@ -636,8 +639,10 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .card h3 { font-size: var(--fs-lg); overflow-wrap: anywhere; }
 .card .aka { font-size: var(--fs-xs); color: var(--ink-3); margin-top: 2px; }
 .card .sum { font-size: var(--fs-sm); line-height: 1.4; color: var(--ink-3); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.card .row-wrap { gap: 6px; }
-.card .chip { white-space: normal; }
+.card .row-wrap { gap: 6px; padding-right: 20px; }
+/* The same quiet chevron Today's opening tiles carry, at the card's bottom corner, so touch users can tell it opens. */
+.card::before { content: ""; position: absolute; right: 20px; bottom: 25px; width: 8px; height: 8px; border: solid var(--ink-3); border-width: 2px 2px 0 0; transform: rotate(45deg); pointer-events: none; }
+:is(.card, .band) .chip { white-space: normal; }
 .count { font-size: var(--fs-sm); color: var(--ink-3); }
 .tiers { display: grid; }
 .tier-row { display: grid; gap: 8px; padding: 14px 0; border-top: 1px solid var(--line); }
@@ -701,7 +706,6 @@ details[open] > summary .chev { transform: rotate(90deg); }
 .callout-nums a { background: var(--surface); border-radius: var(--r-sm); padding: 10px 14px; min-height: 56px; display: grid; align-content: center; color: var(--ink); text-decoration: none; }
 .callout-nums a:focus-visible { outline: 2px solid var(--danger); outline-offset: 2px; }
 .callout-nums b { font-family: var(--f-mono); font-size: var(--fs-lg); color: var(--danger); white-space: nowrap; }
-.emerg ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
 .timeline-v { display: grid; position: relative; padding-left: 24px; }
 .timeline-v::before { content: ""; position: absolute; left: 7px; top: 6px; bottom: 6px; width: 2px; background: var(--line); }
 .tv { position: relative; padding: 0 0 18px; display: grid; gap: 3px; }
@@ -746,7 +750,7 @@ tr:last-child td { border-bottom: 0; }
 /* The sticky action row carries the home-indicator inset itself, so when pinned it sits flush on the sheet's bottom edge and
    nothing scrolls through below it; the sheet then keeps only its fixed 16px of bottom padding. */
 .sheet:has(.sheet-foot) { padding-bottom: 16px; }
-.sheet-foot { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; position: sticky; bottom: -16px; background: var(--sheet-bg); padding: 10px 0 calc(4px + env(safe-area-inset-bottom, 0px)); }
+.sheet-foot { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; position: sticky; bottom: -16px; background: var(--sheet-bg); box-shadow: 0 -1px 0 var(--line); padding: 10px 0 calc(4px + env(safe-area-inset-bottom, 0px)); }
 .sheet-foot .btn[type="submit"] { flex: 1 1 160px; }
 /* The leave-without-saving question takes its own line above Keep editing and Discard. */
 .sheet-foot .ask { flex: 1 1 100%; }
@@ -998,11 +1002,11 @@ footer.foot p { max-width: 90ch; }
   .tab-ind { transition: transform var(--dur-med) var(--ease-spring), opacity var(--dur-fast) var(--ease-out); }
   /* The seg pill settles without overshoot, so it never pokes past the rounded track. */
   .seg::before { transition: transform var(--dur-med) var(--ease-out), opacity var(--dur-fast) var(--ease-out); }
-  /* Labels never hide. Each keeps its ink until the pill has crossed it: the label losing the pill switches as soon as
-     the pill starts to leave, the one gaining it waits until the pill is most of the way there (the ease-out pill covers
+  /* Labels never hide. Each keeps its ink until the pill has crossed it: the label losing the pill keeps its pill ink until
+     the pill has slid off it (about three quarters of a one-step move, a quarter of --dur-med), the one gaining it waits until the pill is most of the way there (the ease-out pill covers
      about 85% of its path in a third of --dur-med). The 0s duration makes the colour a single step, never a blend.
      Nothing runs on mount, so a control opens already filled in. */
-  .seg button { transition: transform var(--dur-fast) var(--ease-out), color 0s var(--ease-out); }
+  .seg button { transition: transform var(--dur-fast) var(--ease-out), color 0s var(--ease-out) calc(var(--dur-med) / 4); }
   .seg button[aria-pressed="true"] { transition: transform var(--dur-fast) var(--ease-out), color 0s var(--ease-out) calc(var(--dur-med) / 3); }
   /* Tab labels do the same, so the new tab's label darkens as its pill arrives, not before. */
   .tabbar a[aria-current] { transition: transform var(--dur-fast) var(--ease-out), color 0s var(--ease-out) calc(var(--dur-med) / 3); }
@@ -1071,12 +1075,11 @@ footer.foot p { max-width: 90ch; }
     :root[data-dir="prev"]::view-transition-old(root) { animation-name: vt-out-back; }
     :root[data-dir="prev"]::view-transition-new(root) { animation-name: vt-in-back; }
   }
-  /* The bars and the notice are the same on every route, so they hold still: no snapshot of the old bar is shown,
-     only the live new one, so the tab pill visibly slides while the page body fades. */
-  .notice { view-transition-name: notice; }
-  ::view-transition-group(topbar), ::view-transition-group(tabbar), ::view-transition-group(notice) { animation-duration: 0s; }
-  ::view-transition-old(topbar), ::view-transition-old(tabbar), ::view-transition-old(notice) { display: none; }
-  ::view-transition-new(topbar), ::view-transition-new(tabbar), ::view-transition-new(notice) { animation: none; }
+  /* The bars are the same on every route, so they hold still: no snapshot of the old bar is shown, only the live new
+     one, so the tab pill visibly slides while the page body fades. The notice scrolls with the page, so it fades with it. */
+  ::view-transition-group(topbar), ::view-transition-group(tabbar) { animation-duration: 0s; }
+  ::view-transition-old(topbar), ::view-transition-old(tabbar) { display: none; }
+  ::view-transition-new(topbar), ::view-transition-new(tabbar) { animation: none; }
   /* After a route change the entrance is shorter and quieter: blocks rise 6px on a tight stagger, and dots, bars and
      sparklines settle in quickly, so revisits still feel alive without replaying the first-load show. */
   :root[data-routed] .rise { animation: rise-soft var(--dur-med) var(--ease-out) backwards; animation-delay: calc(min(var(--i, 0), 6) * 20ms); }

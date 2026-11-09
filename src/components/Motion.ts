@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { cssMs } from '../lib/duration';
 
 /** The user asked the OS for less motion. Read this instead of repeating the media query in components. */
 export const prefersReducedMotion = () =>
@@ -7,8 +8,9 @@ export const prefersReducedMotion = () =>
 /** Reduced motion, or a background tab where animation frames don't run: jump straight to the end. */
 const still = () => prefersReducedMotion() || document.visibilityState === 'hidden';
 
-/** Matches --dur-med in styles.css: how long a closing sheet or toast plays before it unmounts. */
-export const EXIT_MS = 240;
+/** How long a closing sheet or toast plays before it unmounts: read from --dur-med in styles.css, so retuning the token retimes the unmount too. */
+export const exitMs = () =>
+  typeof document === 'undefined' ? 240 : cssMs(getComputedStyle(document.documentElement).getPropertyValue('--dur-med'), 240);
 
 /** Counts a number up (or down) to `target` with an ease-out, so a stat reads as "this just changed". */
 export function useCountUp(target: number, from = 0, ms = 900) {

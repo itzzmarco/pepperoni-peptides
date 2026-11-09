@@ -45,6 +45,8 @@
   /* Skeleton blocks and their shimmer; illustration ground shadow and outline. */
   --skel: #E8E9EE; --skel-shine: rgba(255,255,255,.7);
   --illo-shade: rgba(30,34,48,.07); --illo-line: #3F4452;
+  /* Brand mark: the vial cap, same pink as the installed icon. */
+  --brand: #E05A9E;
   /* Motion */
   --ease-out: cubic-bezier(.22, 1, .36, 1);
   --ease-in: cubic-bezier(.4, 0, 1, 1);
@@ -81,6 +83,7 @@
     --recent-1: #7A3A1E; --recent-2: #5E2D18; --recent-3: #472316; --recent-ink: #FDE8DC;
     --skel: #222632; --skel-shine: rgba(255,255,255,.06);
     --illo-shade: rgba(0,0,0,.3); --illo-line: #C3C8D3;
+    --brand: #EE79B4;
     color-scheme: dark;
   }
 }
@@ -108,6 +111,7 @@
   --recent-1: #7A3A1E; --recent-2: #5E2D18; --recent-3: #472316; --recent-ink: #FDE8DC;
   --skel: #222632; --skel-shine: rgba(255,255,255,.06);
   --illo-shade: rgba(0,0,0,.3); --illo-line: #C3C8D3;
+  --brand: #EE79B4;
   color-scheme: dark;
 }
 
@@ -175,6 +179,16 @@ main { padding-block: 8px 40px; }
 .head h1 .soft { color: var(--ink-4); }
 .head p { color: var(--ink-3); max-width: 62ch; }
 .head-actions { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 4px; }
+/* Hero header (Trends): a lilac-to-mint wash with a display headline and the range's dose bars along the bottom. */
+.head.hero { padding: 20px 20px 16px; gap: 10px; border-radius: var(--r-xl); box-shadow: var(--shadow-1);
+  background: radial-gradient(120% 100% at 100% 0%, color-mix(in srgb, var(--lilac-line) 20%, transparent), transparent 60%), linear-gradient(160deg, var(--lilac), var(--mint)); }
+.head.hero .eyebrow { color: var(--lilac-ink); }
+.head.hero h1 { font-size: clamp(2.125rem, 9vw, 2.75rem); letter-spacing: -.02em; }
+.head.hero h1 .soft { color: var(--ink-3); }
+.hero-bars { display: flex; align-items: flex-end; gap: 3px; height: 56px; margin-top: 6px; }
+.hero-bars[data-n="30"] { gap: 2px; } .hero-bars[data-n="90"] { gap: 1px; }
+.hero-bars i { flex: 1 1 0; min-width: 0; border-radius: 3px; background: var(--lilac-line); }
+.hero-bars i.none { height: 4px; background: color-mix(in srgb, var(--lilac-line) 25%, transparent); }
 .section-title { padding: 0 4px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 
 /* Tiles */
@@ -231,6 +245,9 @@ a.tile { color: var(--ink); }
 .seg { --n: 2; --k: 0; position: relative; isolation: isolate; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); background: var(--surface-2); border-radius: 24px; padding: 4px; gap: 2px; }
 .seg button { appearance: none; border: 0; background: none; min-height: 40px; padding: 0 12px; border-radius: 20px; font-size: var(--fs-sm); cursor: pointer; color: var(--ink-2); font-weight: 500; white-space: nowrap; }
 .seg button[aria-pressed="true"] { color: var(--btn-ink); font-weight: 600; }
+/* Two-line options (syringe sizes): the second line is smaller, so each label fits a 320px column. */
+.seg button small { display: block; font-size: 11px; font-weight: 500; opacity: .85; line-height: 1.2; }
+.seg button:has(small) { padding: 4px 6px; line-height: 1.2; min-height: 44px; }
 /* One pill slides under whichever button has aria-pressed="true"; the buttons are equal grid columns. */
 .seg::before { content: ""; position: absolute; z-index: -1; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px - (var(--n) - 1) * 2px) / var(--n)); border-radius: 20px; background: var(--btn); transform: translateX(calc(var(--k) * (100% + 2px))); }
 .seg:not(:has(> button[aria-pressed="true"]))::before { opacity: 0; }
@@ -328,9 +345,17 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .daybar .mark.todo { background: var(--dark); border: 2.5px solid var(--on-dark); }
 .daybar .t { position: absolute; top: 46px; transform: translateX(-50%); font-size: 11px; color: var(--on-dark-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .daybar .t.end { right: 0; transform: none; }
-.progress { display: flex; gap: 4px; }
-.progress i { width: 28px; height: 6px; border-radius: 3px; background: var(--dark-line); display: block; }
-.progress i.on { background: var(--go); }
+/* Next up: the name at display size, with a ring of today's doses beside it */
+.next-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: center; }
+.next-name { font-size: clamp(1.75rem, 7vw, 2.25rem); font-weight: 600; letter-spacing: -.02em; line-height: 1.05; overflow-wrap: anywhere; }
+.next-dose { color: var(--on-dark-2); font-weight: 500; }
+.today-ring { position: relative; width: 76px; height: 76px; display: grid; place-items: center; flex: none; }
+.today-ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.today-ring circle { fill: none; stroke-width: 7; }
+.today-ring .track { stroke: var(--dark-line); }
+.today-ring .arc { stroke: var(--go); stroke-linecap: round; }
+.today-ring b { font-size: 1.5rem; font-weight: 600; line-height: 1; letter-spacing: -.02em; }
+.today-ring small { font-size: var(--fs-xs); font-weight: 500; color: var(--on-dark-3); }
 .dots7 { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-top: auto; }
 .dots7 i { aspect-ratio: 1; border-radius: 50%; box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--mint-ink) 35%, transparent); display: block; }
 .dots7 i.on { background: var(--mint-ink); box-shadow: none; }
@@ -445,7 +470,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .tile.dark .strip-legend { color: var(--on-dark-3); }
 .example { position: relative; opacity: .7; pointer-events: none; }
 .example::after { content: "Example"; position: absolute; top: 14px; right: 14px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); border: 1px dashed var(--ink-3); border-radius: 6px; padding: 1px 6px; }
-.empty { border: 1.5px dashed var(--surface-3); border-radius: var(--r-lg); padding: 22px; display: grid; gap: 12px; justify-items: start; }
+.empty { background: var(--surface); box-shadow: var(--ring); border-radius: var(--r-lg); padding: 18px 18px 22px; display: grid; gap: 12px; justify-items: center; text-align: center; }
+.empty > .illo-ground { justify-self: stretch; }
 
 /* Learn */
 .filters { display: grid; gap: 10px; }
@@ -460,6 +486,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .card .aka { font-size: var(--fs-xs); color: var(--ink-3); margin-top: 2px; }
 .card .sum { font-size: .8125rem; line-height: 1.4; color: var(--ink-3); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .card .row-wrap { gap: 6px; }
+.card .chip { white-space: normal; }
 .count { font-size: var(--fs-sm); color: var(--ink-3); }
 .tiers { display: grid; }
 .tier-row { display: grid; gap: 8px; padding: 14px 0; border-top: 1px solid var(--line); }
@@ -481,7 +508,6 @@ details[open] > summary .chev { transform: rotate(90deg); }
 .band[data-t="2"] { --tc: var(--t2); --tb: var(--t2-bg); } .band[data-t="3"] { --tc: var(--t3); --tb: var(--t3-bg); }
 .band[data-t="4"] { --tc: var(--t4); --tb: var(--t4-bg); } .band[data-t="5"] { --tc: var(--t5); --tb: var(--t5-bg); }
 .band .band-top { display: flex; align-items: center; gap: 10px; }
-.band .glyph:not([data-solid]) { background: var(--surface) !important; }
 .band .tier { background: var(--surface); }
 .band .seq span { background: color-mix(in srgb, var(--surface) 70%, transparent); }
 
@@ -551,8 +577,10 @@ tr:last-child td { border-bottom: 0; }
 .sheet:focus { outline: none; }
 .scrim[data-closing] { pointer-events: none; }
 /* Phone grabber: drag it down to close. Only it starts a drag, so the form still scrolls normally; it stays pinned at the top while the form scrolls. */
-.grabber { position: sticky; top: -20px; z-index: 2; display: grid; place-items: center; height: 44px; margin: -20px 0 -16px; background: var(--bg); border-radius: var(--r-xl) var(--r-xl) 0 0; cursor: grab; touch-action: none; }
+.grabber { position: sticky; top: 0; z-index: 2; display: grid; place-items: center; height: 44px; margin: 0 0 -16px; background: var(--bg); border-radius: var(--r-xl) var(--r-xl) 0 0; cursor: grab; touch-action: none; }
 .grabber i { width: 40px; height: 5px; border-radius: 3px; background: var(--surface-3); }
+/* On phones the grabber is the sheet's top edge, so the sheet has no top padding for content to show through above it. */
+@media (max-width: 699px) { .sheet { padding-top: 0; } }
 @media (min-width: 700px) { .grabber { display: none; } }
 .sheet-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 0 4px; }
 .sheet-foot { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; position: sticky; bottom: -16px; background: var(--bg); padding: 10px 0 4px; }
@@ -656,8 +684,11 @@ a.tile, button.tile { position: relative; }
 
 /* Illustrations and skeletons */
 .illo { display: block; max-width: 100%; height: auto; }
-/* On the instrument card, draw with on-dark colours so the picture holds up on --dark in both themes. */
-.tile.dark .illo { --illo-line: var(--on-dark-3); --illo-shade: var(--dark-line); --surface: var(--on-dark); --sky: var(--dark-line); --mint-ink: var(--dark); }
+.illo-ground { display: grid; place-items: center; padding: 14px 12px 6px; border-radius: var(--r-md); background: radial-gradient(70% 90% at 50% 100%, var(--surface), transparent 70%), var(--surface-2); }
+/* On the instrument card the art is redrawn in the on-dark palette: translucent glass cells and vial, a soft blue header,
+   outlines in --on-dark-3, so it sits in the card instead of reading as a light sticker. */
+.tile.dark .illo-ground { background: radial-gradient(70% 90% at 50% 100%, var(--dark-line), transparent 70%); }
+.tile.dark .illo { --illo-line: var(--on-dark-3); --illo-shade: rgba(0,0,0,.22); --surface: var(--dark-line); --sky: var(--dark-line); --sky-ink: var(--dose-cell); --mint-ink: var(--dark); --ink-4: var(--on-dark-3); }
 .skel-page { display: grid; gap: 12px; }
 .skel { position: relative; overflow: hidden; border-radius: var(--r-lg); background: var(--skel); }
 
@@ -676,12 +707,15 @@ footer.foot p { max-width: 90ch; }
   @keyframes pop { from { transform: scale(0); } }
   .grow { animation: grow var(--dur-slow) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 60ms + 250ms); transform-origin: left; }
   @keyframes grow { from { transform: scaleX(0); } }
+  .grow.up { animation-name: grow-up; transform-origin: bottom; }
+  @keyframes grow-up { from { transform: scaleY(0); } }
   .syringe .moves { transition: transform var(--dur-slow) var(--ease-out); }
   details > summary .chev { transition: transform var(--dur-med) var(--ease-out); }
 
   /* Tactile feedback: quick press, gentle lift */
-  .btn, .fchip, .icon-btn, .tabbar .log, .hour { transition: transform var(--dur-fast) var(--ease-out), filter var(--dur-fast) var(--ease-out); }
+  .btn, .fchip, .icon-btn, .tabbar .log, .tabbar a, .seg button, .hour { transition: transform var(--dur-fast) var(--ease-out), filter var(--dur-fast) var(--ease-out); }
   .btn:active, .fchip:active, .icon-btn:active, .tabbar .log:active { transform: scale(.97); }
+  .tabbar a:active, .seg button:active { transform: scale(.94); }
   .card, a.tile, button.tile { transition: transform var(--dur-med) var(--ease-out); }
   .card::after, a.tile::after, button.tile::after { transition: opacity var(--dur-med) var(--ease-out); }
   @media (hover: hover) { .card:hover, a.tile:hover, button.tile:hover { transform: translateY(-2px); } }
@@ -726,9 +760,13 @@ footer.foot p { max-width: 90ch; }
   @keyframes vt-out { to { opacity: 0; transform: translateY(-4px); } }
   @keyframes vt-in { from { opacity: 0; transform: translateY(8px); } }
   ::view-transition-group(topbar), ::view-transition-group(tabbar) { animation-duration: 0s; }
-  /* Once routes change, pages appear as they are, so the crossfade is the one motion (no empty frame, no late stagger). */
-  :root[data-routed] .rise, :root[data-routed] .pop, :root[data-routed] .grow, :root[data-routed] .draw { animation: none; }
-  :root[data-routed] .draw { stroke-dashoffset: 0; }
+  /* The notice is the same on every route, so it holds still like the bars; only the page body moves. */
+  .notice { view-transition-name: notice; }
+  ::view-transition-group(notice) { animation-duration: 0s; }
+  /* After a route change the page is already visible in the crossfade, so blocks settle with a short slide and no fade
+     (no empty frame, no late stagger), while dots, bars, calendars and sparklines still pop, grow and draw in. */
+  :root[data-routed] .rise { animation: settle var(--dur-med) var(--ease-out) both; animation-delay: calc(min(var(--i, 0), 6) * 20ms); }
+  @keyframes settle { from { transform: translateY(6px); } }
   /* A sheet closed by a route change leaves on its own: only its live exit shows, never a frozen copy in the crossfade. */
   .scrim { view-transition-name: sheet; }
   ::view-transition-group(sheet) { animation-duration: 0s; }

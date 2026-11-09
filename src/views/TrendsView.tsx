@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import type { Checkin, DoseEntry, Ledger } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { useAccount } from '../lib/account';
@@ -86,7 +86,21 @@ function ExportPanel({ ledger }: { ledger: Ledger }) {
 /** How many timeline entries show before "Show all". */
 const RECENT = 12;
 
-function History({ doses, checkins, onBackfill }: { doses: DoseEntry[]; checkins: Checkin[]; onBackfill: () => void }) {
+/** Header chart: one bar per day in the range, as tall as that day's dose count, so the page opens on the shape of the log. */
+function DoseBars({ doses, days, now }: { doses: DoseEntry[]; days: number; now: Date }) {
+  const perDay = new Map<string, number>();
+  for (const d of doses) { const k = dayKey(new Date(d.at)); perDay.set(k, (perDay.get(k) ?? 0) + 1); }
+  const counts = Array.from({ length: days }, (_, i) => perDay.get(dayKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - (days - 1) + i))) ?? 0);
+  const max = Math.max(1, ...counts);
+  const total = counts.reduce((a, b) => a + b, 0);
+  return (
+    <div className="hero-bars" data-n={days} role="img" aria-label={`Doses logged each day over the last ${days} days: ${total} in total.`}>
+      {counts.map((n, i) => <i key={i} className={`grow up${n ? '' : ' none'}`} style={{ height: n ? `${(n / max) * 100}%` : undefined, ['--i' as string]: Math.round((i / days) * 12) }} />)}
+    </div>
+  );
+}
+
+function History({ doses, checkins, onBackfill, art }: { doses: DoseEntry[]; checkins: Checkin[]; onBackfill: () => void; art?: ReactNode }) {
   const toast = useToast();
   const [showAll, setShowAll] = useState(false);
   type Item = { kind: 'dose'; at: string; e: DoseEntry } | { kind: 'check'; at: string; e: Checkin };
@@ -97,6 +111,7 @@ function History({ doses, checkins, onBackfill }: { doses: DoseEntry[]; checkins
   let lastDay = '';
   return (
     <section className="tile" aria-labelledby="hist-h">
+      {!items.length && art}
       <div className="spread" style={{ alignItems: 'center' }}>
         <h3 id="hist-h">History</h3>
         <button type="button" className="btn soft sm" onClick={onBackfill}>Fill in past days</button>
@@ -249,15 +264,16 @@ export function TrendsView({ onBackfill }: { onBackfill: () => void }) {
 
   return (
     <section className="view">
-      <header className="head rise">
-        {empty && <IlloTrends />}
-        <span className="eyebrow">Trends · {RANGES.find(r => r[0] === days)![1]}</span>
+      <header className={`head rise${empty ? '' : ' hero'}`}>
+        {/* No range control on an empty log, so the eyebrow doesn't name one. */}
+        <span className="eyebrow">{empty ? 'Trends' : `Trends · ${RANGES.find(r => r[0] === days)![1]}`}</span>
         <h1>{line1}{line2 && <><br /><span className="soft">{line2[0].toUpperCase() + line2.slice(1)}.</span></>}</h1>
+        {!empty && <DoseBars doses={doses} days={days} now={now} />}
       </header>
       {/* Nothing logged yet: the history card explains what will show up and offers the first step, instead of a dashboard of dashes. */}
       {empty ? (
         <>
-          <History doses={doses} checkins={checkins} onBackfill={onBackfill} />
+          <History doses={doses} checkins={checkins} onBackfill={onBackfill} art={<IlloTrends />} />
           <ExportPanel ledger={ledger} />
         </>
       ) : <>

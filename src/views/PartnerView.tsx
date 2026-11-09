@@ -67,25 +67,30 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
   const now = new Date();
 
   if (!acct.configured || !acct.user || !partners.length) {
+    // First fetch, before anything has loaded: either page could follow, so show neither page's words yet.
+    const first = loading && !!acct.user && !fetchedAt;
     return (
       <section className="view">
-        <header className="head rise">
-          <span className="eyebrow">Partner</span>
-          <h1>Track progress together.</h1>
-          <p>Link accounts with your partner and you'll each see the other's weight and shots next to your own. Neither of you can change the other's log.</p>
-        </header>
-        {/* First load: placeholder blocks shaped like the partner page; the sentence stays for screen readers. */}
-        <p className="sr-only" aria-live="polite">{loading && acct.user ? 'Checking for a linked partner…' : ''}</p>
-        {loading && acct.user ? (
-          <div className="skel-page" aria-hidden="true">
-            <div className="skel" style={{ height: 48, width: '60%' }} />
-            <div className="skel" style={{ height: 180 }} />
-            <div className="bento"><div className="skel" style={{ height: 120 }} /><div className="skel" style={{ height: 120 }} /></div>
+        <p className="sr-only" aria-live="polite">{first ? 'Checking for a linked partner…' : ''}</p>
+        {first ? (
+          /* A heading and one control, the size of the page either answer starts with, so nothing jumps far when it lands. */
+          <div className="skel-page head" aria-hidden="true">
+            <span className="eyebrow">Partner</span>
+            <div className="skel" style={{ height: 34, width: '70%', borderRadius: 12 }} />
+            <div className="skel" style={{ height: 18, width: '90%', borderRadius: 8 }} />
+            <div className="skel" style={{ height: 48, width: 180, borderRadius: 24 }} />
           </div>
         ) : (
-          <div className="head-actions">
-            <button className="btn" onClick={onAccount}>{acct.user ? 'Link your partner' : 'Sign in to link'}</button>
-          </div>
+          <>
+            <header className="head rise">
+              <span className="eyebrow">Partner</span>
+              <h1>Track progress together.</h1>
+              <p>Link accounts with your partner and you'll each see the other's weight and shots next to your own. Neither of you can change the other's log.</p>
+            </header>
+            <div className="head-actions">
+              <button className="btn" onClick={onAccount}>{acct.user ? 'Link your partner' : 'Sign in to link'}</button>
+            </div>
+          </>
         )}
         {error && <p className="alert warn"><b>Couldn't load your partner.</b><span>{error}</span></p>}
       </section>

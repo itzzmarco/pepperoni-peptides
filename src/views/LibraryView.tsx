@@ -118,6 +118,12 @@ export function LibraryView() {
         <h1>What the evidence says.<br /><span className="soft">{PEPTIDES.length} peptides, graded.</span></h1>
         <p>Compounds that trend online, with what studies show, how they're regulated in the US, and the warning signs to know. Updated {AS_OF}.</p>
       </header>
+      {/* Finding a peptide is the main job here, so search sits right under the title; the overview comes after the library. */}
+      <div className="search">
+        <label className="sr-only" htmlFor="lib-q">Search peptides</label>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+        <input type="search" id="lib-q" value={f.q} onChange={e => setF({ ...f, q: e.target.value })} placeholder="Search name, nickname or goal" autoComplete="off" />
+      </div>
       <div className="bento rise" style={{ ['--i' as string]: 1 }}>
         {GUIDES.map(g => (
           <a key={g.href} href={g.href} className={`tile ${g.tone}`} style={{ gap: 10 }}>
@@ -128,26 +134,9 @@ export function LibraryView() {
             <span className="sub">{g.sub}</span>
           </a>
         ))}
-        <details className="tile mint span-2">
-          <summary className="spread" style={{ alignItems: 'center', flexWrap: 'nowrap' }}>
-            <span className="stack" style={{ gap: 4 }}>
-              <span className="label">How evidence tiers work</span>
-              <span style={{ fontSize: '1.125rem', fontWeight: 600, lineHeight: 1.25 }}>Only {trialBacked} of {PEPTIDES.length} have randomized human trials</span>
-            </span>
-            <span className="arrow" aria-hidden="true"><svg className="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
-          </summary>
-          <TierOverview />
-        </details>
       </div>
-
-      <TopChart />
 
       <div className="section-title"><h2>Library</h2><span className="count" aria-live="polite">{list.length === PEPTIDES.length ? `All ${list.length}` : `${list.length} of ${PEPTIDES.length}`}</span></div>
-      <div className="search">
-        <label className="sr-only" htmlFor="lib-q">Search peptides</label>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
-        <input type="search" id="lib-q" value={f.q} onChange={e => setF({ ...f, q: e.target.value })} placeholder="Search name, nickname or goal" autoComplete="off" />
-      </div>
       <div className="filters">
         <div className="filter-row"><span className="label muted">Evidence</span>{chip('tier', 'all', 'All')}{TIER_LIST.map(t => chip('tier', `${t}` as const, `T${t} ${TIERS[t].label}`, `var(--t${t})`))}</div>
         <div className="filter-row"><span className="label muted">Category</span>{chip('fam', 'all', 'All')}{(Object.keys(FAMILIES) as FamilyKey[]).map(k => chip('fam', k, FAMILIES[k].name))}</div>
@@ -170,6 +159,18 @@ export function LibraryView() {
           </div>
         )}
       </div>
+
+      <details className="tile mint">
+        <summary className="spread" style={{ alignItems: 'center', flexWrap: 'nowrap' }}>
+          <span className="stack" style={{ gap: 4 }}>
+            <span className="label">How evidence tiers work</span>
+            <span style={{ fontSize: '1.125rem', fontWeight: 600, lineHeight: 1.25 }}>Only {trialBacked} of {PEPTIDES.length} have randomized human trials</span>
+          </span>
+          <span className="arrow" aria-hidden="true"><svg className="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
+        </summary>
+        <TierOverview />
+      </details>
+      <TopChart />
     </section>
   );
 }

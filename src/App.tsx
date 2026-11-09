@@ -23,7 +23,7 @@ import { AccountButton } from './components/AccountButton';
 import { ThemeToggle } from './components/ThemeToggle';
 import { TabBar } from './components/TabBar';
 import { SheetClosing } from './components/Sheet';
-import { EXIT_MS, prefersReducedMotion } from './components/Motion';
+import { exitMs, prefersReducedMotion } from './components/Motion';
 
 const ROUTES = ['today', 'trends', 'learn', 'peptides', 'calculator', 'safety', 'partner'] as const;
 export type Route = (typeof ROUTES)[number];
@@ -88,7 +88,7 @@ export function App() {
   const closing = !sheet && !!shown;
   useEffect(() => {
     if (!closing) return;
-    const t = setTimeout(() => setShown(null), EXIT_MS);
+    const t = setTimeout(() => setShown(null), exitMs());
     return () => clearTimeout(t);
   }, [closing]);
   const close = useCallback(() => setSheet(null), []);
@@ -130,11 +130,13 @@ export function App() {
         <div className="wrap">
           <div className="row">
             <a className="brand" href="#today" aria-label="Peptide Ledger, today">
-              <svg width="22" height="26" viewBox="0 0 26 30" aria-hidden="true">
-                <rect x="6" y="1" width="14" height="6" rx="2" fill="var(--sky-ink)" />
-                <rect x="8" y="7" width="10" height="3" fill="var(--ink-4)" />
-                <path d="M5 12 Q5 10 7 10 H19 Q21 10 21 12 V26 Q21 29 18 29 H8 Q5 29 5 26 Z" fill="var(--surface)" stroke="var(--ink)" strokeWidth="1.8" />
-                <path d="M6.5 22 H19.5 V26 Q19.5 27.5 18 27.5 H8 Q6.5 27.5 6.5 26 Z" fill="var(--lilac-line)" opacity=".6" />
+              {/* The installed icon's vial, drawn the same way: a pink cap on a dark rounded tile. */}
+              <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
+                <rect width="32" height="32" rx="7" fill="var(--dark)" />
+                <rect x="10" y="4" width="12" height="5" rx="1.5" fill="var(--brand)" />
+                <rect x="11.5" y="9" width="9" height="2.5" fill="var(--on-dark-3)" />
+                <path d="M9 13.5 Q9 12 10.5 12 H21.5 Q23 12 23 13.5 V25 Q23 28 20 28 H12 Q9 28 9 25 Z" fill="var(--on-dark)" />
+                <path d="M10.3 21 H21.7 V25 Q21.7 26.7 20 26.7 H12 Q10.3 26.7 10.3 25 Z" fill="var(--on-dark-3)" />
               </svg>
               Peptide Ledger
             </a>

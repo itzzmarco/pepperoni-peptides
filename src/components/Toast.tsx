@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
-import { EXIT_MS, prefersReducedMotion } from './Motion';
+import { exitMs, prefersReducedMotion } from './Motion';
 
 const ToastCtx = createContext<(msg: string) => void>(() => {});
 
@@ -9,7 +9,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     const id = Date.now();
     setMsg({ text, id });
     // Fade out first, then unmount; with reduced motion it just goes at 3.2s.
-    const exit = prefersReducedMotion() ? 0 : EXIT_MS;
+    const exit = prefersReducedMotion() ? 0 : exitMs();
     if (exit) setTimeout(() => setMsg(m => (m?.id === id ? { ...m, out: true } : m)), 3200 - exit);
     setTimeout(() => setMsg(m => (m?.id === id ? null : m)), 3200);
   }, []);

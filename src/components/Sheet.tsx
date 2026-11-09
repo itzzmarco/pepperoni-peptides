@@ -66,7 +66,8 @@ export function Sheet({ onClose, children, label }: { onClose: () => void; child
   };
 
   return (
-    <div className="scrim" data-closing={closing || undefined} onMouseDown={e => e.target === e.currentTarget && onClose()}>
+    // A closing sheet is inert as well as click-through, so neither pointer nor keyboard can land in it on its way out.
+    <div className="scrim" data-closing={closing || undefined} inert={closing || undefined} onMouseDown={e => e.target === e.currentTarget && onClose()}>
       <div className="sheet" role="dialog" aria-modal="true" aria-label={label} ref={ref} tabIndex={-1}>
         <div className="grabber" aria-hidden="true" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}><i /></div>
         {children}

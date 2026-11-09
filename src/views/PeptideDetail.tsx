@@ -43,7 +43,7 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
       </a></div>
       <header className="head band rise" data-t={p.tier} style={rise(1)}>
         <div className="band-top">
-          <FamilyGlyph family={p.family} size={44} />
+          <FamilyGlyph family={p.family} size={44} ground="surface" />
           <span className="eyebrow">{FAMILIES[p.family]?.name}{p.isPeptide === false ? ' · not technically a peptide' : ''}</span>
         </div>
         <h1>{p.name}</h1>

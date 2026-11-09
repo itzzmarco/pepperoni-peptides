@@ -4,7 +4,7 @@ import { fmtNum } from '../lib/format';
 import { Syringe } from '../components/Syringe';
 import { useCountUp } from '../components/Motion';
 
-const SYRINGES: [string, string][] = [['30', '0.3 mL · 30u'], ['50', '0.5 mL · 50u'], ['100', '1 mL · 100u']];
+const SYRINGES: [string, string, string][] = [['30', '0.3 mL', '30u'], ['50', '0.5 mL', '50u'], ['100', '1 mL', '100u']];
 const rise = (i: number) => ({ ['--i' as string]: i });
 
 export function CalculatorView() {
@@ -50,7 +50,7 @@ export function CalculatorView() {
         </div>
         <div className="field"><span>Syringe</span>
           <div className="seg" role="group" aria-label="Syringe size">
-            {SYRINGES.map(([v, l]) => <button type="button" key={v} aria-pressed={c.syr === v} onClick={() => setC({ ...c, syr: v })}>{l}</button>)}
+            {SYRINGES.map(([v, ml, u]) => <button type="button" key={v} aria-pressed={c.syr === v} onClick={() => setC({ ...c, syr: v })}>{ml} <small>{u}</small></button>)}
           </div>
           <small>All are U-100 insulin syringes: 100 units = 1 mL</small>
         </div>

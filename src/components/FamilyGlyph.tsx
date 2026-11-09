@@ -26,11 +26,15 @@ const GLYPH: Record<FamilyKey, { tone: string; solid?: boolean; d: string }> = {
   lipo: { tone: 'lemon', d: 'M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z' },
 };
 
-/** A family's icon on its tinted ground, decorative only: the family name is already in the text. */
-export function FamilyGlyph({ family, size = 40 }: { family: FamilyKey; size?: number }) {
+/**
+ * A family's icon on its tinted ground, decorative only: the family name is already in the text.
+ * `ground="surface"` puts the tinted icons on a plain surface instead, for when the glyph already sits on a tint.
+ */
+export function FamilyGlyph({ family, size = 40, ground }: { family: FamilyKey; size?: number; ground?: 'surface' }) {
   const g = GLYPH[family] ?? GLYPH.repair;
+  const bg = g.solid ? `var(--${g.tone}-ink)` : ground === 'surface' ? 'var(--surface)' : `var(--${g.tone})`;
   return (
-    <span className="glyph" aria-hidden="true" data-solid={g.solid || undefined} style={{ width: size, height: size, background: `var(--${g.tone}${g.solid ? '-ink' : ''})`, color: `var(--${g.tone}${g.solid ? '' : '-ink'})` }}>
+    <span className="glyph" aria-hidden="true" style={{ width: size, height: size, background: bg, color: `var(--${g.tone}${g.solid ? '' : '-ink'})` }}>
       <svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={g.d} /></svg>
     </span>
   );

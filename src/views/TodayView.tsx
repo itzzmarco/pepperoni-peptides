@@ -46,6 +46,20 @@ function DayBar({ done, todo, now }: { done: Date[]; todo: Date[]; now: Date }) 
   );
 }
 
+/** Today's doses as a ring: the arc is the share logged, the count sits in the middle. The sentence beside it carries the meaning. */
+function TodayRing({ done, total }: { done: number; total: number }) {
+  const share = Math.min(1, done / total) * 100;
+  return (
+    <span className="today-ring pop" aria-hidden="true" style={rise(3)}>
+      <svg viewBox="0 0 72 72" width="76" height="76">
+        <circle cx="36" cy="36" r="30" className="track" />
+        {done > 0 && <circle cx="36" cy="36" r="30" className="arc" pathLength={100} strokeDasharray={`${share} 100`} />}
+      </svg>
+      <b className="num">{done}<small>/{total}</small></b>
+    </span>
+  );
+}
+
 function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now, site }: {
   r: Regimen; st: RegimenStatus; actions: Actions; doneToday: number; dueToday: number; todo: Date[]; done: Date[]; now: Date; site: NextSite | null;
 }) {
@@ -58,11 +72,14 @@ function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now, site }: 
         <span className="eyebrow">Next up</span>
         <span className="sub num">{st.text}</span>
       </div>
-      <div className="stack" style={{ gap: 4 }}>
-        <span style={{ fontSize: '1.625rem', fontWeight: 600, letterSpacing: '-.01em', lineHeight: 1.15 }}>{regName(r)} · {fmtNum(Number(r.dose), 3)} {r.unit}</span>
-        <span className="sub" style={{ fontSize: '.9375rem' }}>
-          {[usual && st.s !== 'ok' ? `Usually around ${fmtTime(usual)}` : '', math ? (isVolumeUnit(r.unit) ? `about ${drugAmount(math.doseMg, PEP[r.compoundId]?.defaultUnit)}` : `draw ${fmtNum(math.units, 1)} units`) : checks.length ? 'check the vial details' : '', site ? siteLabel(site.site, r.route) : r.route].filter(Boolean).join(' · ')}
-        </span>
+      <div className="next-hero">
+        <div className="stack" style={{ gap: 6 }}>
+          <span className="next-name">{regName(r)} · <span className="next-dose">{fmtNum(Number(r.dose), 3)} {r.unit}</span></span>
+          <span className="sub" style={{ fontSize: '.9375rem' }}>
+            {[usual && st.s !== 'ok' ? `Usually around ${fmtTime(usual)}` : '', math ? (isVolumeUnit(r.unit) ? `about ${drugAmount(math.doseMg, PEP[r.compoundId]?.defaultUnit)}` : `draw ${fmtNum(math.units, 1)} units`) : checks.length ? 'check the vial details' : '', site ? siteLabel(site.site, r.route) : r.route].filter(Boolean).join(' · ')}
+          </span>
+        </div>
+        {total > 0 && <TodayRing done={doneToday} total={total} />}
       </div>
       {(done.length > 0 || todo.length > 0) && <DayBar done={done} todo={todo} now={now} />}
       <div className="spread" style={{ alignItems: 'center' }}>
@@ -70,12 +87,7 @@ function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now, site }: 
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
           Log now
         </button>
-        {total > 0 && (
-          <span className="stack" style={{ gap: 6, justifyItems: 'end' }}>
-            <span className="progress" aria-hidden="true">{Array.from({ length: Math.min(total, 6) }, (_, i) => <i key={i} className={i < doneToday ? 'on' : ''} />)}</span>
-            <span className="sub">{doneToday} of {total} today</span>
-          </span>
-        )}
+        {total > 0 && <span className="sub">{doneToday} of {total} today</span>}
       </div>
     </section>
   );

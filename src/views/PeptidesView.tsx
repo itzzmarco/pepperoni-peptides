@@ -195,12 +195,12 @@ export function PeptidesView(actions: Actions) {
   );
   return (
     <section className="view">
-      {/* First run: one empty hero (art, headline, what you get, one primary action) instead of a header and a second empty card. */}
+      {/* First run: one empty hero (headline, art, what you get, one primary action) instead of a header and a second empty card. */}
       {regimens.length === 0 ? (
         <div className="empty rise">
-          <IlloShelf />
           <span className="eyebrow">Your peptides</span>
           <h1>Nothing tracked yet.<br /><span className="soft">Add what you were prescribed.</span></h1>
+          <IlloShelf />
           <p className="muted small">Each one gets a due-date status, a 4-week history strip, and injection-site rotation.</p>
           <div className="row-wrap">
             <button className="btn" onClick={actions.addRegimen}>{plus}Add a peptide</button>

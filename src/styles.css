@@ -37,7 +37,7 @@
   --shadow-2: 0 2px 4px rgba(30,34,48,.06), 0 10px 24px rgba(30,34,48,.10);
   --shadow-3: 0 3px 6px rgba(30,34,48,.08), 0 18px 40px rgba(30,34,48,.18);
   /* Glass chrome (top bar, tab bar) and the pill that marks the current tab. */
-  --glass: rgba(246,246,248,.74); --glass-edge: rgba(30,34,48,.08); --tab-pill: rgba(30,34,48,.09);
+  --glass: rgba(246,246,248,.74); --glass-edge: rgba(30,34,48,.08);
   /* Instrument card: highlights layered over --dark, plus a 1px top light. */
   --dark-glow: rgba(141,180,255,.26); --dark-glow-2: rgba(127,224,181,.12); --dark-hi: rgba(255,255,255,.14);
   /* Dark themes only: a bright edge and a soft sky halo, since a black shadow can't lift the card off a near-black page. */
@@ -96,7 +96,7 @@
     --shadow-1: 0 1px 2px rgba(0,0,0,.3), 0 2px 8px rgba(0,0,0,.25);
     --shadow-2: 0 2px 4px rgba(0,0,0,.35), 0 10px 24px rgba(0,0,0,.4);
     --shadow-3: 0 3px 6px rgba(0,0,0,.4), 0 18px 40px rgba(0,0,0,.55);
-    --glass: rgba(16,18,24,.74); --glass-edge: rgba(255,255,255,.08); --tab-pill: rgba(255,255,255,.15);
+    --glass: rgba(16,18,24,.74); --glass-edge: rgba(255,255,255,.08);
     --dark-glow: rgba(141,180,255,.28); --dark-glow-2: rgba(127,224,181,.14); --dark-hi: rgba(255,255,255,.22);
     --dark-ring: rgba(141,180,255,.28); --dark-halo: rgba(141,180,255,.16);
     --dark-fill: rgba(255,255,255,.09); --dark-fill-2: rgba(255,255,255,.12); --dark-edge: rgba(255,255,255,.22);
@@ -129,7 +129,7 @@
   --shadow-1: 0 1px 2px rgba(0,0,0,.3), 0 2px 8px rgba(0,0,0,.25);
   --shadow-2: 0 2px 4px rgba(0,0,0,.35), 0 10px 24px rgba(0,0,0,.4);
   --shadow-3: 0 3px 6px rgba(0,0,0,.4), 0 18px 40px rgba(0,0,0,.55);
-  --glass: rgba(16,18,24,.74); --glass-edge: rgba(255,255,255,.08); --tab-pill: rgba(255,255,255,.15);
+  --glass: rgba(16,18,24,.74); --glass-edge: rgba(255,255,255,.08);
   --dark-glow: rgba(141,180,255,.28); --dark-glow-2: rgba(127,224,181,.14); --dark-hi: rgba(255,255,255,.22);
   --dark-ring: rgba(141,180,255,.28); --dark-halo: rgba(141,180,255,.16);
   --dark-fill: rgba(255,255,255,.09); --dark-fill-2: rgba(255,255,255,.12); --dark-edge: rgba(255,255,255,.22);
@@ -190,11 +190,13 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .topbar[data-sub] .bar-back { opacity: 1; visibility: visible; }
 .topbar[data-sub] .brand svg { opacity: 0; }
 /* Once the page title scrolls under the bar, the wordmark gives its place to the route or peptide name. The name is its
-   own button over the wordmark's spot that scrolls back to the top; the vial beside it stays the home link. */
+   own button over the wordmark's spot that scrolls back to the top, with an up arrow; the vial beside it stays the home link. */
 .brand-wrap { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; margin-right: auto; min-width: 0; }
 .brand-wrap > * { grid-area: 1 / 1; }
-.wordmark, .bar-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.bar-title { appearance: none; border: 0; background: none; padding: 0; font: inherit; text-align: left; cursor: pointer; align-self: stretch; margin-left: 34px; font-weight: 600; font-size: var(--fs-md); color: var(--ink); min-width: 0; opacity: 0; transform: translateY(6px); pointer-events: none; }
+.wordmark, .bar-title > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+/* Its up arrow says what a tap does (back to the top), unlike the vial's link home beside it. */
+.bar-title > svg { flex: none; color: var(--ink-3); }
+.bar-title { display: flex; align-items: center; gap: 4px; appearance: none; border: 0; background: none; padding: 0; font: inherit; text-align: left; cursor: pointer; align-self: stretch; margin-left: 34px; font-weight: 600; font-size: var(--fs-md); color: var(--ink); min-width: 0; opacity: 0; transform: translateY(6px); pointer-events: none; }
 .topbar[data-titled] .wordmark { opacity: 0; transform: translateY(-6px); }
 .topbar[data-titled] .bar-title { opacity: 1; transform: none; pointer-events: auto; }
 /* The brand row keeps a 44px target in both states. */
@@ -293,6 +295,7 @@ a.tile { color: var(--ink); }
 .tone-sky.tone-sky { color: var(--sky-ink); }
 .tone-peach.tone-peach { color: var(--peach-ink); }
 .tone-danger.tone-danger { color: var(--danger); }
+.tone-effect.tone-effect { color: var(--effect-cell); }
 .sub.em { color: var(--ink-2); font-weight: 600; }
 .center { text-align: center; }
 .min-0 { min-width: 0; }
@@ -528,6 +531,14 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .pattern .c[aria-pressed="true"] { outline: 2px solid var(--on-dark); outline-offset: 2px; }
 .pattern-day { font-size: var(--fs-sm); font-weight: 600; color: var(--on-dark); min-height: 1.5em; }
 .tile.dark .legend { color: var(--on-dark-2); }
+.pattern .legend { padding-top: 4px; }
+/* The pattern card's one-line finding: large body text, between the eyebrow and the grid. */
+.pattern-say { font-size: var(--fs-lg); font-weight: 500; line-height: 1.3; }
+/* Legend swatches match the marks they explain: pattern cells, and the calendar's logged day and today ring. */
+.legend i.dose { background: var(--dose-cell); }
+.legend i.effect { background: var(--effect-cell); }
+.legend i.cal-on { background: var(--mint-ink); border-radius: 6px; }
+.legend i.cal-today { background: var(--surface); box-shadow: inset 0 0 0 2px var(--mint-ink); border-radius: 6px; }
 .pick { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -20px; padding: 0 20px 2px; }
 .pick::-webkit-scrollbar { display: none; }
 .sheet .pick.in-sheet { margin: 0 -16px; padding: 0 16px 2px; }
@@ -609,15 +620,14 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .tile.dark .strip-legend { color: var(--on-dark-3); }
 .empty { background: var(--surface); box-shadow: var(--ring); border-radius: var(--r-lg); padding: 18px 18px 22px; display: grid; gap: 12px; justify-items: center; text-align: center; }
 .empty > .illo-ground { justify-self: stretch; }
-/* The art grows with the card, up to a size that still reads as a spot drawing. */
-.illo-ground > .illo { width: clamp(200px, 62%, 300px); }
-/* On a short screen the drawing shrinks to about 96px tall, so the title and the main action still show in the first view. */
-@media (max-height: 700px) { .illo-ground > .illo { width: 128px; } }
-/* An empty state inside a list (Trends' History) keeps the art small, so it reads as part of the page around it. */
-.empty.compact .illo-ground > .illo { width: 128px; }
-/* One empty-state layout everywhere: art, centred title, a line of copy, the main action. Today's dark card has its own drawing.
-   Two sizes, by job: an empty state that is the whole page (Peptides, Trends, Partner) leads with the page's h1 at display size;
-   one that sits under the page's own headline (Today's start card, Learn's No matches, History) uses an h3 at --fs-xl. */
+/* One object, a spot drawing that supports the words rather than leading them. */
+.illo-ground > .illo { width: clamp(96px, 30%, 136px); }
+/* On a short screen, and in an empty state inside a list (Trends' History), it drops to 88px; the shapes are bold enough to read there. */
+@media (max-height: 700px) { .illo-ground > .illo { width: 88px; } }
+.empty.compact .illo-ground > .illo { width: 88px; }
+/* One empty-state layout everywhere, by job. An empty state that is the whole page (Peptides, Trends, Partner) opens on the
+   page's eyebrow and h1 at display size, then the art, the copy and the main action. One that sits under the page's own
+   headline (Today's start card, Learn's No matches, History) leads with its art over an h3 at --fs-xl. */
 .empty :is(h2, h3) { font-size: var(--fs-xl); }
 .empty > .eyebrow { margin-bottom: -6px; }
 .empty > p, .empty > .sub { max-width: 46ch; }
@@ -691,6 +701,9 @@ details[open] > summary .chev { transform: rotate(90deg); }
 .sec p { max-width: 72ch; }
 .sec.flag { background: var(--danger-bg); box-shadow: none; } .sec.flag h4 { color: var(--danger); }
 .sec.caution { background: var(--lemon); box-shadow: none; } .sec.caution h4 { color: var(--lemon-ink); }
+/* Each guide section's heading leads with a small mark in a tinted disc of the heading's own colour. */
+.sec-h { display: flex; align-items: center; gap: 10px; }
+.sec-mark { flex: none; width: 32px; height: 32px; border-radius: 16px; display: grid; place-items: center; background: color-mix(in srgb, currentColor 12%, transparent); }
 .sources { font-size: var(--fs-sm); display: grid; gap: 6px; padding-left: 18px; margin: 0; }
 .sources a { overflow-wrap: anywhere; }
 .badge-icon { width: 56px; height: 56px; border-radius: 28px; display: grid; place-items: center; background: var(--mint); color: var(--mint-ink); }
@@ -873,12 +886,12 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 /* One pill behind the current tab: one fifth of the track. It slides between the tabs on one side of the log button;
    crossing sides it fades in afresh on the far side (TabBar keys it by side), so it never passes through or rests under the button. */
 .tab-track { position: absolute; z-index: -1; inset: 6px; pointer-events: none; }
-.tab-ind { position: absolute; top: 0; bottom: 0; left: 0; width: 20%; border-radius: 22px; background: var(--tab-pill); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); }
+.tab-ind { position: absolute; top: 0; bottom: 0; left: 0; width: 20%; border-radius: 22px; background: var(--btn); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); }
 /* The log button is in the markup twice, once where each layout shows it: the middle of the phone bar, the top of the rail. */
 .tabbar .log.log-rail { display: none; }
 .tabbar a { color: var(--ink-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; font-size: var(--fs-xs); font-weight: 500; text-decoration: none; border-radius: 22px; }
 @media (hover: hover) { .tabbar a:hover { color: var(--ink); } }
-.tabbar a[aria-current] { color: var(--ink); }
+.tabbar a[aria-current] { color: var(--btn-ink); }
 /* The log button reads like its neighbours: a pink disc where they have an icon, and a word under it. */
 .tabbar .log { justify-self: stretch; min-height: 56px; border: 0; background: none; padding: 0; color: var(--ink); font-size: var(--fs-xs); font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; border-radius: 22px; }
 .tabbar .log-dot { width: 40px; height: 40px; border-radius: 20px; background: var(--brand); color: var(--brand-ink); display: grid; place-items: center; box-shadow: var(--shadow-1); }

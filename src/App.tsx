@@ -235,7 +235,8 @@ export function App() {
         <div className="wrap">
           <div className="row">
             {/* The link is the vial and wordmark. Once the headline scrolls away, the page name takes the wordmark's
-                place as its own button that scrolls back to the top; the vial stays the home link. On a sub-page the whole
+                place as its own button that scrolls back to the top, marked with an up arrow so it reads differently from the
+                vial beside it, which stays the home link. On a sub-page the whole
                 cluster is one way back: a chevron crossfades in over the vial and the word reads Learn, so nothing in the
                 bar shifts sideways (styles.css) and every part of it does the same thing. */}
             <div className="brand-wrap">
@@ -251,7 +252,10 @@ export function App() {
               <span className="wordmark">{sub ? 'Learn' : 'Peptide Ledger'}</span>
             </a>
             <button type="button" className="bar-title" inert={titled && !sub ? undefined : true} aria-label={`${pageName}, back to top`}
-              onClick={() => window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })}>{pageName}</button>
+              onClick={() => window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })}>
+              <span>{pageName}</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" /></svg>
+            </button>
             <span className="icon-btn bar-back" aria-hidden="true">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
             </span>

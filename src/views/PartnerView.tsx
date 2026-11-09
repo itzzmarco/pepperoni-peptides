@@ -84,9 +84,9 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
           </div>
         ) : (
           <header className="empty rise">
-            <IlloPartner />
             <span className="eyebrow">Partner</span>
             <h1>Track progress together.</h1>
+            <IlloPartner />
             <p className="small muted">Link accounts with your partner and you'll each see the other's weight and shots next to your own. Neither of you can change the other's log.</p>
             <button className="btn" onClick={onAccount}>{acct.user ? 'Link your partner' : 'Sign in to link'}</button>
           </header>

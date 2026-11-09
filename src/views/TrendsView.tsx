@@ -61,8 +61,13 @@ function ExportPanel({ ledger }: { ledger: Ledger }) {
       <div className="stack">
         <p className="small muted">{signedIn ? 'Your log syncs to your account.' : 'Your log lives only in this browser.'} Export a CSV of doses, sites, side effects and weight for an appointment, or a backup you can restore on another device.</p>
         <div className="row-wrap">
-          <button className="btn sm" disabled={empty} onClick={() => download(`peptide-log-${stamp}.csv`, ledgerToCsv(ledger, id => PEP[id]?.name), 'text/csv')}>Export CSV</button>
-          <button className="btn ghost sm" disabled={empty} onClick={() => download(`peptide-ledger-backup-${stamp}.json`, JSON.stringify(ledger, null, 2), 'application/json')}>Download backup</button>
+          {/* Nothing to export on an empty log, so only Restore is offered then. */}
+          {!empty && (
+            <>
+              <button className="btn sm" onClick={() => download(`peptide-log-${stamp}.csv`, ledgerToCsv(ledger, id => PEP[id]?.name), 'text/csv')}>Export CSV</button>
+              <button className="btn ghost sm" onClick={() => download(`peptide-ledger-backup-${stamp}.json`, JSON.stringify(ledger, null, 2), 'application/json')}>Download backup</button>
+            </>
+          )}
           <button className="btn quiet sm" onClick={() => file.current?.click()}>Restore backup</button>
           <input ref={file} type="file" accept="application/json,.json" hidden onChange={e => onImport(e.target.files?.[0])} />
         </div>
@@ -265,7 +270,7 @@ function Pattern({ doses, checkins, now }: { doses: DoseEntry[]; checkins: Check
   return (
     <section className="tile dark rise" aria-labelledby="pattern-h" style={rise(5)}>
       <div className="spread">
-        <h2 id="pattern-h" className="eyebrow" style={{ color: 'var(--effect-cell)' }}>Pattern</h2>
+        <h2 id="pattern-h" className="eyebrow tone-effect">Pattern</h2>
         <span className="sub">4 weeks from {fmtShort(weeks[0][0].date)}</span>
       </div>
       {withDoses.length > 1 && (
@@ -273,7 +278,7 @@ function Pattern({ doses, checkins, now }: { doses: DoseEntry[]; checkins: Check
           {withDoses.map(x => <button key={x.id} type="button" className="fchip" aria-pressed={x.id === r.id} onClick={() => setPick(x.id)}>{regName(x)}</button>)}
         </div>
       )}
-      <p style={{ fontSize: 'var(--fs-lg)', fontWeight: 500, lineHeight: 1.3 }}>{sentence}</p>
+      <p className="pattern-say">{sentence}</p>
       <div className="pattern" role="group" aria-label={`Four weeks, Monday first: ${name} doses and days with side effects. ${sentence}`} onKeyDown={onKey}>
         <div className="wk head" aria-hidden="true">{['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <span key={i}>{d}</span>)}</div>
         {weeks.map((w, wi) => (
@@ -289,9 +294,9 @@ function Pattern({ doses, checkins, now }: { doses: DoseEntry[]; checkins: Check
           </div>
         ))}
         <p className="pattern-day" aria-live="polite">{say(flat[at])}</p>
-        <div className="legend" style={{ paddingTop: 4 }}>
-          <span><i style={{ background: 'var(--dose-cell)' }} />{name} dose</span>
-          <span><i style={{ background: 'var(--effect-cell)' }} />Side effect logged</span>
+        <div className="legend">
+          <span><i className="dose" />{name} dose</span>
+          <span><i className="effect" />Side effect logged</span>
         </div>
       </div>
       <p className="sub">A pattern in your own log, not proof of cause. Worth bringing to your prescriber.</p>
@@ -338,14 +343,14 @@ export function TrendsView({ onBackfill, onAdd }: { onBackfill: () => void; onAd
 
   return (
     <section className="view">
-      {/* Nothing logged yet: one empty hero (art, one title, what will show up, the two first steps), as on Peptides,
+      {/* Nothing logged yet: one empty hero (one title, art, what will show up, the two first steps), as on Peptides,
           instead of a headline over a second empty card. The share panel stays under it, so a fresh device can restore
           a backup before logging anything. A new log starts the same way as on Today; a paper log can come in instead. */}
       {empty ? <>
         <div className="empty rise">
-          <IlloTrends />
           <span className="eyebrow">Trends</span>
           <h1>Nothing logged yet.</h1>
+          <IlloTrends />
           <p className="small muted">{HIST_EMPTY}</p>
           <div className="row-wrap">
             <button type="button" className="btn" onClick={onAdd}>Add a peptide</button>
@@ -375,8 +380,8 @@ export function TrendsView({ onBackfill, onAdd }: { onBackfill: () => void; onAd
         </div>
         <MonthCalendar doses={doses} now={now} />
         <div className="legend tone-mint">
-          <span><i style={{ background: 'var(--mint-ink)', borderRadius: 6 }} />Dose logged</span>
-          <span><i style={{ boxShadow: 'inset 0 0 0 2px var(--mint-ink)', background: 'var(--surface)', borderRadius: 6 }} />Today</span>
+          <span><i className="cal-on" />Dose logged</span>
+          <span><i className="cal-today" />Today</span>
         </div>
       </section>
 

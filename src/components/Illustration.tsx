@@ -6,9 +6,9 @@ import type { ReactNode } from 'react';
  */
 type Props = { size?: number };
 const svg = (size: number) => ({ width: size, height: Math.round(size * 0.75), viewBox: '0 0 160 120', className: 'illo', 'aria-hidden': true as const, focusable: 'false' as const });
-/** Every empty state shares one block: the art centred on a soft tinted ground above the copy.
- *  All the scenes share one light from the top left: the ground is brighter there, and each object
- *  casts a soft shadow down and to the right (the `Cast` group), which gives them a little depth. */
+/** Every empty state shares one block: the art centred straight on the card, above the copy, with no plate of its own.
+ *  All the scenes share one light from the top left: each object casts a soft shadow down and to the right
+ *  (the `Cast` group), which gives them a little depth. Outlines are fine lines, so the art reads as a drawing, not an icon. */
 const Ground = ({ children }: { children: ReactNode }) => <div className="illo-ground" aria-hidden="true">{children}</div>;
 /** Shadow copies of a scene's main shapes, offset away from the top-left light. */
 const Cast = ({ children }: { children: ReactNode }) => <g transform="translate(5 5)" fill="var(--illo-shade)">{children}</g>;
@@ -24,13 +24,13 @@ const Defs = () => (
 );
 
 /** Today, nothing tracked yet: a vial beside a calendar page with a first check mark. */
-export function IlloStart({ size = 168 }: Props) {
+export function IlloStart({ size = 240 }: Props) {
   return (
     <Ground><svg {...svg(size)}>
       <Defs />
       <ellipse cx="84" cy="108" rx="62" ry="7" fill="var(--illo-shade)" />
       <Cast><rect x="62" y="22" width="78" height="80" rx="14" /><path d="M24 50q0-6 6-6h18q6 0 6 6v44q0 8-8 8H32q-8 0-8-8z" /></Cast>
-      <rect x="62" y="22" width="78" height="80" rx="14" fill="var(--sky)" stroke="var(--illo-line)" strokeWidth="2.5" />
+      <rect x="62" y="22" width="78" height="80" rx="14" fill="var(--sky)" stroke="var(--illo-line)" strokeWidth="1.5" />
       <rect x="62" y="22" width="78" height="80" rx="14" fill="url(#illo-lo)" />
       <rect x="62" y="22" width="78" height="20" rx="10" fill="var(--sky-ink)" />
       <rect x="62" y="22" width="78" height="20" rx="10" fill="url(#illo-hi)" />
@@ -42,7 +42,7 @@ export function IlloStart({ size = 168 }: Props) {
       <path d="M95 78l2 2 4-4" fill="none" stroke="var(--mint-ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       <rect x="28" y="30" width="22" height="9" rx="3" fill="var(--brand)" />
       <rect x="31" y="39" width="16" height="5" fill="var(--ink-4)" />
-      <path d="M24 50q0-6 6-6h18q6 0 6 6v44q0 8-8 8H32q-8 0-8-8z" fill="var(--surface)" stroke="var(--illo-line)" strokeWidth="2.5" />
+      <path d="M24 50q0-6 6-6h18q6 0 6 6v44q0 8-8 8H32q-8 0-8-8z" fill="var(--surface)" stroke="var(--illo-line)" strokeWidth="1.5" />
       <path d="M26 76h26v18q0 6-6 6H32q-6 0-6-6z" fill="var(--lilac-line)" opacity=".55" />
       <path d="M26 76h26v18q0 6-6 6H32q-6 0-6-6z" fill="url(#illo-lo)" />
       <path d="M26 76h26" stroke="var(--lilac-line)" strokeWidth="2" />
@@ -53,7 +53,7 @@ export function IlloStart({ size = 168 }: Props) {
 }
 
 /** Peptides, nothing tracked: an empty shelf waiting for its first vial. */
-export function IlloShelf({ size = 168 }: Props) {
+export function IlloShelf({ size = 240 }: Props) {
   return (
     <Ground><svg {...svg(size)}>
       <Defs />
@@ -68,7 +68,7 @@ export function IlloShelf({ size = 168 }: Props) {
       </g>
       <rect x="69" y="18" width="22" height="10" rx="3" fill="var(--sky-ink)" />
       <rect x="72" y="28" width="16" height="6" fill="var(--ink-4)" />
-      <path d="M66 40q0-6 6-6h16q6 0 6 6v36q0 8-8 8H74q-8 0-8-8z" fill="var(--surface)" stroke="var(--illo-line)" strokeWidth="2.5" />
+      <path d="M66 40q0-6 6-6h16q6 0 6 6v36q0 8-8 8H74q-8 0-8-8z" fill="var(--surface)" stroke="var(--illo-line)" strokeWidth="1.5" />
       <path d="M68 62h24v14q0 6-6 6H74q-6 0-6-6z" fill="var(--mint-ink)" opacity=".45" />
       <path d="M68 62h24" stroke="var(--mint-ink)" strokeWidth="2" opacity=".7" />
       <path d="M66 40q0-6 6-6h16q6 0 6 6v36q0 8-8 8H74q-8 0-8-8z" fill="url(#illo-hi)" />
@@ -81,13 +81,13 @@ export function IlloShelf({ size = 168 }: Props) {
 }
 
 /** Learn, no matches: a magnifier over an empty card. */
-export function IlloSearch({ size = 168 }: Props) {
+export function IlloSearch({ size = 240 }: Props) {
   return (
     <Ground><svg {...svg(size)}>
       <Defs />
       <ellipse cx="84" cy="108" rx="58" ry="7" fill="var(--illo-shade)" />
       <Cast><rect x="30" y="20" width="76" height="80" rx="14" /><circle cx="104" cy="64" r="24" /><path d="M120 80l16 16" stroke="var(--illo-shade)" strokeWidth="7" strokeLinecap="round" /></Cast>
-      <rect x="30" y="20" width="76" height="80" rx="14" fill="var(--surface)" stroke="var(--illo-line)" strokeWidth="2.5" />
+      <rect x="30" y="20" width="76" height="80" rx="14" fill="var(--surface)" stroke="var(--illo-line)" strokeWidth="1.5" />
       <rect x="30" y="20" width="76" height="80" rx="14" fill="url(#illo-lo)" />
       <rect x="40" y="31" width="16" height="16" rx="5" fill="var(--mint)" />
       <path d="M44 42l4-6 4 6" fill="none" stroke="var(--mint-ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -96,8 +96,8 @@ export function IlloSearch({ size = 168 }: Props) {
       <rect x="40" y="56" width="52" height="5" rx="2.5" fill="var(--surface-2)" />
       <rect x="40" y="66" width="40" height="5" rx="2.5" fill="var(--surface-2)" />
       <rect x="40" y="79" width="20" height="10" rx="5" fill="var(--lemon)" /><rect x="64" y="79" width="16" height="10" rx="5" fill="var(--lilac)" />
-      <circle cx="104" cy="64" r="22" fill="var(--lemon)" fillOpacity=".7" stroke="var(--illo-line)" strokeWidth="4" />
-      <path d="M120 80l16 16" stroke="var(--illo-line)" strokeWidth="7" strokeLinecap="round" />
+      <circle cx="104" cy="64" r="22" fill="var(--lemon)" fillOpacity=".7" stroke="var(--illo-line)" strokeWidth="2.5" />
+      <path d="M120 80l16 16" stroke="var(--illo-line)" strokeWidth="5" strokeLinecap="round" />
       <circle cx="104" cy="64" r="20" fill="url(#illo-hi)" />
       <path d="M96 58q4-6 12-4" stroke="var(--surface)" strokeWidth="3" strokeLinecap="round" fill="none" />
     </svg></Ground>
@@ -105,13 +105,13 @@ export function IlloSearch({ size = 168 }: Props) {
 }
 
 /** Trends with an empty log: a chart frame with a line that hasn't started yet. */
-export function IlloTrends({ size = 168 }: Props) {
+export function IlloTrends({ size = 240 }: Props) {
   return (
     <Ground><svg {...svg(size)}>
       <Defs />
       <ellipse cx="84" cy="108" rx="62" ry="7" fill="var(--illo-shade)" />
       <Cast><rect x="20" y="16" width="120" height="84" rx="16" /></Cast>
-      <rect x="20" y="16" width="120" height="84" rx="16" fill="var(--lilac)" stroke="var(--illo-line)" strokeWidth="2.5" />
+      <rect x="20" y="16" width="120" height="84" rx="16" fill="var(--lilac)" stroke="var(--illo-line)" strokeWidth="1.5" />
       <rect x="20" y="16" width="120" height="84" rx="16" fill="url(#illo-hi)" />
       <path d="M36 82h88M36 62h88M36 42h88" stroke="var(--surface)" strokeWidth="2" opacity=".8" />
       <path d="M36 74q14-2 22-12t22-6 20-14 24-10V82H36z" fill="var(--lilac-line)" opacity=".12" />
@@ -123,23 +123,23 @@ export function IlloTrends({ size = 168 }: Props) {
 }
 
 /** Partner, nobody linked yet: two phones side by side, each with its own log on screen, joined by a link that is still open. */
-export function IlloPartner({ size = 168 }: Props) {
+export function IlloPartner({ size = 240 }: Props) {
   return (
     <Ground><svg {...svg(size)}>
       <Defs />
       <ellipse cx="84" cy="108" rx="62" ry="7" fill="var(--illo-shade)" />
       <Cast><rect x="20" y="34" width="48" height="68" rx="12" /><rect x="96" y="34" width="48" height="68" rx="12" /></Cast>
-      <rect x="20" y="34" width="48" height="68" rx="12" fill="var(--peach)" stroke="var(--illo-line)" strokeWidth="2.5" />
+      <rect x="20" y="34" width="48" height="68" rx="12" fill="var(--peach)" stroke="var(--illo-line)" strokeWidth="1.5" />
       <rect x="20" y="34" width="48" height="68" rx="12" fill="url(#illo-lo)" />
       <rect x="27" y="44" width="34" height="48" rx="6" fill="var(--surface)" />
       <g fill="var(--peach-ink)"><rect x="32" y="52" width="20" height="4" rx="2" /><rect x="32" y="62" width="24" height="4" rx="2" opacity=".6" /><rect x="32" y="72" width="14" height="4" rx="2" opacity=".35" /></g>
-      <rect x="96" y="34" width="48" height="68" rx="12" fill="var(--sky)" stroke="var(--illo-line)" strokeWidth="2.5" />
+      <rect x="96" y="34" width="48" height="68" rx="12" fill="var(--sky)" stroke="var(--illo-line)" strokeWidth="1.5" />
       <rect x="96" y="34" width="48" height="68" rx="12" fill="url(#illo-lo)" />
       <rect x="103" y="44" width="34" height="48" rx="6" fill="var(--surface)" />
       <path d="M108 80l7-8 6 4 10-14" fill="none" stroke="var(--sky-ink)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
       <g fill="url(#illo-hi)"><rect x="20" y="34" width="48" height="68" rx="12" /><rect x="96" y="34" width="48" height="68" rx="12" /></g>
       <g fill="var(--illo-line)" opacity=".5"><rect x="38" y="38" width="12" height="2.5" rx="1.25" /><rect x="114" y="38" width="12" height="2.5" rx="1.25" /></g>
-      <g fill="none" stroke="var(--illo-line)" strokeWidth="3" strokeLinecap="round">
+      <g fill="none" stroke="var(--illo-line)" strokeWidth="2" strokeLinecap="round">
         <path d="M64 18h6a6 6 0 0 1 0 12h-6" /><path d="M100 30h-6a6 6 0 0 1 0-12h6" />
       </g>
       <circle cx="82" cy="24" r="2.5" fill="var(--lilac-line)" />

@@ -150,7 +150,7 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
           </div>
           <div className="inset">
             <div className="xsmall muted">You</div>
-            <b className="num" style={{ color: 'var(--lilac-ink)' }}>{yours && yours.count > 1 ? signed(yours.change, unit) : '–'}</b>
+            <b className="num tone-lilac">{yours && yours.count > 1 ? signed(yours.change, unit) : '–'}</b>
             <div className="xsmall muted">{yours ? `${fmtNum(yours.last.w, 1)} ${unit} now` : 'No weigh-ins'}</div>
           </div>
         </div>
@@ -158,7 +158,7 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
           <>
             <LineChart points={sY.length ? sY : sT} points2={sY.length ? sT : []} y0={lo} y1={hi} ticks={ticks}
               x0={x0} x1={now.getTime()} label={`Weight change since the start of the range: you and ${name}`} fmt={v => (v > 0 ? `+${fmtNum(v, 1)}` : fmtNum(v, 1))} />
-            <div className="legend" style={{ color: 'var(--ink-2)' }}>
+            <div className="legend tone-ink">
               {sY.length > 0 && <span><i style={{ background: 'var(--chart-line)' }} />You</span>}
               {sT.length > 0 && <span><i className={sY.length ? 'two' : ''} style={sY.length ? undefined : { background: 'var(--chart-line)' }} />{name}</span>}
             </div>
@@ -176,19 +176,19 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
             <div key={r.id} className="stack gap-2">
               <div className="spread">
                 <b>{regName(r)} · {fmtNum(Number(r.dose), 3)} {r.unit}</b>
-                <span className="sub" style={{ color: 'var(--mint-2)' }}>{freqText(r)}</span>
+                <span className="sub tone-mint">{freqText(r)}</span>
               </div>
-              <div className="spread" style={{ color: 'var(--mint-2)' }}>
+              <div className="spread tone-mint">
                 <span className="small">{st.last ? `Last ${fmtDay(st.last)}` : 'Not logged yet'}</span>
                 <span className="small" style={{ fontWeight: 600, color: st.s === 'late' ? 'var(--danger)' : 'var(--mint-ink)' }}>{st.text}</span>
               </div>
               <span className="strip28" role="img" aria-label={`Last 4 weeks: ${name} logged ${r.name || regName(r)} on ${strip.filter(d => d.on).length} days`}>
                 {strip.map((d, i) => <i key={i} className={`${d.on ? 'on' : ''}${d.today ? ' today' : ''}`} title={fmtDay(d.date)} />)}
               </span>
-              {adh.expected > 0 && <span className="xsmall" style={{ color: 'var(--mint-2)' }}>{adh.logged} of {adh.expected} due doses logged in 4 weeks</span>}
+              {adh.expected > 0 && <span className="xsmall tone-mint">{adh.logged} of {adh.expected} due doses logged in 4 weeks</span>}
             </div>
           );
-        }) : <p className="small" style={{ color: 'var(--mint-2)' }}>{name} isn't tracking a peptide yet.</p>}
+        }) : <p className="small tone-mint">{name} isn't tracking a peptide yet.</p>}
       </section>
       </div>
 

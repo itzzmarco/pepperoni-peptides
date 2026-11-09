@@ -6,3 +6,8 @@ coverage
 .vercel
 .env.local
 .env.*.local
+
+# Compiled output from a stray `tsc` without --noEmit; sources are .ts/.tsx
+src/**/*.js
+/vite.config.js
+*.tsbuildinfo

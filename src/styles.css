@@ -49,7 +49,7 @@
   --recent-1: #F9C9AE; --recent-2: #FBDCCB; --recent-3: #FDEBE1; --recent-ink: #7C2D12;
   /* Skeleton blocks and their shimmer; illustration ground shadow and outline. */
   --skel: #E8E9EE; --skel-shine: rgba(255,255,255,.7);
-  --illo-shade: rgba(30,34,48,.07); --illo-shade-on-dark: rgba(0,0,0,.28); --illo-line: #3F4452;
+  --illo-shade: rgba(30,34,48,.07); --illo-shade-on-dark: rgba(0,0,0,.28); --illo-line: #6E7484;
   /* Brand pink: the vial cap in the mark, and the Log button at the centre of the tab bar, so the app's one main action wears it. */
   --brand: #E05A9E; --brand-ink: #FFFFFF;
   /* Sheets: their own surface, a 1px top light, and the scrim that dims the page behind. Primary-button hover. */
@@ -101,7 +101,7 @@
     --tile-sheen: rgba(255,255,255,.05); --lift-hi: rgba(255,255,255,.05); --lift-edge: rgba(255,255,255,.12);
     --recent-1: #7A3A1E; --recent-2: #5E2D18; --recent-3: #472316; --recent-ink: #FDE8DC;
     --skel: #222632; --skel-shine: rgba(255,255,255,.16);
-    --illo-shade: rgba(0,0,0,.3); --illo-shade-on-dark: rgba(0,0,0,.3); --illo-line: #C3C8D3;
+    --illo-shade: rgba(0,0,0,.3); --illo-shade-on-dark: rgba(0,0,0,.3); --illo-line: #8E94A3;
     --brand: #EE79B4; --brand-ink: #101218;
     --sheet-bg: #171A23; --sheet-hi: rgba(255,255,255,.09); --scrim: rgba(0,0,0,.66);
     --btn-hover: #CDD2DC;
@@ -134,7 +134,7 @@
   --tile-sheen: rgba(255,255,255,.05); --lift-hi: rgba(255,255,255,.05); --lift-edge: rgba(255,255,255,.12);
   --recent-1: #7A3A1E; --recent-2: #5E2D18; --recent-3: #472316; --recent-ink: #FDE8DC;
   --skel: #222632; --skel-shine: rgba(255,255,255,.16);
-  --illo-shade: rgba(0,0,0,.3); --illo-shade-on-dark: rgba(0,0,0,.3); --illo-line: #C3C8D3;
+  --illo-shade: rgba(0,0,0,.3); --illo-shade-on-dark: rgba(0,0,0,.3); --illo-line: #8E94A3;
   --brand: #EE79B4; --brand-ink: #101218;
   --sheet-bg: #171A23; --sheet-hi: rgba(255,255,255,.09); --scrim: rgba(0,0,0,.66);
   --btn-hover: #CDD2DC;
@@ -181,16 +181,17 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .topbar[data-scrolled="true"] { box-shadow: 0 1px 0 var(--glass-edge), var(--shadow-1); }
 .topbar .row { display: flex; align-items: center; gap: 8px; }
-.brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); margin-right: auto; font-weight: 600; font-size: var(--fs-md); }
+.brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); font-weight: 600; font-size: var(--fs-md); min-width: 0; }
 .brand svg { flex: none; }
-/* Once the page title scrolls under the bar, the wordmark gives its place to the route or peptide name. */
-.brand { min-width: 0; }
-.brand-text { display: grid; min-width: 0; }
-.brand-text > span { grid-area: 1 / 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.brand-text > .bar-title { opacity: 0; transform: translateY(6px); }
-.topbar[data-titled] .brand-text > .wordmark { opacity: 0; transform: translateY(-6px); }
-.topbar[data-titled] .brand-text > .bar-title { opacity: 1; transform: none; }
-.sync { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--ink-2); background: var(--surface); box-shadow: var(--ring); border-radius: 999px; padding: 6px 12px 6px 10px; white-space: nowrap; min-height: 32px; }
+/* Once the page title scrolls under the bar, the wordmark gives its place to the route or peptide name. The name is plain
+   text laid over the wordmark's spot (not part of the link) and only takes taps while it shows. */
+.brand-wrap { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; margin-right: auto; min-width: 0; }
+.brand-wrap > * { grid-area: 1 / 1; }
+.wordmark, .bar-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-title { padding-left: 34px; font-weight: 600; font-size: var(--fs-md); color: var(--ink); min-width: 0; opacity: 0; transform: translateY(6px); pointer-events: none; }
+.topbar[data-titled] .wordmark { opacity: 0; transform: translateY(-6px); }
+.topbar[data-titled] .bar-title { opacity: 1; transform: none; pointer-events: auto; }
+.sync { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--ink-2); background: var(--surface); box-shadow: var(--ring); border-radius: 999px; padding: 6px 12px 6px 10px; white-space: nowrap; min-height: 44px; }
 .sync i { width: 7px; height: 7px; border-radius: 50%; background: var(--good); display: inline-block; }
 .or { display: flex; align-items: center; gap: 12px; color: var(--ink-3); font-size: var(--fs-xs); }
 .or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--surface-3); }
@@ -212,7 +213,7 @@ button.sync[data-s="error"] i { border-radius: 1px; transform: rotate(45deg); }
 @media (max-width: 359px) { .topbar .row { gap: 6px; } button.sync:not([data-s]) { padding-inline: 12px; } button.sync:not([data-s]) > svg { display: none; } span.sync, button.sync[data-s] { padding-inline: 12px; } :is(span.sync, button.sync[data-s]) > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
 @media (max-width: 420px) { .hide-sm { display: none; } .show-sm { display: inline; } button.sync[data-s] { min-width: 44px; justify-content: center; padding: 0 10px; } }
 /* Quiet on purpose: a neutral card with a lemon edge, so the instrument card stays the loudest thing on screen. */
-.notice { margin-top: 10px; padding: 10px 14px; background: var(--surface); border-left: 3px solid color-mix(in srgb, var(--lemon-ink) 45%, transparent); box-shadow: var(--ring); color: var(--ink-2); border-radius: var(--r-sm); font-size: var(--fs-xs); line-height: 1.45; text-wrap: pretty; }
+.notice { margin-top: 8px; padding: 8px 12px; background: var(--surface); border-left: 3px solid color-mix(in srgb, var(--lemon-ink) 45%, transparent); box-shadow: var(--ring); color: var(--ink-2); border-radius: var(--r-sm); font-size: var(--fs-xs); line-height: 1.4; text-wrap: pretty; }
 .notice b { color: var(--lemon-ink); }
 
 main { padding-block: 8px 40px; }
@@ -271,6 +272,17 @@ a.tile { color: var(--ink); }
 /* The headline line of a tile: one step of the type scale for every tile in a grid. */
 .tile-title { font-size: var(--fs-lg); font-weight: 600; line-height: 1.2; }
 .sub { color: var(--ink-3); font-size: var(--fs-sm); }
+/* Text tones for a caption, label or figure that takes its tile's tint or a stronger ink. Doubled so they beat .sub,
+   .label, .eyebrow and .legend wherever those are declared, as the inline colours they replace did. */
+.tone-ink.tone-ink { color: var(--ink-2); }
+.tone-mint.tone-mint { color: var(--mint-2); }
+.tone-lilac.tone-lilac { color: var(--lilac-ink); }
+.tone-sky.tone-sky { color: var(--sky-ink); }
+.tone-danger.tone-danger { color: var(--danger); }
+.sub.em { color: var(--ink-2); font-weight: 600; }
+.center { text-align: center; }
+.min-0 { min-width: 0; }
+.break-any { overflow-wrap: anywhere; }
 .big, .stat { font-size: var(--fs-hero); font-weight: 600; letter-spacing: -.02em; line-height: 1; font-variant-numeric: tabular-nums; }
 .stat { font-size: var(--fs-stat); line-height: 1.05; }
 .stat small, .big small { font-size: var(--fs-sm); font-weight: 500; color: var(--ink-3); letter-spacing: 0; }
@@ -475,7 +487,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .cal .d.on { background: var(--mint-ink); color: var(--mint); }
 .cal .d.today { box-shadow: inset 0 0 0 2px var(--mint-ink); color: var(--mint-ink); background: var(--surface); }
 .cal .d.on.today { background: var(--mint-ink); color: var(--mint); box-shadow: inset 0 0 0 2px var(--mint-ink), 0 0 0 2px var(--mint), 0 0 0 4px var(--mint-ink); }
-.cal .d.future { opacity: .55; }
+/* Upcoming days keep full-contrast numbers; a faint ring, not fading, marks them as not yet happened. */
+.cal .d.future { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--mint-2) 30%, transparent); }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: var(--fs-xs); color: var(--ink-3); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .legend i { width: 12px; height: 12px; border-radius: 4px; display: inline-block; }
@@ -509,7 +522,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .tl-day:first-child { padding-top: 0; }
 .tl-item { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); align-items: center; }
 .tl-item time { font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--ink-3); }
-.tl-item .what { font-size: var(--fs-sm); min-width: 0; }
+.tl-item .what { font-size: var(--fs-sm); min-width: 0; overflow-wrap: anywhere; }
+.hist-more { display: grid; gap: 8px; justify-items: start; margin-top: 12px; }
 .tl-item .what small { display: block; color: var(--ink-3); }
 .flag-text { color: var(--danger); font-weight: 600; }
 
@@ -569,9 +583,9 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .tile.dark .strip-legend { color: var(--on-dark-3); }
 .empty { background: var(--surface); box-shadow: var(--ring); border-radius: var(--r-lg); padding: 18px 18px 22px; display: grid; gap: 12px; justify-items: center; text-align: center; }
 .empty > .illo-ground { justify-self: stretch; }
-/* The art grows with its ground (up to a size that still reads as a spot drawing), so a wide card isn't a pale band. */
-.illo-ground > .illo { width: clamp(168px, 46%, 280px); }
-/* One empty-state layout everywhere: art on its ground, centred title, a line of copy, the main action. The dark Today card only swaps colours. */
+/* The art grows with the card, up to a size that still reads as a spot drawing. */
+.illo-ground > .illo { width: clamp(200px, 62%, 300px); }
+/* One empty-state layout everywhere: art, centred title, a line of copy, the main action. The dark Today card only swaps colours. */
 .empty :is(h2, h3) { font-size: var(--fs-xl); }
 .empty h1 .soft { color: var(--ink-4); }
 .empty > .eyebrow { margin-bottom: -6px; }
@@ -798,24 +812,26 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 .tabbar { position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: min(440px, calc(100% - 32px)); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; padding: 6px; border-radius: var(--r-xl); background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); box-shadow: var(--shadow-3), inset 0 0 0 1px var(--glass-edge); view-transition-name: tabbar; isolation: isolate; overflow: hidden; }
 /* Opaque fallback for both glass bars; it comes after both rules so it wins on equal specificity. */
 @supports not (backdrop-filter: blur(1px)) { .topbar, .tabbar { background: var(--bg); } }
-/* One pill behind the current tab: one fifth of the track. It slides from tab to tab; the track is masked out over the
-   log column, so crossing sides the pill fades out around the log button and never paints or rests there. */
+/* One pill behind the current tab: one fifth of the track. It slides from tab to tab in one piece; the track only cuts a
+   round hole a little wider than the log button, so crossing sides the pill passes around the button (a thin gap rings
+   it) instead of fading out and back, and never paints or rests behind it. */
 .tab-track { position: absolute; z-index: -1; inset: 6px; pointer-events: none;
-  -webkit-mask: linear-gradient(to right, black 40%, transparent 44% 56%, black 60%); mask: linear-gradient(to right, black 40%, transparent 44% 56%, black 60%); }
+  -webkit-mask: radial-gradient(circle at 50% 50%, transparent 31px, black 32px); mask: radial-gradient(circle at 50% 50%, transparent 31px, black 32px); }
 .tab-ind { position: absolute; top: 0; bottom: 0; left: 0; width: 20%; border-radius: 22px; background: var(--tab-pill); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); }
 .tabbar a { color: var(--ink-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; font-size: var(--fs-xs); font-weight: 500; text-decoration: none; border-radius: 22px; }
 .tabbar a:hover { color: var(--ink); }
 .tabbar a[aria-current] { color: var(--ink); }
-.tabbar .log { justify-self: center; width: 56px; height: 56px; border-radius: 28px; border: 0; background: var(--brand); color: var(--brand-ink); display: grid; place-items: center; cursor: pointer; }
-.tabbar .log:hover { background: color-mix(in srgb, var(--brand) 86%, var(--ink)); }
+/* The log button reads like its neighbours: a pink disc where they have an icon, and a word under it. */
+.tabbar .log { justify-self: stretch; min-height: 56px; border: 0; background: none; padding: 0; color: var(--ink); font-size: var(--fs-xs); font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; border-radius: 22px; }
+.tabbar .log-dot { width: 40px; height: 40px; border-radius: 20px; background: var(--brand); color: var(--brand-ink); display: grid; place-items: center; box-shadow: var(--shadow-1); }
+.tabbar .log:hover .log-dot { background: color-mix(in srgb, var(--brand) 86%, var(--ink)); }
 .app-end { height: calc(96px + env(safe-area-inset-bottom, 0px)); }
 .toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 12px 18px; border-radius: 999px; font-size: var(--fs-sm); z-index: 60; box-shadow: var(--shadow-3); max-width: calc(100% - 32px); }
 /* Mouse and keyboard widths: the same five destinations dock as a rail at the left edge, and the page makes room for it.
-   The pill slides down the rail instead of along it, masked out over the log button the same way. */
+   The pill slides down the rail instead of along it, around the log button the same way. */
 @media (min-width: 900px) {
   body { padding-left: 100px; }
   .tabbar { left: max(16px, env(safe-area-inset-left, 0px)); top: 50%; bottom: auto; transform: translateY(-50%); width: 76px; grid-template-columns: minmax(0, 1fr); grid-auto-rows: 64px; }
-  .tab-track { -webkit-mask: linear-gradient(to bottom, black 40%, transparent 44% 56%, black 60%); mask: linear-gradient(to bottom, black 40%, transparent 44% 56%, black 60%); }
   .tab-ind { right: 0; bottom: auto; width: auto; height: 20%; transform: translateY(calc(var(--k) * 100%)); }
   .app-end { height: 32px; }
   .toast { left: calc(50% + 50px); bottom: 32px; }
@@ -832,13 +848,8 @@ button.tile { appearance: none; border: 0; text-align: left; font: inherit; curs
 
 /* Illustrations and skeletons */
 .illo { display: block; max-width: 100%; height: auto; }
-/* Lit from the top left, like the shadows each scene casts down and to the right. */
-.illo-ground { display: grid; place-items: center; padding: 14px 12px 6px; border-radius: var(--r-md); background: radial-gradient(90% 110% at 15% 0%, var(--surface), transparent 70%), var(--surface-2); }
-/* On the instrument card the art sits on its own raised plate (a lighter, outlined panel) and is redrawn in the on-dark palette:
-   a clearly lighter page and bright vial and cells, a blue header and --on-dark-3 outlines, so it reads at a glance without
-   turning into a light sticker. */
-/* On the instrument card the scene sits in a recess of the card's own material: its glow and its top highlight line. */
-.tile.dark .illo-ground { background: radial-gradient(120% 90% at 100% 0%, var(--dark-glow), transparent 62%), radial-gradient(90% 110% at 15% 0%, color-mix(in srgb, var(--on-dark) 16%, var(--dark)), transparent 75%), color-mix(in srgb, var(--on-dark) 8%, var(--dark)); box-shadow: inset 0 1px 0 var(--dark-hi), inset 0 0 0 1px var(--dark-line); }
+/* The art sits straight on its card, no inner plate, with softened outlines so it reads as a quiet drawing. */
+.illo-ground { display: grid; place-items: center; }
 .tile.dark .illo { --illo-line: var(--on-dark-3); --illo-shade: var(--illo-shade-on-dark); --surface: color-mix(in srgb, var(--on-dark) 62%, var(--dark)); --sky: color-mix(in srgb, var(--on-dark) 26%, var(--dark)); --sky-ink: var(--dose-cell); --mint-ink: var(--dark); --ink-4: var(--on-dark-3); --lilac-line: color-mix(in srgb, var(--on-dark) 26%, var(--dark)); }
 .skel-page { display: grid; gap: 12px; }
 .skel { position: relative; overflow: hidden; border-radius: var(--r-lg); background: var(--skel); }
@@ -914,7 +925,7 @@ footer.foot p { max-width: 90ch; }
   .hour:active, .site:active { transform: scale(.96); }
   .site:active { transform: translate(-50%, -50%) scale(.94); }
 
-  .brand-text > span { transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-med) var(--ease-out); }
+  :is(.wordmark, .bar-title) { transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-med) var(--ease-out); }
 
   /* Learn search and filters: cards that stay slide to their new place, cards that leave or arrive fade, the rest holds still. */
   :root[data-filtering] .cards > .card { view-transition-name: var(--vt); }
@@ -988,14 +999,14 @@ footer.foot p { max-width: 90ch; }
   ::view-transition-group(topbar), ::view-transition-group(tabbar), ::view-transition-group(notice) { animation-duration: 0s; }
   ::view-transition-old(topbar), ::view-transition-old(tabbar), ::view-transition-old(notice) { display: none; }
   ::view-transition-new(topbar), ::view-transition-new(tabbar), ::view-transition-new(notice) { animation: none; }
-  /* After a route change the page fade is the only move: blocks arrive with it, no stagger of their own, and dots, bars,
-     rings and sparklines open drawn, so a returning user never reads in-between numbers (useCountUp follows the same rule). */
-  :root[data-routed] .rise { animation: none; }
+  /* After a route change the entrance is shorter and quieter: blocks rise 6px on a tight stagger, and dots, bars and
+     sparklines settle in quickly, so revisits still feel alive without replaying the first-load show. */
+  :root[data-routed] .rise { animation: rise-soft var(--dur-med) var(--ease-out) backwards; animation-delay: calc(min(var(--i, 0), 6) * 20ms); }
   /* Rows a disclosure reveals (a card's More row, its reminders) settle in with a short fade and rise. */
   .reveal { animation: rise-soft var(--dur-med) var(--ease-out) backwards; }
   @keyframes rise-soft { from { opacity: 0; transform: translateY(6px); } }
-  :root[data-routed] :is(.pop, .grow, .draw) { animation: none; }
-  :root[data-routed] .draw { stroke-dasharray: none; stroke-dashoffset: 0; }
+  :root[data-routed] :is(.pop, .grow) { animation-duration: var(--dur-med); animation-delay: calc(min(var(--i, 0), 12) * 12ms + 60ms); }
+  :root[data-routed] .draw { animation-duration: var(--dur-slow); animation-delay: var(--dur-fast); }
   /* A sheet closed by a route change leaves on its own: only its live exit shows, never a frozen copy in the crossfade. */
   .scrim { view-transition-name: sheet; }
   ::view-transition-group(sheet) { animation-duration: 0s; }

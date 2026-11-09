@@ -85,7 +85,7 @@ function ExportPanel({ ledger }: { ledger: Ledger }) {
 }
 
 /** How many timeline entries show before "Show all". */
-const RECENT = 12;
+const RECENT = 12, PAGE = 30;
 
 /** Header chart: one bar per day in the range, as tall as that day's dose count, so the page opens on the shape of the log.
  *  A caption under it gives the total and the range's first and last day, and a hairline at the top marks the busiest day's count.
@@ -133,12 +133,14 @@ function DoseBars({ doses, days, now }: { doses: DoseEntry[]; days: number; now:
 
 function History({ doses, checkins, onBackfill, onAdd, art }: { doses: DoseEntry[]; checkins: Checkin[]; onBackfill: () => void; onAdd?: () => void; art?: ReactNode }) {
   const toast = useToast();
-  const [showAll, setShowAll] = useState(false);
+  // How many of the newest entries are listed; "Load older entries" pages back through the whole journal.
+  const [count, setCount] = useState(RECENT);
   type Item = { kind: 'dose'; at: string; e: DoseEntry } | { kind: 'check'; at: string; e: Checkin };
   const items: Item[] = [
-    ...doses.slice(0, 80).map(e => ({ kind: 'dose' as const, at: e.at, e })),
-    ...checkins.slice(0, 80).map(e => ({ kind: 'check' as const, at: e.at, e })),
-  ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 60);
+    ...doses.map(e => ({ kind: 'dose' as const, at: e.at, e })),
+    ...checkins.map(e => ({ kind: 'check' as const, at: e.at, e })),
+  ].sort((a, b) => b.at.localeCompare(a.at));
+  const shown = items.slice(0, count);
   let lastDay = '';
   // Nothing logged yet: the same empty-state card as every other screen (art, title, one line, one action).
   if (!items.length) return (
@@ -161,7 +163,7 @@ function History({ doses, checkins, onBackfill, onAdd, art }: { doses: DoseEntry
         <button type="button" className="btn soft sm" onClick={onBackfill}>Fill in past days</button>
       </div>
       <div className="timeline">
-        {(showAll ? items : items.slice(0, RECENT)).map(it => {
+        {shown.map(it => {
           const d = new Date(it.at), k = dayKey(d);
           const head = k !== lastDay ? <div className="tl-day">{fmtDay(d)}</div> : null;
           lastDay = k;
@@ -188,9 +190,13 @@ function History({ doses, checkins, onBackfill, onAdd, art }: { doses: DoseEntry
           );
         })}
         {items.length > RECENT && (
-          <button className="btn quiet sm self-start mt-2" onClick={() => setShowAll(!showAll)}>
-            {showAll ? 'Show fewer' : `Show all ${items.length} entries`}
-          </button>
+          <div className="hist-more">
+            <span className="small muted" aria-live="polite">Showing the latest {shown.length} of {items.length} entries</span>
+            <span className="row-wrap">
+              {shown.length < items.length && <button type="button" className="btn quiet sm" onClick={() => setCount(count + PAGE)}>Load older entries</button>}
+              {count > RECENT && <button type="button" className="btn quiet sm" onClick={() => setCount(RECENT)}>Show fewer</button>}
+            </span>
+          </div>
         )}
       </div>
     </section>
@@ -333,10 +339,10 @@ export function TrendsView({ onBackfill, onAdd }: { onBackfill: () => void; onAd
             <h2 id="adh-h" className="label">Doses logged</h2>
             <span className="big">{adh.pct == null ? '–' : `${Math.round(pct)}%`}</span>
           </div>
-          <span className="sub" style={{ color: 'var(--mint-2)' }}>{adh.expected ? `${adh.logged} of ${adh.expected} due doses` : 'No scheduled doses yet'}</span>
+          <span className="sub tone-mint">{adh.expected ? `${adh.logged} of ${adh.expected} due doses` : 'No scheduled doses yet'}</span>
         </div>
         <MonthCalendar doses={doses} now={now} />
-        <div className="legend" style={{ color: 'var(--mint-2)' }}>
+        <div className="legend tone-mint">
           <span><i style={{ background: 'var(--mint-ink)', borderRadius: 6 }} />Dose logged</span>
           <span><i style={{ boxShadow: 'inset 0 0 0 2px var(--mint-ink)', background: 'var(--surface)', borderRadius: 6 }} />Today</span>
         </div>

@@ -189,7 +189,7 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved, onLog, onSignIn
           <Caution p={p} />
         </section>
         <section className="tile lilac" aria-labelledby="r-dose-h">
-          <h3 id="r-dose-h" className="eyebrow" style={{ color: 'var(--lilac-ink)' }}>Prescribed</h3>
+          <h3 id="r-dose-h" className="eyebrow tone-lilac">Prescribed</h3>
           <div className="grid-2">
             <label className="field"><span>Dose</span><input type="number" id="r-dose" {...invalid('r-dose')} step="any" min="0" inputMode="decimal" value={r.dose} onChange={set('dose')} /></label>
             <label className="field"><span>Unit</span><select id="r-unit" value={r.unit} onChange={set('unit')}><UnitOptions compoundId={p ? pick : ''} /></select></label>
@@ -199,7 +199,7 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved, onLog, onSignIn
           <label className="field"><span>How it's taken</span><select id="r-route" value={r.route} onChange={set('route')}>{ROUTES.map(x => <option key={x}>{x}</option>)}</select></label>
         </section>
         <section className="tile sky" aria-labelledby="r-when-h">
-          <h3 id="r-when-h" className="eyebrow" style={{ color: 'var(--sky-ink)' }}>Schedule</h3>
+          <h3 id="r-when-h" className="eyebrow tone-sky">Schedule</h3>
           <div className="grid-2">
             <label className="field"><span>How often</span><select id="r-freq" value={r.freq} onChange={e => setFreq(e.target.value)}>{FREQS.map(f => <option key={f.k} value={f.k}>{f.label}</option>)}</select></label>
             <label className="field"><span>Start date</span><input type="date" id="r-start" value={r.start} onChange={set('start')} /></label>

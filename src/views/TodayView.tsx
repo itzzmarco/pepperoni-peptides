@@ -193,11 +193,6 @@ export function TodayView(actions: Actions) {
           <span>{lastFlag.flags.join('; ')}. If it's still happening, call 911 or go to an emergency room. For a possible poisoning or overdose, call Poison Control at 1-800-222-1222.</span>
         </div>
       )}
-      {!store.persistent && (
-        <div className="alert warn"><b>This browser isn't saving your log.</b><span>Private browsing or blocked site storage stops saving. Entries will disappear when you close the tab, so export before you leave.</span></div>
-      )}
-      <DeviceLogPrompt onToday />
-      <Glp1Alert regimens={regimens} />
 
       {next ? (
         <NextUp r={next.r} st={next.st} actions={actions} now={now} done={done} todo={todo} site={shots.find(x => x.r === next.r)?.s ?? null}
@@ -226,18 +221,25 @@ export function TodayView(actions: Actions) {
         </section>
       )}
 
+      {/* Only an emergency sits above Next up; the other notices follow it, so Log now stays near the top on a phone. */}
+      {!store.persistent && (
+        <div className="alert warn"><b>This browser isn't saving your log.</b><span>Private browsing or blocked site storage stops saving. Entries will disappear when you close the tab, so export before you leave.</span></div>
+      )}
+      <DeviceLogPrompt onToday />
+      <Glp1Alert regimens={regimens} />
+
       {hasLog && (
         <div className="bento quad">
           <a href="#trends" className="tile mint row-2 rise" style={rise(3)}>
             <span className="label">Adherence</span>
             <span className="big">{adh.pct == null ? '–' : `${Math.round(pct)}%`}</span>
-            <span className="sub" style={{ color: 'var(--mint-2)' }}>{adh.expected ? `${adh.logged} of ${adh.expected} doses · 4 weeks` : 'Log a few doses to see this.'}</span>
+            <span className="sub tone-mint">{adh.expected ? `${adh.logged} of ${adh.expected} doses · 4 weeks` : 'Log a few doses to see this.'}</span>
             <span className="dots7" role="img" aria-label={`Last 7 days: dose logged on ${week.filter(w => w.on).length}`}>
               {week.map((w, i) => <i key={i} className={`pop${w.on ? ' on' : ''}${w.today && !w.on ? ' today' : ''}`} style={rise(i)} title={fmtDay(w.d)} />)}
             </span>
           </a>
 
-          <a href="#trends" className="tile lilac rise gap-2" style={rise(4)}>
+          <a href="#trends" className="tile rise gap-2" style={rise(4)}>
             <span className="label">Weight</span>
             {wNow ? (
               <>
@@ -248,7 +250,7 @@ export function TodayView(actions: Actions) {
             ) : <span className="sub">Add your weight in a daily check-in.</span>}
           </a>
 
-          <a href="#trends" className="tile peach rise gap-2" style={rise(5)}>
+          <a href="#trends" className="tile rise gap-2" style={rise(5)}>
             <span className="label">Side effects</span>
             {effects.length ? (
               <>
@@ -276,10 +278,10 @@ export function TodayView(actions: Actions) {
             <button key={r.id} type="button" className="tile sky span-2 rise row-tile gap-4" style={rise(6 + i)} onClick={() => actions.logDose(r)}
               aria-label={`Next shot of ${regName(r)}: ${siteLabel(sug.site, r.route)}, ${whenNext(r, doses, now)}. Log it.`}>
               <SiteFigure s={sug} size={76} />
-              <span className="stack gap-1" style={{ minWidth: 0 }}>
+              <span className="stack gap-1 min-0">
                 <span className="label">Next shot · {regName(r)}</span>
                 <span className="tile-title">{siteLabel(sug.site, r.route)}</span>
-                <span className="sub" style={{ color: 'var(--ink-2)', fontWeight: 600 }}>{whenNext(r, doses, now)} · {doseText(r)}</span>
+                <span className="sub em">{whenNext(r, doses, now)} · {doseText(r)}</span>
                 <span className="sub">{sug.why}</span>
               </span>
             </button>
@@ -308,7 +310,7 @@ export function TodayView(actions: Actions) {
             </a>
           )}
 
-          <a href={learnP ? `#${learnP.id}` : '#calculator'} className={`tile lemon rise row-tile gap-4 ${comingUp?.st.due ? 'span-2' : 'wide-sm'}`} style={rise(9)}>
+          <a href={learnP ? `#${learnP.id}` : '#calculator'} className={`tile rise row-tile gap-4 ${comingUp?.st.due ? 'span-2' : 'wide-sm'}`} style={rise(9)}>
             <span className="stack gap-2" style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
               <span className="label">{learnP ? `Evidence · Tier ${learnP.tier} ${TIERS[learnP.tier].label}` : 'Guide'}</span>
               <span className="tile-title">{learnP ? `What the research says about ${learnP.name}` : 'Dose math, step by step'}</span>

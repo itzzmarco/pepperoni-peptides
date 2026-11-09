@@ -63,10 +63,10 @@ export function NextShot({ r, doses }: { r: Regimen; doses: DoseEntry[] }) {
   return (
     <div className="nextshot" aria-label={`Next shot: ${siteLabel(s.site, r.route)}, ${whenNext(r, doses)}`}>
       <SiteFigure s={s} size={72} />
-      <span className="stack gap-1" style={{ minWidth: 0 }}>
+      <span className="stack gap-1 min-0">
         <span className="label">Next shot · {whenNext(r, doses)}</span>
         <b style={{ fontSize: 'var(--fs-lg)', lineHeight: 1.25 }}>{s.hour ? `Belly, ${s.hour} o'clock` : siteLabel(s.site, r.route)}</b>
-        <span className="small" style={{ color: 'var(--ink-2)' }}>{doseText(r)} · {s.why}</span>
+        <span className="small tone-ink">{doseText(r)} · {s.why}</span>
       </span>
     </div>
   );

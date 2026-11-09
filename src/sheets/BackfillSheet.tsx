@@ -190,7 +190,7 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
           <h3 className="bf-title" aria-live="polite">{title}</h3>
           <button type="button" className="icon-btn" onClick={() => step(1)} disabled={isThisMonth} aria-label="Next month"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg></button>
         </div>
-        <p className="small" style={{ color: 'var(--ink-2)' }}>
+        <p className="small tone-ink">
           {r ? `Tap each day you took ${regName(r)}. It's logged as ${fmtNum(Number(r.dose), 3)} ${r.unit} at your usual time.` : 'Tap a day, then type its weight. Enter jumps to the next day.'}
         </p>
 
@@ -239,7 +239,7 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
 
         {r ? (
           <>
-            <div className="legend" style={{ color: 'var(--mint-2)' }}>
+            <div className="legend tone-mint">
               <span><i style={{ background: 'var(--mint-ink)' }} />Already logged</span>
               <span><i style={{ background: 'var(--mint-ink)', boxShadow: 'inset 0 0 0 2px var(--accent)' }} />Adding</span>
               {due.size > 0 && <span><i style={{ boxShadow: 'inset 0 -3px 0 var(--mint-ink)', background: 'var(--surface)' }} />Due by schedule</span>}
@@ -252,7 +252,7 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
           </>
         ) : (
           <div className="spread mid gap-2">
-            <div className="legend" style={{ color: 'var(--ink-2)' }}>
+            <div className="legend tone-ink">
               <span><i className="bf-key saved" />Saved</span>
               <span><i className="bf-key changed" />New or changed</span>
               <span><i className="bf-key jump" />Big jump, check it</span>

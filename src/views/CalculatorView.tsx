@@ -82,7 +82,7 @@ export function CalculatorView() {
       <div className="cols">
       {m && (
         <section className="tile rise" style={rise(4)}>
-          <h2 className="label" style={{ color: 'var(--lilac-ink)' }}>Double-check a draw</h2>
+          <h2 className="label tone-lilac">Double-check a draw</h2>
           <label className="field"><span>I drew this many units</span>
             <input type="number" id="c-drawn" min="0" step="any" inputMode="decimal" placeholder="e.g. 10" value={c.drawn} onChange={set('drawn')} />
             <small>Shows the dose that amount actually contains</small>

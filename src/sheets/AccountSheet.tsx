@@ -252,7 +252,7 @@ function PartnerSection({ onClose }: { onClose: () => void }) {
         <div key={p.id} className="partner-row">
           <span className="avatar" aria-hidden="true">{firstName(p.name)[0]}</span>
           <div className="stack" style={{ gap: 0, minWidth: 0 }}>
-            <b style={{ overflowWrap: 'anywhere' }}>{p.name || 'Your partner'}</b>
+            <b className="break-any">{p.name || 'Your partner'}</b>
             <span className="xsmall muted">Linked {fmtShort(new Date(p.since))}</span>
           </div>
           <div className="row-wrap" style={{ justifyContent: 'flex-end' }}>
@@ -293,7 +293,7 @@ function PartnerSection({ onClose }: { onClose: () => void }) {
           <button className="btn quiet sm" onClick={() => { setMode('enter'); setErr(''); }}>Enter a code</button>
         </div>
       )}
-      {(err || error) && <p className="small" role="alert" style={{ color: 'var(--danger)' }}>{err || error}</p>}
+      {(err || error) && <p className="small tone-danger" role="alert">{err || error}</p>}
     </section>
   );
 }
@@ -325,7 +325,7 @@ function SignedIn({ acct, onClose }: { acct: AccountState; onClose: () => void }
   return (
     <div className="stack gap-4">
       <div className="sheet-head">
-        <div><h2>Your account</h2><p className="small muted mt-1" style={{ overflowWrap: 'anywhere' }}>{acct.user!.email}</p></div>
+        <div><h2>Your account</h2><p className="small muted mt-1 break-any">{acct.user!.email}</p></div>
         <Close onClose={onClose} />
       </div>
 

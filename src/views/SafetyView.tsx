@@ -18,6 +18,8 @@ function Sources({ list }: { list: Source[] }) {
 const rise = (i: number) => ({ ['--i' as string]: i });
 
 export function SafetyView() {
+  // The sections after the cards continue the same stagger, so the whole page enters one way.
+  const after = 3 + SAFETY.cards.length;
   return (
     <section className="view">
       <div className="head-actions rise"><a className="btn ghost sm" href="#learn">
@@ -31,7 +33,7 @@ export function SafetyView() {
       </header>
 
       <section className="tile emerg rise" style={{ ...rise(2), background: 'var(--danger-bg)', boxShadow: 'none' }}>
-        <h2 style={{ color: 'var(--danger)' }}>Get emergency help now if you have</h2>
+        <h2 className="tone-danger">Get emergency help now if you have</h2>
         <ul>{RED_FLAGS.map(f => <li key={f}>{f}</li>)}</ul>
         <div className="callout-nums">
           <a href="tel:911"><span className="xsmall">Emergency</span><b>911</b></a>
@@ -52,7 +54,7 @@ export function SafetyView() {
         ))}
       </div>
 
-      <section className="tile">
+      <section className="tile rise" style={rise(after)}>
         <h2>How US rules sort these compounds</h2>
         <p className="small muted" style={{ maxWidth: '75ch' }}>{SAFETY.legalIntro}</p>
         <div className="table-wrap stack-sm">
@@ -75,7 +77,7 @@ export function SafetyView() {
         </div>
       </section>
 
-      <section className="tile sky">
+      <section className="tile sky rise" style={rise(after + 1)}>
         <h2>Timeline of US peptide rules</h2>
         <div className="timeline-v">
           {TIMELINE.map(t => (
@@ -88,12 +90,12 @@ export function SafetyView() {
         <Sources list={TIMELINE_SOURCES} />
       </section>
 
-      <section className="tile lemon">
+      <section className="tile lemon rise" style={rise(after + 2)}>
         <h2>Questions to ask your clinician</h2>
         <ul className="small bullets">{SAFETY.questions.map(q => <li key={q}>{q}</li>)}</ul>
       </section>
 
-      <section className="tile">
+      <section className="tile rise" style={rise(after + 3)}>
         <h3>About this information</h3>
         <p className="small muted" style={{ maxWidth: '75ch' }}>{SAFETY.about}</p>
       </section>

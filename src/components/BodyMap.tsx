@@ -50,8 +50,8 @@ export function BodyMap({ selected, onSelect, last, plan, route, suggested }: {
         <span><i style={{ background: 'var(--peach)', border: '2px solid var(--peach)' }} />Used in last 3 days</span>
         <span><i style={{ background: 'var(--surface)', border: '2px dashed var(--sky-ink)' }} />Suggested</span>
       </div>
-      <p className="small" style={{ textAlign: 'center', color: 'var(--ink-2)' }}>{plan.note}</p>
-      {!selected && <p className="small" style={{ textAlign: 'center', color: 'var(--ink-2)' }}>Suggested next: <b>{label(next)}</b>. Rotating sites helps prevent lumps and scarring.</p>}
+      <p className="small center tone-ink">{plan.note}</p>
+      {!selected && <p className="small center tone-ink">Suggested next: <b>{label(next)}</b>. Rotating sites helps prevent lumps and scarring.</p>}
     </div>
   );
 }

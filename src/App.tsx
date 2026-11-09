@@ -208,6 +208,9 @@ export function App() {
       <header ref={barRef} className="topbar gutter" inert={bg} data-scrolled={scrolled ? 'true' : undefined} data-titled={titled ? '' : undefined}>
         <div className="wrap">
           <div className="row">
+            {/* The link is only ever the vial and wordmark. Once the headline scrolls away, the page name takes the
+                wordmark's place as plain text laid over it, so tapping a name that reads Trends never jumps to Today. */}
+            <div className="brand-wrap">
             <a className="brand" href="#today" aria-label="Peptide Ledger, today">
               {/* The installed icon's vial, drawn the same way: a pink cap on a dark rounded tile. */}
               <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
@@ -217,11 +220,10 @@ export function App() {
                 <path d="M9 13.5 Q9 12 10.5 12 H21.5 Q23 12 23 13.5 V25 Q23 28 20 28 H12 Q9 28 9 25 Z" fill="var(--on-dark)" />
                 <path d="M10.3 21 H21.7 V25 Q21.7 26.7 20 26.7 H12 Q10.3 26.7 10.3 25 Z" fill="var(--on-dark-3)" />
               </svg>
-              <span className="brand-text">
-                <span className="wordmark">Peptide Ledger</span>
-                <span className="bar-title" aria-hidden="true">{pageName}</span>
-              </span>
+              <span className="wordmark">Peptide Ledger</span>
             </a>
+            <span className="bar-title" aria-hidden="true">{pageName}</span>
+            </div>
             <AccountButton onOpen={() => setSheet({ kind: 'account' })} />
             <ThemeToggle />
           </div>
@@ -246,7 +248,7 @@ export function App() {
         </div>
       </footer>
       <div className="app-end" />
-      <TabBar current={route.id ? 'learn' : tab} exact={!route.id && tab === route.tab} onLog={logNext} logLabel={nextDue ? 'Log a dose' : 'Add a peptide'} inert={bg} />
+      <TabBar current={route.id ? 'learn' : tab} exact={!route.id && tab === route.tab} onLog={logNext} logLabel={nextDue ? 'Log a dose' : 'Add a peptide'} logWord={nextDue ? 'Log' : 'Add'} inert={bg} />
       <SheetClosing.Provider value={closing}>
         {shown?.kind === 'regimen' && (shown.back
           ? <RegimenSheet initial={shown.r} isNew={false} onClose={() => setSheet({ kind: 'dose', r: shown.r })} onSaved={x => setSheet(x ? { kind: 'dose', r: x } : null)} />

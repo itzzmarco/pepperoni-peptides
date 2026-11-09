@@ -120,8 +120,8 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
           {math && injectable && (
             <div className="white-inset stack gap-2">
               {isVolumeUnit(d.unit)
-                ? <p className="small">That's <b className="mono" style={{ color: 'var(--lilac-ink)' }}>{drugAmount(math.doseMg, PEP[r.compoundId]?.defaultUnit)}</b> ({fmtNum(math.vol, 2)} mL) from a vial with {fmtNum(Number(r.vialMg))} mg in {fmtNum(Number(r.diluentMl))} mL.</p>
-                : <p className="small">Draw to <b className="mono" style={{ color: 'var(--lilac-ink)' }}>{fmtNum(math.units, 1)} units</b> ({fmtNum(math.vol, 2)} mL) on a U-100 syringe. {fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL water.</p>}
+                ? <p className="small">That's <b className="mono tone-lilac">{drugAmount(math.doseMg, PEP[r.compoundId]?.defaultUnit)}</b> ({fmtNum(math.vol, 2)} mL) from a vial with {fmtNum(Number(r.vialMg))} mg in {fmtNum(Number(r.diluentMl))} mL.</p>
+                : <p className="small">Draw to <b className="mono tone-lilac">{fmtNum(math.units, 1)} units</b> ({fmtNum(math.vol, 2)} mL) on a U-100 syringe. {fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL water.</p>}
               <div className="syringe-wrap"><Syringe units={math.units} cap={math.units > 50 ? 100 : 50} /></div>
               <a className="small" href="#calculator">How this is calculated</a>
             </div>
@@ -155,7 +155,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
 
         {injectable && plan && (
           <section className="tile sky" aria-labelledby="site-h">
-            <h3 id="site-h" className="eyebrow" style={{ color: 'var(--sky-ink)' }}>Injection site</h3>
+            <h3 id="site-h" className="eyebrow tone-sky">Injection site</h3>
             {plan.belly && (
               <div className="seg" role="group" aria-label="Site view">
                 <button type="button" aria-pressed={clock} onClick={() => showView('clock')}>Belly clock</button>
@@ -165,7 +165,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
             {clock ? (
               <>
                 <BellyClock key={r.id} selected={hour} next={next} recent={recent} onSelect={h => pickSite(hour === h ? '' : `belly-${h}`)} />
-                <p className="small" style={{ color: 'var(--ink-2)' }}>Looking down at your belly, 12 is toward your chest. Move one hour clockwise each injection and stay about 2 in (5 cm) from your navel, or use the spacing your nurse gave you.</p>
+                <p className="small tone-ink">Looking down at your belly, 12 is toward your chest. Move one hour clockwise each injection and stay about 2 in (5 cm) from your navel, or use the spacing your nurse gave you.</p>
                 <div className="site-legend" style={{ justifyContent: 'flex-start' }}>
                   <span><i style={{ background: 'var(--sky-ink)' }} />Selected</span>
                   <span><i style={{ boxShadow: 'inset 0 0 0 2px var(--sky-ink)', background: 'var(--surface)' }} />Next clockwise</span>

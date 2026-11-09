@@ -312,7 +312,6 @@ export function App() {
             </a>
             </div>
             <AccountButton onOpen={() => setSheet({ kind: 'account' })} />
-            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -336,6 +335,8 @@ export function App() {
             <summary>About this app <svg className="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg></summary>
             <p><b>Peptide Ledger</b> is an educational reference and personal journal. It does not diagnose, treat, or recommend doses, and it does not sell or endorse any product. Information reflects sources reviewed through {AS_OF}; rules and evidence change, so check the linked sources and ask your clinician or pharmacist.</p>
           </details>
+          {/* Appearance is a setting, so it sits down here rather than crowding the brand row. */}
+          <ThemeToggle />
         </div>
       </footer>
       <div className="app-end" />

@@ -27,7 +27,7 @@ function Tab({ k, label, current, exact }: { k: keyof typeof ICON; label: string
 export function TabBar({ current, exact, onLog, logLabel, logWord, inert }: { current: Route; exact: boolean; onLog: () => void; logLabel: string; logWord: string; inert?: boolean }) {
   const col = COL[current as keyof typeof COL];
   // One pill marks the current tab and always slides to it. On the phone bar it rests only on the four tabs; crossing
-  // sides it passes under the opaque Log disc, which sits above it. On the rail the log button sits apart above the tabs.
+  // sides its track is masked over the Log cell, so it never shows around the disc. On the rail the log button sits apart above the tabs.
   // Its visible word is "Log" (or "Add" with nothing set up); aria-label and the tooltip, which start with that word,
   // name the peptide when exactly one is due, else how many doses are due.
   // It is rendered where each layout shows it, top of the rail and middle of the phone bar, with the other copy hidden

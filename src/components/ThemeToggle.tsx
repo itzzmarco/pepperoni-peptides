@@ -40,7 +40,7 @@ export function ThemeToggle() {
     }
     setTheme(NEXT[theme]);
   };
-  // Each mode has its own picture (sun, moon, half disc for Auto) and, where the bar has room, its name, so the
+  // Each mode has its own picture (sun, moon, half disc for Auto) and its name, so the
   // current mode reads at a glance on touch screens too, not only from a tooltip.
   return (
     <button className="icon-btn theme" onClick={change} aria-label={`Theme: ${LABEL[theme]}. Change theme`} title={`Theme: ${LABEL[theme]}`}>

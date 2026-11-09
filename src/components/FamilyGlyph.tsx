@@ -1,7 +1,7 @@
 import type { FamilyKey } from '../lib/types';
 
 /**
- * Each of the nine families has its own tint, so a grid of cards sorts itself by colour at a glance, and its own mark:
+ * Each of the nine families has its own tint (used where the glyph stands alone, as in the regimen form) and its own mark:
  * a pale filled body (`f`) under a fine outline (`d`), drawn rather than a bare line icon, sized to read at 20px.
  */
 const GLYPH: Record<FamilyKey, { tone: string; d: string; f: string }> = {
@@ -27,11 +27,12 @@ const GLYPH: Record<FamilyKey, { tone: string; d: string; f: string }> = {
 
 /**
  * A family's icon on its tinted ground, decorative only: the family name is already in the text.
- * `ground="surface"` puts the tinted icons on a plain surface instead, for when the glyph already sits on a tint.
+ * `ground="surface"` puts the icon on a plain surface instead, for when the glyph already sits on a tint; there it takes
+ * that tint's ink (`--glyph-ink`, set by the Learn card and the profile band) so the tier is the card's one colour.
  */
 export function FamilyGlyph({ family, size = 40, ground }: { family: FamilyKey; size?: number; ground?: 'surface' }) {
   const g = GLYPH[family] ?? GLYPH.repair;
-  const tone = { background: ground === 'surface' ? 'var(--surface)' : `var(--${g.tone})`, color: `var(--${g.tone}-ink)` };
+  const tone = { background: ground === 'surface' ? 'var(--surface)' : `var(--${g.tone})`, color: ground === 'surface' ? `var(--glyph-ink, var(--${g.tone}-ink))` : `var(--${g.tone}-ink)` };
   return (
     <span className="glyph" aria-hidden="true" style={{ width: size, height: size, ...tone }}>
       <svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

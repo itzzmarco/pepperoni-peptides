@@ -123,6 +123,14 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved, onLog, onSignIn
   // A changed form asks before it is dismissed (LeaveGuard), as Fill in past days does.
   const guard = useLeaveGuard(JSON.stringify([pick, ack, relabel, r]), onClose);
   const { close } = guard;
+  // Logging the peptide already tracked drops this form. Picking it (and the unit and route that come with it) is not a
+  // draft, so that goes straight on; anything typed beyond the pick (dose, schedule, notes) asks first, like any other way out.
+  const bare = (x: Regimen) => JSON.stringify({ ...x, compoundId: '', name: '', route: '', unit: '' });
+  const logThere = (x: Regimen) => {
+    if (!onLog) return;
+    if (bare(r) !== bare(initial)) guard.ask(() => onLog(x));
+    else onLog(x);
+  };
 
   // Choosing set weekdays starts with today's day ticked, so there's always at least one.
   const setFreq = (freq: string) => setR(cur => ({ ...cur, freq, weekdays: freq === 'days' && !weekdaysOf(cur).length ? [new Date().getDay()] : cur.weekdays }));
@@ -182,7 +190,7 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved, onLog, onSignIn
             <div className="alert info" role="status">
               <b>You already track {regName(already)}: {fmtNum(Number(already.dose), 3)} {already.unit}, {freqText(already).toLowerCase()}.</b>
               <span>To record a dose you just took, log it there so it stays with your history. Add it again here only for a second, separate regimen.</span>
-              {onLog && <div className="mt-2"><button type="button" className="btn sm" onClick={() => onLog(already)}>Log a {regName(already)} dose</button></div>}
+              {onLog && <div className="mt-2"><button type="button" className="btn sm" onClick={() => logThere(already)}>Log a {regName(already)} dose</button></div>}
             </div>
           )}
           <Caution p={p} ask={guard.ask} />

@@ -267,15 +267,6 @@ export function LibraryView() {
         <span className="eyebrow">Learn</span>
         <h1>What the evidence says.<br />{' '}<span className="soft">{PEPTIDES.length} peptides, graded.</span></h1>
         <p>Compounds that trend online, with what studies show, how they're regulated in the US, and the warning signs to know. Updated {AS_OF}.</p>
-        {/* The two guides are one tap from the top, so the spot after the library goes to the tier explainer. */}
-        <nav className="row-wrap" aria-label="Guides">
-          {GUIDES.map(g => (
-            <a key={g.href} href={g.href} className="btn soft sm">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={`var(--${g.tone}-ink)`} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={g.icon} /></svg>
-              {g.title}
-            </a>
-          ))}
-        </nav>
       </header>
       {/* Finding a peptide is the main job here, so search, one filter row and the results sit together right under the
           title, and the first cards show on a phone's first screen. The other filters fold away under More filters.
@@ -355,6 +346,16 @@ export function LibraryView() {
         </summary>
         <TierOverview />
       </details>
+      {/* The two guides follow the tier explainer, so on a phone the first card sits right under the finder and the
+          spot after the library still goes to the tiers. */}
+      <nav className="head-actions" aria-label="Guides">
+        {GUIDES.map(g => (
+          <a key={g.href} href={g.href} className="btn soft sm">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={`var(--${g.tone}-ink)`} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={g.icon} /></svg>
+            {g.title}
+          </a>
+        ))}
+      </nav>
       <TopChart />
     </section>
   );

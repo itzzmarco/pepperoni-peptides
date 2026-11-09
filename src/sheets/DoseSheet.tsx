@@ -50,8 +50,11 @@ export function DoseSheet({ r: initial, onClose, onFix, draft }: { r: Regimen; o
   const next = nextBellyHour(recent[0] ?? null, last);
   // Each peptide keeps its own draft, so switching chips and back loses no edits.
   const drafts = useRef(new Map<string, Draft>(draft?.drafts));
-  // A changed dose form, or one whose other peptides hold drafts, asks before a stray dismiss throws it away (LeaveGuard).
-  const guard = useLeaveGuard(JSON.stringify([r.id, d, [...drafts.current].filter(([id]) => id !== r.id)]), onClose, draft?.start);
+  // A changed dose form, or one whose other peptides hold changed drafts, asks before a stray dismiss throws it away
+  // (LeaveGuard). Each draft is held against its own baseline, so switching chips and back with nothing typed is not a change.
+  const edited = [[r.id, { d, base }] as const, ...[...drafts.current].filter(([id]) => id !== r.id)]
+    .filter(([, x]) => JSON.stringify(x.d) !== x.base).map(([id, x]) => [id, x.d]);
+  const guard = useLeaveGuard(JSON.stringify(edited), onClose, draft?.start);
   const { close } = guard;
 
   const set = (k: keyof typeof d) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setD({ ...d, [k]: e.target.value });

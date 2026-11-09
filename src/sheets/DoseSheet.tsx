@@ -24,7 +24,8 @@ const ago = (t: Date) => {
   return d <= 0 ? 'today' : d === 1 ? 'yesterday' : `${d} days ago`;
 };
 
-type Draft = { d: ReturnType<typeof blank>; auto: boolean; view: 'clock' | 'body' };
+/** `base` is the form as it first opened for that peptide, so an untouched one doesn't count as a draft. */
+type Draft = { d: ReturnType<typeof blank>; auto: boolean; view: 'clock' | 'body'; base: string };
 /** Everything typed into a dose sheet, parked while "Fix details" has the regimen open and handed back when it returns. */
 export type DoseDraft = Draft & { drafts: [string, Draft][]; start: string };
 
@@ -39,6 +40,7 @@ export function DoseSheet({ r: initial, onClose, onFix, draft }: { r: Regimen; o
   // This peptide's next spot in its own rotation starts out picked. `auto` stays true until the person taps a spot.
   const [first] = useState(() => nextSite(initial, doses));
   const [d, setD] = useState(() => draft?.d ?? blank(initial, first?.site));
+  const [base, setBase] = useState(() => draft?.base ?? JSON.stringify(d));
   const [auto, setAuto] = useState(draft?.auto ?? !!first);
   const last = useMemo(() => lastUsedBySite(doses), [doses]);
   // This regimen's belly-clock history, newest first.
@@ -81,10 +83,14 @@ export function DoseSheet({ r: initial, onClose, onFix, draft }: { r: Regimen; o
   const hour = bellyHour(d.site);
 
   const switchTo = (x: Regimen) => {
-    drafts.current.set(r.id, { d, auto, view });
+    drafts.current.set(r.id, { d, auto, view, base });
+    open(x);
+  };
+  const open = (x: Regimen) => {
     const kept = drafts.current.get(x.id);
     setR(x);
-    if (kept) { setD(kept.d); setAuto(kept.auto); setView(kept.view); } else setD(blank(x, suggest(x, x.route)));
+    if (kept) { setD(kept.d); setAuto(kept.auto); setView(kept.view); setBase(kept.base); }
+    else { const fresh = blank(x, suggest(x, x.route)); setD(fresh); setBase(JSON.stringify(fresh)); }
   };
 
   const submit = (e: React.FormEvent) => {
@@ -93,6 +99,14 @@ export function DoseSheet({ r: initial, onClose, onFix, draft }: { r: Regimen; o
     if (!(amt > 0)) { fail('d-amount', 'Enter the amount you took.'); return; }
     if (isNaN(at.getTime())) { fail('d-at', 'Enter a valid date and time.'); return; }
     store.addDose({ id: newId(), rid: r.id, name: regName(r), at: at.toISOString(), amount: d.amount, unit: d.unit, route: d.route, site: injectable && siteFits ? d.site : '', notes: d.notes.trim() });
+    // Another peptide with details typed in stays open next, so saving this one never throws that draft away.
+    drafts.current.delete(r.id);
+    const waiting = active.find(x => x.id !== r.id && drafts.current.has(x.id) && JSON.stringify(drafts.current.get(x.id)!.d) !== drafts.current.get(x.id)!.base);
+    if (waiting) {
+      toast(`Logged ${regName(r)} at ${fmtTime(at)}. ${regName(waiting)} is still open.`);
+      open(waiting);
+      return;
+    }
     toast(`Logged ${regName(r)} at ${fmtTime(at)}.`);
     onClose();
   };
@@ -151,7 +165,7 @@ export function DoseSheet({ r: initial, onClose, onFix, draft }: { r: Regimen; o
             <div className="alert danger" role="alert">
               <b>These numbers don't add up, so there's no draw to show.</b>
               {checks.map(c => <span key={c.title}>{c.title} {c.body}</span>)}
-              {onFix && <div className="mt-2"><button type="button" className="btn sm" onClick={() => onFix(r, { d, auto, view, drafts: [...drafts.current], start: guard.start })}>Fix {regName(r)}'s details</button></div>}
+              {onFix && <div className="mt-2"><button type="button" className="btn sm" onClick={() => onFix(r, { d, auto, view, base, drafts: [...drafts.current], start: guard.start })}>Fix {regName(r)}'s details</button></div>}
             </div>
           )}
         </section>

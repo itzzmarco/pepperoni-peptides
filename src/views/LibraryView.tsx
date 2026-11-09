@@ -5,7 +5,7 @@ import { PEPTIDES } from '../data/peptides';
 import { AS_OF, FAMILIES, LEGAL, TIERS } from '../data/reference';
 import { fmtNum } from '../lib/format';
 import { Ladder, LegalChip } from '../components/Chips';
-import { FamilyGlyph } from '../components/FamilyGlyph';
+import { FamilyGlyph, familyTint } from '../components/FamilyGlyph';
 import { IlloSearch } from '../components/Illustration';
 import { prefersReducedMotion, viewTransition } from '../components/Motion';
 
@@ -270,10 +270,10 @@ export function LibraryView() {
           // The tapped card marks its glyph, which travels into the profile header as the page opens (styles.css).
           // On the page's first paint the first few cards rise in on the same capped stagger as the other tabs' blocks;
           // cards a filter brings in later are left to the filter's own transition.
-          <a className={`card${fresh.current && i < 6 ? ' rise' : ''}`} href={`#${p.id}`} key={p.id} style={{ ['--vt' as string]: `c-${p.id}`, ['--i' as string]: i + 1 }} onClick={open}>
+          <a className={`card${fresh.current && i < 6 ? ' rise' : ''}`} href={`#${p.id}`} key={p.id} style={{ ['--vt' as string]: `c-${p.id}`, ['--i' as string]: i + 1, ['--tone' as string]: familyTint(p.family) }} onClick={open}>
             <div className="card-top">
               <div><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 2).join(' · ')}</div> : null}</div>
-              <FamilyGlyph family={p.family} />
+              <FamilyGlyph family={p.family} ground="surface" />
             </div>
             <div className="card-meta"><span>{FAMILIES[p.family]?.name}</span><Ladder t={p.tier} /><span>T{p.tier} · {TIERS[p.tier].label}</span></div>
             <p className="sum">{p.summary}</p>

@@ -28,14 +28,14 @@ export function TabBar({ current, exact, onLog, logLabel, logWord, inert }: { cu
   const col = COL[current as keyof typeof COL];
   // One pill for every move: it slides from tab to tab. On the phone bar the track is masked over the log button's column
   // (styles.css), so crossing sides it passes out of sight behind the button and never shows or rests there.
-  // Its visible word says what a tap does right now; aria-label and the tooltip, which start with that word, name the
-  // peptide it will log (the soonest due), so the sheet that opens is no surprise.
+  // Its visible word is the peptide due now when there is exactly one, else "Log" (or "Add" with nothing set up);
+  // aria-label and the tooltip, which contain that word, add how many doses are due.
   // It is rendered where each layout shows it, top of the rail and middle of the phone bar, with the other copy hidden
   // (display: none, styles.css), so keyboard and switch order always match what is on screen.
   const log = (where: string) => (
     <button className={`log ${where}`} type="button" onClick={onLog} aria-label={logLabel} title={logLabel}>
       <span className="log-dot"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></span>
-      {logWord}
+      <span className="log-word">{logWord}</span>
     </button>
   );
   return (

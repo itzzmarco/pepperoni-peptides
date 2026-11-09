@@ -1,4 +1,9 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { SheetClosing } from './Sheet';
+
+/** The open guarded form, so App can put the same question in front of browser Back or a link outside the sheet
+ *  (`dirty` is false once the sheet is closing or the person chose Discard and leave). */
+export const openGuard: { current: { dirty: () => boolean; ask: (go: () => void) => void } | null } = { current: null };
 
 /**
  * Dismissing a changed form (Escape, a scrim tap, a drag, the close button, Cancel) first asks in the footer:
@@ -8,6 +13,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
  * `snapshot` is the form's values as one string; the form counts as changed once it differs from the first one.
  * `from` is the first snapshot of a form being reopened with its edits (so they still count as changes); `start` hands it on.
  * `close` keeps one identity for the sheet's life, since Sheet re-focuses itself whenever onClose changes.
+ * While mounted it registers itself as `openGuard`, so a route change from outside the sheet asks first too.
  */
 export function useLeaveGuard(snapshot: string, onClose: () => void, from?: string) {
   const [start] = useState(from ?? snapshot);
@@ -26,9 +32,18 @@ export function useLeaveGuard(snapshot: string, onClose: () => void, from?: stri
     setLeaving(true);
   }, []);
   const close = useCallback(() => ask(onClose), [ask, onClose]);
+  const closing = useContext(SheetClosing);
+  const closingRef = useRef(closing);
+  closingRef.current = closing;
+  const released = useRef(false);
+  useEffect(() => {
+    const mine = { dirty: () => dirty.current && !closingRef.current && !released.current, ask };
+    openGuard.current = mine;
+    return () => { if (openGuard.current === mine) openGuard.current = null; };
+  }, [ask]);
   useEffect(() => { setLeaving(false); }, [snapshot]);
   useEffect(() => { if (leaving) keep.current?.focus(); }, [leaving]);
-  return { start, close, ask, leaving, stay: () => setLeaving(false), keep, leave: () => next.current() };
+  return { start, close, ask, leaving, stay: () => setLeaving(false), keep, leave: () => { released.current = true; next.current(); } };
 }
 
 /** The footer of a guarded sheet: its own buttons, or the leave question in their place. */

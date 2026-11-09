@@ -24,6 +24,7 @@ import { AccountButton } from './components/AccountButton';
 import { ThemeToggle } from './components/ThemeToggle';
 import { TabBar } from './components/TabBar';
 import { SheetClosing } from './components/Sheet';
+import { openGuard } from './components/LeaveGuard';
 import { exitMs, prefersReducedMotion, viewTransition } from './components/Motion';
 
 const ROUTES = ['today', 'trends', 'learn', 'peptides', 'calculator', 'safety', 'partner'] as const;
@@ -96,9 +97,20 @@ export function App() {
       setRoute(next); setFrom(history.state?.from ?? null); setSheet(null); setTitled(false); window.scrollTo(0, 0);
     };
     const go = transitionGate(swap);
+    // The history entry being shown, so a route change held back for an unsaved form can put it back as it was.
+    let entry: unknown = history.state;
     const onHash = (e: HashChangeEvent) => {
+      // Back, Forward or a link outside an open form with unsaved changes first asks, as closing it would (LeaveGuard):
+      // the page being left comes back as the current entry, and Discard and leave goes on to where the person was headed.
+      const guard = openGuard.current;
+      if (guard?.dirty()) {
+        history.pushState(entry, '', e.oldURL);
+        guard.ask(() => history.back());
+        return;
+      }
       // A new entry (a link followed here) remembers the page it came from; an entry revisited with Back or Forward keeps its own.
       if (history.state == null) history.replaceState({ from: new URL(e.oldURL).hash }, '');
+      entry = history.state;
       // The page being left is snapshotted with no direction, so a profile's header glyph (named only while data-dir is
       // "forward") stays in the page fade instead of dissolving on its own when no glyph is there to meet it.
       delete document.documentElement.dataset.dir;
@@ -211,13 +223,20 @@ export function App() {
     checkin: () => setSheet({ kind: 'checkin' }),
     signIn: () => setSheet({ kind: 'account' }),
   };
-  // The middle tab-bar button logs whatever is overdue or due first, else the next dose coming up.
-  // With nothing due the centre button adds a peptide instead, and its name says so.
-  const nextDue = upcoming(regimens, doses)[0]?.r;
+  // The middle tab-bar button opens the dose sheet on whatever is overdue or due first, else the next dose coming up;
+  // the sheet's peptide chips switch to any other. Its word says what is meant: the peptide's name when exactly one
+  // is due now, else "Log". With nothing set up it adds a peptide instead, and its word says so.
+  const list = upcoming(regimens, doses);
+  const dueNow = list.filter(x => x.st.s === 'due' || x.st.s === 'late');
+  const nextDue = list[0]?.r;
   const logNext = () => {
     if (nextDue) actions.logDose(nextDue);
     else actions.addRegimen();
   };
+  const [logWord, logLabel] = !nextDue ? ['Add', 'Add a peptide']
+    : dueNow.length === 1 ? [regName(nextDue), `Log ${regName(nextDue)}, due now`]
+    : dueNow.length > 1 ? ['Log', `Log a dose, ${dueNow.length} due now`]
+    : ['Log', 'Log a dose, none due now'];
 
   let view;
   if (route.id) view = <PeptideDetail p={PEP[route.id]} onTrack={id => setSheet({ kind: 'regimen', r: blankRegimen(id), isNew: true })} onLog={actions.logDose} />;
@@ -242,14 +261,12 @@ export function App() {
       <header ref={barRef} className="topbar gutter" inert={bg} data-scrolled={scrolled ? 'true' : undefined} data-titled={titled && !sub ? '' : undefined} data-sub={sub ? '' : undefined}>
         <div className="wrap">
           <div className="row">
-            {/* The link is the vial and wordmark. Once the headline scrolls away, the page name takes the wordmark's
-                place, and the whole cluster, vial included, becomes one button that scrolls back to the top (the home link
-                is inert under it; Today stays in the tab bar). On a sub-page the whole cluster is one way back: a chevron
-                crossfades in over the vial and the word names where it goes, so nothing in the bar shifts sideways
-                (styles.css) and every part of it does the same thing. */}
+            {/* The vial is always the home link, with the wordmark beside it. Two other controls take the wordmark's place,
+                each with its own label and never over the vial: on a sub-page a "‹ Learn" link goes back the way the page
+                was opened, and on any other page, once the headline scrolls away, the page name with an up arrow scrolls
+                back to the top. The wordmark is hidden (not just faded) while either shows, so no tap lands on it. */}
             <div className="brand-wrap">
-            <a className="brand" href={sub ? (origin ? from! || '#today' : '#learn') : '#today'} aria-label={sub ? `Back to ${backName}` : 'Peptide Ledger, today'}
-              inert={titled && !sub ? true : undefined} onClick={sub && origin ? e => { e.preventDefault(); history.back(); } : undefined}>
+            <a className="brand" href="#today" aria-label="Peptide Ledger, today">
               {/* The installed icon's vial, drawn the same way: a pink cap on a dark rounded tile. */}
               <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true">
                 <rect width="32" height="32" rx="7" fill="var(--dark)" />
@@ -258,16 +275,18 @@ export function App() {
                 <path d="M9 13.5 Q9 12 10.5 12 H21.5 Q23 12 23 13.5 V25 Q23 28 20 28 H12 Q9 28 9 25 Z" fill="var(--on-dark)" />
                 <path d="M10.3 21 H21.7 V25 Q21.7 26.7 20 26.7 H12 Q10.3 26.7 10.3 25 Z" fill="var(--on-dark-3)" />
               </svg>
-              <span className="wordmark">{sub ? backName : 'Peptide Ledger'}</span>
+              <span className="wordmark">Peptide Ledger</span>
             </a>
             <button type="button" className="bar-title" inert={titled && !sub ? undefined : true} aria-label={`${pageName}, back to top`}
               onClick={() => window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' })}>
               <span>{pageName}</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" /></svg>
             </button>
-            <span className="icon-btn bar-back" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
-            </span>
+            <a className="bar-back" href={origin ? from! || '#today' : '#learn'} inert={sub ? undefined : true} aria-label={`Back to ${backName}`}
+              onClick={origin ? e => { e.preventDefault(); history.back(); } : undefined}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+              <span>{backName}</span>
+            </a>
             </div>
             <AccountButton onOpen={() => setSheet({ kind: 'account' })} />
             <ThemeToggle />
@@ -297,7 +316,7 @@ export function App() {
         </div>
       </footer>
       <div className="app-end" />
-      <TabBar current={route.id ? 'learn' : tab} exact={!route.id && tab === route.tab} onLog={logNext} logLabel={nextDue ? `Log ${regName(nextDue)}` : 'Add a peptide'} logWord={nextDue ? 'Log' : 'Add'} inert={bg} />
+      <TabBar current={route.id ? 'learn' : tab} exact={!route.id && tab === route.tab} onLog={logNext} logLabel={logLabel} logWord={logWord} inert={bg} />
       <SheetClosing.Provider key={session} value={closing}>
         {shown?.kind === 'regimen' && (shown.back
           ? <RegimenSheet initial={shown.r} isNew={false} onClose={backToDose} onSaved={x => setSheet(s => (x ? { kind: 'dose', r: x, draft: s?.kind === 'regimen' ? s.back : undefined } : null))} />

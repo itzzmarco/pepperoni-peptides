@@ -74,11 +74,11 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
       <section className="view">
         <p className="sr-only" aria-live="polite">{first ? 'Checking for a linked partner…' : ''}</p>
         {first ? (
-          /* The shape of the card either answer starts with (art, heading, a line, one control), so nothing jumps far when it lands. */
+          /* The loaded card's order (eyebrow, heading, art, a line, one control), so each block resolves in place when it lands. */
           <div className="skel-page empty" aria-hidden="true">
-            <div className="skel skel-art" />
             <span className="eyebrow">Partner</span>
             <div className="skel skel-title" />
+            <div className="skel skel-art" />
             <div className="skel skel-line" />
             <div className="skel skel-btn" />
           </div>

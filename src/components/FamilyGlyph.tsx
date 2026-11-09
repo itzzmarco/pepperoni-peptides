@@ -25,6 +25,9 @@ const GLYPH: Record<FamilyKey, { tone: string; d: string; f: string }> = {
   lipo: { tone: 'lemon', d: 'M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11zM9.5 14.5a2.5 2.5 0 0 0 2.5 2.5', f: 'M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z' },
 };
 
+/** The family's tint as a token, so a card can wash its corner in the same colour as its glyph. */
+export const familyTint = (family: FamilyKey) => `var(--${(GLYPH[family] ?? GLYPH.repair).tone})`;
+
 /**
  * A family's icon on its tinted ground, decorative only: the family name is already in the text.
  * `ground="surface"` puts the tinted icons on a plain surface instead, for when the glyph already sits on a tint.

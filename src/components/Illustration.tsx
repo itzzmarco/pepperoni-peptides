@@ -23,45 +23,33 @@ export const Defs = ({ u }: { u: string }) => (
   </defs>
 );
 
-/** Today, nothing tracked yet: the first-run scene, wider than the spot drawings. Drawn for the dark instrument card it
- *  sits on, in that card's own colours: a calendar page with the first day checked, a capped vial leaning on its right,
- *  and a check-in face on its left, the three things the log keeps. */
+/** Today, nothing tracked yet: one vial, drawn in the wordmark vial's own material (pink cap, light glass, a pale dose)
+ *  at hero size, on the dark instrument card it sits on. The headline carries the welcome; the art is just the object,
+ *  with the same top-left light, dot texture and floor shade as the spot drawings. */
 export function IlloStart({ size = 200 }: Props) {
   const u = useId();
   return (
     <Ground><svg {...svg(size)} viewBox="0 0 160 100" height={size * 100 / 160} className="illo scene">
       <defs>
-        <linearGradient id={`${u}st-page`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="var(--on-dark)" stopOpacity=".18" /><stop offset="1" stopColor="var(--on-dark)" stopOpacity=".07" /></linearGradient>
-        <linearGradient id={`${u}st-liq`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="var(--dose-cell)" /><stop offset="1" stopColor="var(--dose-cell)" stopOpacity=".7" /></linearGradient>
+        <radialGradient id={`${u}st-halo`} cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="var(--on-dark)" stopOpacity=".14" /><stop offset="1" stopColor="var(--on-dark)" stopOpacity="0" /></radialGradient>
+        <linearGradient id={`${u}st-glass`} x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="var(--on-dark)" /><stop offset=".6" stopColor="var(--on-dark)" stopOpacity=".92" /><stop offset="1" stopColor="var(--on-dark-3)" /></linearGradient>
+        <linearGradient id={`${u}st-lo`} x1="0" y1="0" x2="0" y2="1"><stop offset=".5" stopColor="var(--illo-shade-on-dark)" stopOpacity="0" /><stop offset="1" stopColor="var(--illo-shade-on-dark)" /></linearGradient>
+        <pattern id={`${u}st-dots`} width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r=".9" fill="var(--on-dark)" opacity=".14" /></pattern>
       </defs>
-      <ellipse cx="80" cy="92" rx="62" ry="4" fill="var(--illo-shade-on-dark)" />
-      {/* The calendar page, centred. */}
-      <g transform="translate(46 10)">
-        <rect width="68" height="68" rx="16" fill={`url(#${u}st-page)`} stroke="var(--dark-edge)" strokeWidth="1.5" />
-        <path d="M0 16a16 16 0 0 1 16-16h36a16 16 0 0 1 16 16v4H0z" fill="var(--dose-cell)" />
-        <g fill="var(--dark)"><circle cx="20" cy="0" r="4" /><circle cx="48" cy="0" r="4" /></g>
-        <g fill="var(--on-dark)" opacity=".16">
-          <rect x="32" y="28" width="14" height="14" rx="5" /><rect x="50" y="28" width="10" height="14" rx="5" />
-          <rect x="10" y="46" width="16" height="14" rx="5" /><rect x="32" y="46" width="14" height="14" rx="5" /><rect x="50" y="46" width="10" height="14" rx="5" />
-        </g>
-        <rect x="10" y="28" width="16" height="14" rx="5" fill="var(--go)" />
-        <path d="M13.5 35l3 3 5.5-6" fill="none" stroke="var(--dark)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-      </g>
-      {/* A vial leaning on the page's right edge: pink cap, blue dose, a sheen down its lit side. */}
-      <g transform="rotate(10 132 88)">
-        <rect x="122" y="30" width="20" height="9" rx="3" fill="var(--brand)" />
-        <rect x="125" y="39" width="14" height="4" fill="var(--on-dark-3)" />
-        <rect x="120" y="43" width="24" height="45" rx="8" fill="var(--dark)" stroke="var(--dark-edge)" strokeWidth="1.5" />
-        <rect x="120" y="43" width="24" height="45" rx="8" fill={`url(#${u}st-page)`} />
-        <path d="M122 64h20v16a6 6 0 0 1-6 6h-8a6 6 0 0 1-6-6z" fill={`url(#${u}st-liq)`} />
-        <path d="M125 49v30" stroke="var(--on-dark)" strokeWidth="2.5" strokeLinecap="round" opacity=".5" />
-      </g>
-      {/* A check-in face resting against the page's left edge. */}
-      <circle cx="30" cy="70" r="18" fill="var(--dark)" stroke="var(--dark-edge)" strokeWidth="1.5" />
-      <circle cx="30" cy="70" r="14" fill="var(--go)" />
-      <g fill="var(--dark)"><circle cx="25" cy="66" r="2" /><circle cx="35" cy="66" r="2" /></g>
-      <path d="M24 73q6 6 12 0" fill="none" stroke="var(--dark)" strokeWidth="2.4" strokeLinecap="round" />
-      <g fill="var(--on-dark)" opacity=".5"><circle cx="18" cy="42" r="2" /><circle cx="148" cy="16" r="2.5" /><circle cx="10" cy="58" r="1.5" /></g>
+      <circle cx="80" cy="50" r="48" fill={`url(#${u}st-halo)`} />
+      <circle cx="80" cy="50" r="40" fill={`url(#${u}st-dots)`} />
+      <ellipse cx="80" cy="93" rx="30" ry="4" fill="var(--illo-shade-on-dark)" />
+      {/* Cap and crimp, then the glass body with its dose, a scale and a sheen down the lit side. */}
+      <rect x="64" y="6" width="32" height="14" rx="4" fill="var(--brand)" />
+      <rect x="64" y="6" width="32" height="6" rx="3" fill="var(--on-dark)" opacity=".18" />
+      <rect x="68" y="20" width="24" height="7" fill="var(--on-dark-3)" />
+      <path d="M58 36q0-9 9-9h26q9 0 9 9v46q0 9-9 9H67q-9 0-9-9z" fill={`url(#${u}st-glass)`} />
+      <path d="M60 62h40v20q0 7-7 7H67q-7 0-7-7z" fill="var(--on-dark-3)" />
+      <path d="M60 62h40" stroke="var(--dose-cell)" strokeWidth="2" />
+      <path d="M58 36q0-9 9-9h26q9 0 9 9v46q0 9-9 9H67q-9 0-9-9z" fill={`url(#${u}st-lo)`} />
+      <g stroke="var(--dark)" strokeWidth="1.6" strokeLinecap="round" opacity=".35"><path d="M88 40h8M90 48h6M88 56h8M90 70h6M88 78h8" /></g>
+      <path d="M65 36v44" stroke="var(--on-dark)" strokeWidth="4" strokeLinecap="round" />
+      <g fill="var(--on-dark)" opacity=".5"><circle cx="34" cy="30" r="2" /><circle cx="128" cy="22" r="2.5" /><circle cx="122" cy="72" r="1.5" /></g>
     </svg></Ground>
   );
 }
@@ -69,6 +57,15 @@ export function IlloStart({ size = 200 }: Props) {
 /** Glass lit from the left: bright at the lit edge, a little grey toward the far side. */
 const Glass = ({ id }: { id: string }) => (
   <linearGradient id={id} x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="var(--surface)" /><stop offset=".55" stopColor="var(--surface)" stopOpacity=".9" /><stop offset="1" stopColor="var(--surface-3)" /></linearGradient>
+);
+/** The block every spot drawing is built on: the shared defs, and a dotted disc behind the object as its backdrop,
+ *  so the four empty pages read as one set. Children use `url(#${u}illo-…)` for the sheen and the bottom shade. */
+const Spot = ({ u, size, children }: { u: string; size: number; children: ReactNode }) => (
+  <Ground><svg {...svg(size)}>
+    <Defs u={u} />
+    <circle cx="48" cy="46" r="40" fill={`url(#${u}illo-dots)`} />
+    {children}
+  </svg></Ground>
 );
 const Fade = ({ id, a, b }: { id: string; a: string; b: string }) => (
   <linearGradient id={id} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={a} /><stop offset="1" stopColor={b} /></linearGradient>
@@ -78,8 +75,7 @@ const Fade = ({ id, a, b }: { id: string; a: string; b: string }) => (
 export function IlloShelf({ size = 120 }: Props) {
   const u = useId();
   return (
-    <Ground><svg {...svg(size)}>
-      <Defs u={u} />
+    <Spot u={u} size={size}>
       <defs>
         <Glass id={`${u}sh-glass`} />
         <Fade id={`${u}sh-liq`} a="var(--mint)" b="var(--mint-ink)" />
@@ -89,10 +85,11 @@ export function IlloShelf({ size = 120 }: Props) {
       <rect x="36" y="22" width="24" height="7" rx="2" fill="var(--ink-4)" />
       <path d="M26 40q0-11 11-11h22q11 0 11 11v35q0 11-11 11H37q-11 0-11-11z" fill={`url(#${u}sh-glass)`} stroke="var(--illo-line)" strokeWidth="1.5" />
       <path d="M28 58h40v17q0 9-9 9H37q-9 0-9-9z" fill={`url(#${u}sh-liq)`} />
+      <path d="M26 40q0-11 11-11h22q11 0 11 11v35q0 11-11 11H37q-11 0-11-11z" fill={`url(#${u}illo-lo)`} />
       <rect x="36" y="38" width="24" height="12" rx="3" fill="var(--surface)" stroke="var(--illo-line)" strokeWidth="1" />
       <path d="M40 44h12" stroke="var(--surface-3)" strokeWidth="3" strokeLinecap="round" />
       <path d="M32 40v36" stroke="var(--surface)" strokeWidth="4" strokeLinecap="round" opacity=".85" />
-    </svg></Ground>
+    </Spot>
   );
 }
 
@@ -100,7 +97,7 @@ export function IlloShelf({ size = 120 }: Props) {
 export function IlloSearch({ size = 120 }: Props) {
   const u = useId();
   return (
-    <Ground><svg {...svg(size)}>
+    <Spot u={u} size={size}>
       <defs>
         <radialGradient id={`${u}se-lens`} cx=".35" cy=".3" r=".75"><stop offset="0" stopColor="var(--surface)" /><stop offset=".7" stopColor="var(--sky)" stopOpacity=".7" /><stop offset="1" stopColor="var(--sky-dot)" stopOpacity=".6" /></radialGradient>
         <Fade id={`${u}se-grip`} a="var(--peach-bar)" b="var(--peach-ink)" />
@@ -109,8 +106,9 @@ export function IlloSearch({ size = 120 }: Props) {
       <path d="M60 60l20 20" stroke={`url(#${u}se-grip)`} strokeWidth="12" strokeLinecap="round" />
       <path d="M54 54l8 8" stroke="var(--ink-3)" strokeWidth="8" strokeLinecap="round" />
       <circle cx="40" cy="40" r="25" fill={`url(#${u}se-lens)`} stroke="var(--ink-2)" strokeWidth="6" />
+      <circle cx="40" cy="40" r="22" fill={`url(#${u}illo-lo)`} />
       <path d="M24 34q4-12 16-15" stroke="var(--surface)" strokeWidth="5" strokeLinecap="round" fill="none" />
-    </svg></Ground>
+    </Spot>
   );
 }
 
@@ -118,8 +116,7 @@ export function IlloSearch({ size = 120 }: Props) {
 export function IlloTrends({ size = 120 }: Props) {
   const u = useId();
   return (
-    <Ground><svg {...svg(size)}>
-      <Defs u={u} />
+    <Spot u={u} size={size}>
       <defs>
         <Fade id={`${u}tr-board`} a="var(--surface)" b="var(--surface-2)" />
         <linearGradient id={`${u}tr-area`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="var(--lilac-line)" stopOpacity=".35" /><stop offset="1" stopColor="var(--lilac-line)" stopOpacity="0" /></linearGradient>
@@ -127,50 +124,51 @@ export function IlloTrends({ size = 120 }: Props) {
       <ellipse cx="48" cy="88" rx="32" ry="4" fill="var(--illo-shade)" />
       <rect x="12" y="12" width="72" height="70" rx="16" fill={`url(#${u}tr-board)`} stroke="var(--illo-line)" strokeWidth="1.5" />
       <rect x="12" y="12" width="72" height="70" rx="16" fill={`url(#${u}illo-hi)`} />
+      <rect x="12" y="12" width="72" height="70" rx="16" fill={`url(#${u}illo-lo)`} />
       <path d="M24 70h48" stroke="var(--illo-line)" strokeWidth="1.5" strokeLinecap="round" opacity=".6" />
       <path d="M26 60l14-10 12 6 18-22V70H26z" fill={`url(#${u}tr-area)`} />
       <path d="M26 60l14-10 12 6 18-22" fill="none" stroke="var(--lilac-line)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
       <circle cx="70" cy="34" r="6" fill="var(--lilac-line)" stroke="var(--surface)" strokeWidth="3" />
-    </svg></Ground>
+    </Spot>
   );
 }
 
 /** Partner, nobody linked yet: one chain link, a peach half and a sky half hooked together. */
 export function IlloPartner({ size = 120 }: Props) {
+  const u = useId();
   return (
-    <Ground><svg {...svg(size)}>
+    <Spot u={u} size={size}>
       <ellipse cx="48" cy="88" rx="30" ry="4" fill="var(--illo-shade)" />
       <g transform="rotate(-35 48 48)" fill="none" strokeWidth="9">
         <rect x="12" y="36" width="42" height="24" rx="12" stroke="var(--peach-ink)" />
         <rect x="42" y="36" width="42" height="24" rx="12" stroke="var(--sky-ink)" />
         {/* The peach link passes back over the sky one at the bottom, so the two read as hooked together. */}
         <path d="M54 48a12 12 0 0 1-12 12" stroke="var(--peach-ink)" />
+        {/* The same bottom shade as the other drawings, laid along each link. */}
+        <g stroke={`url(#${u}illo-lo)`}><rect x="12" y="36" width="42" height="24" rx="12" /><rect x="42" y="36" width="42" height="24" rx="12" /></g>
         <g stroke="var(--surface)" strokeWidth="1.6" strokeLinecap="round" opacity=".5"><path d="M24 38h16" /><path d="M58 38h18" /></g>
       </g>
-    </svg></Ground>
+    </Spot>
   );
 }
 
-/** Profile band backdrop: a peptide chain of linked residues drifting off the band's top right corner.
- *  It takes the band's tier tint (`--tc`) and sits behind the text, faint enough that every line on the band keeps its contrast. */
-const CHAIN: [number, number, number][] = [[18, 132, 9], [50, 112, 12], [88, 120, 10], [116, 92, 14], [150, 98, 11], [170, 64, 15], [204, 56, 12], [222, 22, 16]];
+/** Profile band backdrop: a hairline peptide chain of small linked residues in the band's empty top right corner, beside
+ *  the family glyph and eyebrow and above the name, so the title stays the clear start of the page. It takes the band's
+ *  tier tint (`--tc`) and draws only thin outlines, so nothing on the band loses contrast. */
+const CHAIN: [number, number, number][] = [[6, 52, 3], [28, 44, 4], [50, 49, 3.5], [70, 34, 5], [94, 38, 4], [112, 22, 5.5], [133, 18, 4], [148, 5, 5]];
 /** `seed` (the peptide's id) gives each profile its own chain: it starts one to three residues in, and each residue's
  *  size shifts a little, so no two neighbouring profiles share one drawing. */
 export function BandArt({ seed = '' }: { seed?: string }) {
   const k = [...seed].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 997, 7);
-  const chain = CHAIN.slice(k % 3).map(([x, y, r], i) => [x, y, r + (((k >> i) % 3) - 1) * 2] as const);
+  const chain = CHAIN.slice(k % 3).map(([x, y, r], i) => [x, y, r + (((k >> i) % 3) - 1) * 0.8] as const);
   const bonds = chain.slice(1).map(([x, y], i) => `M${chain[i][0]} ${chain[i][1]}L${x} ${y}`).join('');
   return (
-    <svg className="band-art" width="240" height="160" viewBox="0 0 240 160" aria-hidden="true" focusable="false">
-      <path d={bonds} fill="none" stroke="var(--tc)" strokeWidth="3" strokeLinecap="round" opacity=".28" />
-      <path d="M88 120l-6 26M150 98l8 26M204 56l-18-18" fill="none" stroke="var(--tc)" strokeWidth="2" strokeLinecap="round" strokeDasharray="2 5" opacity=".3" />
-      {chain.map(([x, y, r], i) => (
-        <g key={i}>
-          <circle cx={x} cy={y} r={r} fill="var(--surface)" opacity=".5" />
-          <circle cx={x} cy={y} r={r} fill="none" stroke="var(--tc)" strokeWidth="2" opacity=".32" />
-          <circle cx={x - r * 0.35} cy={y - r * 0.35} r={r * 0.28} fill="var(--surface)" opacity=".7" />
-        </g>
-      ))}
+    <svg className="band-art" width="156" height="60" viewBox="0 0 156 60" aria-hidden="true" focusable="false">
+      <g fill="none" stroke="var(--tc)" strokeWidth="1.25" strokeLinecap="round">
+        <path d={bonds} opacity=".4" />
+        <path d="M70 34l-3 12M112 22l5 11" strokeDasharray="1.5 3" opacity=".4" />
+        {chain.map(([x, y, r], i) => <circle key={i} cx={x} cy={y} r={r} opacity=".55" />)}
+      </g>
     </svg>
   );
 }

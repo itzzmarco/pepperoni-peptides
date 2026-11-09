@@ -3,6 +3,7 @@
    Each tint has one job: mint = adherence and evidence, lilac = weight and dose math, peach = side effects
    and warnings, sky = sites and schedule, lemon = learning, teal = storage. Tokens below; dark theme after. */
 :root {
+  color-scheme: light;
   --bg: #F6F6F8;
   --surface: #FFFFFF;
   --surface-2: #ECEDF1;
@@ -61,8 +62,9 @@
   /* Motion */
   --ease-out: cubic-bezier(.22, 1, .36, 1);
   --ease-in: cubic-bezier(.4, 0, 1, 1);
-  /* A critically damped spring: quick to start, settles on its mark with no overshoot. */
-  --ease-spring: cubic-bezier(.25, 1, .5, 1);
+  /* A light spring: quick to start, runs a hair past its mark and settles back. Only the tab pill and a sheet springing
+     back after a short drag use it; everything else eases out. */
+  --ease-spring: cubic-bezier(.3, 1.3, .55, 1);
   /* Loops that should read as one steady sweep (the skeleton sheen). */
   --ease-linear: linear;
   --dur-fast: 140ms; --dur-med: 240ms; --dur-slow: 450ms;
@@ -186,21 +188,23 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .topbar .row { display: flex; align-items: center; gap: 8px; }
 .brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); font-weight: 600; font-size: var(--fs-md); min-width: 0; }
 .brand svg { flex: none; }
-/* Sub-pages (a profile, the guides): a bare chevron leads back up to Learn. It sits over the vial and the two crossfade,
-   so the wordmark never moves when a page with a way back opens; elsewhere the chevron is invisible and inert. */
-.topbar .bar-back { background: transparent; box-shadow: none; margin-left: -9px; justify-self: start; opacity: 0; visibility: hidden; pointer-events: none; }
-.topbar[data-sub] .bar-back { opacity: 1; visibility: visible; }
-.topbar[data-sub] .brand svg { opacity: 0; }
-/* Once the page title scrolls under the bar, the wordmark gives its place to the route or peptide name. The name, with
-   an up arrow, is one button over the whole cluster, vial included, that scrolls back to the top; the home link under it
-   goes inert meanwhile, so no tap in the cluster lands on a different action. */
+/* The vial is always the home link. Beside it, in the wordmark's place, a sub-page (a profile, the guides) shows its own
+   labelled way back, "‹ Learn", and any other page, once its title has scrolled under the bar, shows the page name with an
+   up arrow that scrolls back to the top. Neither covers the vial, and the wordmark is hidden while either shows. */
 .brand-wrap { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; margin-right: auto; min-width: 0; }
 .brand-wrap > * { grid-area: 1 / 1; }
+.brand { justify-self: start; }
+.topbar :is(.bar-back, .bar-title) { margin-left: 34px; align-self: stretch; min-width: 0; }
+.bar-back { display: flex; align-items: center; gap: 2px; min-height: 44px; text-decoration: none; color: var(--ink); font-weight: 600; font-size: var(--fs-md); opacity: 0; visibility: hidden; pointer-events: none; }
+.bar-back > svg { flex: none; color: var(--ink-3); margin-left: -3px; }
+.bar-back > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.topbar[data-sub] .bar-back { opacity: 1; visibility: visible; pointer-events: auto; }
+.topbar:is([data-sub], [data-titled]) .wordmark { opacity: 0; visibility: hidden; }
 .wordmark, .bar-title > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 /* Its up arrow says what a tap does: back to the top. */
 .bar-title > svg { flex: none; color: var(--ink-3); }
-.bar-title { display: flex; align-items: center; gap: 4px; appearance: none; border: 0; background: none; padding: 0; font: inherit; text-align: left; cursor: pointer; align-self: stretch; padding-left: 34px; font-weight: 600; font-size: var(--fs-md); color: var(--ink); min-width: 0; opacity: 0; transform: translateY(6px); pointer-events: none; }
-.topbar[data-titled] .wordmark { opacity: 0; transform: translateY(-6px); }
+.bar-title { display: flex; align-items: center; gap: 4px; appearance: none; border: 0; background: none; padding: 0; font: inherit; text-align: left; cursor: pointer; font-weight: 600; font-size: var(--fs-md); color: var(--ink); min-width: 0; opacity: 0; transform: translateY(6px); pointer-events: none; }
+.topbar[data-titled] .wordmark { transform: translateY(-6px); }
 .topbar[data-titled] .bar-title { opacity: 1; transform: none; pointer-events: auto; }
 /* The brand row keeps a 44px target in both states. */
 .brand { min-height: 44px; }
@@ -668,7 +672,9 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 /* One column on phones, so chips like "Compoundable with Rx" stay on one line; more columns as the page widens. */
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 12px; }
 /* A plain white card: the family glyph is its one colour block, and the tier shows only in the small ladder. */
-.card { position: relative; display: grid; gap: 8px; align-content: start; grid-template-rows: auto auto 1fr auto; text-align: left; background: var(--surface); box-shadow: var(--ring), var(--shadow-1); border-radius: var(--r-md); padding: 16px; color: var(--ink); text-decoration: none; min-width: 0; }
+.card { position: relative; display: grid; gap: 8px; align-content: start; grid-template-rows: auto auto 1fr auto; text-align: left;
+  /* The family's tint washes in from the glyph's corner, so each card carries its colour beyond the icon. */
+  background: radial-gradient(110% 80% at 100% 0%, var(--tone, var(--surface)), transparent 62%), var(--surface); box-shadow: var(--ring), var(--shadow-1); border-radius: var(--r-md); padding: 16px; color: var(--ink); text-decoration: none; min-width: 0; }
 .glyph { display: inline-grid; place-items: center; border-radius: 14px; flex: none; }
 .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 /* Family and tier on one quiet line under the name: the ladder carries the tier colour, the words stay grey. */
@@ -702,8 +708,8 @@ details[open] > summary .chev { transform: rotate(90deg); }
 .band[data-t="2"] { --tc: var(--t2); --tb: var(--t2-bg); } .band[data-t="3"] { --tc: var(--t3); --tb: var(--t3-bg); }
 .band[data-t="4"] { --tc: var(--t4); --tb: var(--t4-bg); } .band[data-t="5"] { --tc: var(--t5); --tb: var(--t5-bg); }
 .band { position: relative; overflow: hidden; isolation: isolate; }
-.band-art { position: absolute; z-index: -1; top: -6px; right: -18px; pointer-events: none; }
-@media (max-width: 480px) { .band-art { width: 180px; height: 120px; right: -28px; } }
+.band-art { position: absolute; z-index: -1; top: 14px; right: 16px; pointer-events: none; }
+@media (max-width: 480px) { .band-art { width: 112px; height: 43px; right: 12px; } }
 .band .band-top { display: flex; align-items: center; gap: 10px; }
 .band .tier { background: var(--surface); }
 
@@ -907,6 +913,7 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 .tabbar a[aria-current] { color: var(--btn-ink); }
 /* The log button reads like its neighbours: a pink disc where they have an icon, and a word under it. */
 .tabbar .log { justify-self: stretch; min-height: 56px; border: 0; background: none; padding: 0; color: var(--ink); font-size: var(--fs-xs); font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; border-radius: 22px; }
+.tabbar .log-word { max-width: 100%; padding-inline: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tabbar .log-dot { width: 40px; height: 40px; border-radius: 20px; background: var(--brand); color: var(--brand-ink); display: grid; place-items: center; box-shadow: var(--shadow-1); }
 @media (hover: hover) { .tabbar .log:hover .log-dot { background: color-mix(in srgb, var(--brand) 86%, var(--ink)); } }
 /* On the narrowest phones the bar spans all but 8px a side, so a five-column cell (about 59px) fits "Peptides" with room each side. */
@@ -1012,7 +1019,7 @@ footer.foot p { max-width: 90ch; }
   .chart :is(.area, .pt) { animation: fade-in var(--dur-slow) var(--dur-fast) var(--ease-out) backwards; }
   /* Single marks (the day ring, the Now pin) settle on the same damped spring as the tab pill and sheets, with no bounce.
      backwards, like .rise: once landed they let go of transform, so a belly-clock hour still shrinks under a finger. */
-  .pop { animation: pop var(--dur-med) var(--ease-spring) backwards; animation-delay: calc(min(var(--i, 0), 6) * 20ms + 80ms); }
+  .pop { animation: pop var(--dur-med) var(--ease-out) backwards; animation-delay: calc(min(var(--i, 0), 6) * 20ms + 80ms); }
   @keyframes pop { from { transform: scale(0); } }
   /* Dense grids (calendar days, week dots, the pattern, 28-day strips) fade in as one piece instead of cell by cell. */
   :is(.cal, .pattern, .dots7, .strip, .strip28, .daybar) .pop { animation-name: fade-in; animation-delay: 80ms; }
@@ -1035,7 +1042,7 @@ footer.foot p { max-width: 90ch; }
   .btn, .fchip, .icon-btn, .tabbar .log, .tabbar a, .hour, .scale button, .checks label, .pattern .c, button.bf-cell, button.sync, .find-row { transition: transform var(--dur-fast) var(--ease-out), filter var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out); }
   .tabbar .log-dot { transition: background-color var(--dur-fast) var(--ease-out); }
   .btn:active, .fchip:active, .icon-btn:active, .tabbar .log:active { transform: scale(.97); }
-  .tabbar a:active, .seg button:active, .scale button:active, .checks:not(.block) label:active { transform: scale(.97); }
+  .tabbar a:not([aria-current]):active, .seg button:active, .scale button:active, .checks:not(.block) label:active { transform: scale(.97); }
   .checks.block label:active, .find-row:active { transform: scale(.99); }
   .pattern .c:not(.future):active, button.bf-cell:active, button.sync:active { transform: scale(.96); }
   .card, a.tile, button.tile { transition: transform var(--dur-med) var(--ease-out); }
@@ -1048,10 +1055,10 @@ footer.foot p { max-width: 90ch; }
   .hour:active, .site:active { transform: scale(.96); }
   .site:active { transform: translate(-50%, -50%) scale(.94); }
 
-  :is(.wordmark, .bar-title) { transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-med) var(--ease-out); }
+  :is(.wordmark, .bar-title) { transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-med) var(--ease-out), visibility 0s var(--ease-out) var(--dur-fast); }
+  .topbar:not([data-sub], [data-titled]) .wordmark { transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-med) var(--ease-out), visibility 0s; }
   .topbar .bar-back { transition: opacity var(--dur-med) var(--ease-out), visibility 0s var(--ease-out) var(--dur-med); }
   .topbar[data-sub] .bar-back { transition: opacity var(--dur-med) var(--ease-out), visibility 0s; }
-  .brand svg { transition: opacity var(--dur-med) var(--ease-out); }
 
   /* Learn search and filters: cards that stay slide to their new place, cards that leave or arrive fade, the rest holds still. */
   /* Only cards in or near the viewport are named (LibraryView marks them), so a filter never snapshots the whole library. */
@@ -1102,7 +1109,7 @@ footer.foot p { max-width: 90ch; }
   @keyframes fade-out { to { opacity: 0; } }
 
   /* Toast rises in, fades out before it unmounts */
-  .toast { animation: toast-in var(--dur-med) var(--ease-spring) backwards; }
+  .toast { animation: toast-in var(--dur-med) var(--ease-out) backwards; }
   .toast[data-wait] { animation-delay: var(--dur-med); }
   .toast[data-out] { animation: toast-out var(--dur-med) var(--ease-in) forwards; }
   @keyframes toast-in { from { opacity: 0; transform: translate(-50%, 16px) scale(.96); } }

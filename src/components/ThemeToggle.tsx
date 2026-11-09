@@ -7,15 +7,27 @@ const LABEL: Record<Theme, string> = { system: 'Auto', light: 'Light', dark: 'Da
 const NEXT: Record<Theme, Theme> = { system: 'light', light: 'dark', dark: 'system' };
 let fadeTimer: ReturnType<typeof setTimeout> | undefined;
 
+export function storedTheme(): Theme {
+  try { return (localStorage.getItem(KEY) as Theme) || 'system'; } catch { return 'system'; }
+}
+
+/** Sets the theme on the page and paints the browser chrome (theme-color) with the active --bg, so the bar around
+ *  the app matches it in every mode. main.tsx calls it before the first render, so a chosen theme never flashes. */
+export function applyTheme(theme: Theme) {
+  const root = document.documentElement;
+  if (theme === 'system') root.removeAttribute('data-theme');
+  else root.setAttribute('data-theme', theme);
+  const bg = getComputedStyle(root).getPropertyValue('--bg').trim();
+  if (bg) document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('content', bg));
+}
+// In Auto the device can switch scheme while the app is open; the chrome follows.
+if (typeof matchMedia === 'function') matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => applyTheme(storedTheme()));
+
 /** Cycles Auto → Light → Dark. Auto follows the device setting via prefers-color-scheme. */
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(() => {
-    try { return (localStorage.getItem(KEY) as Theme) || 'system'; } catch { return 'system'; }
-  });
+  const [theme, setTheme] = useState<Theme>(storedTheme);
   useEffect(() => {
-    const root = document.documentElement;
-    if (theme === 'system') root.removeAttribute('data-theme');
-    else root.setAttribute('data-theme', theme);
+    applyTheme(theme);
     try { localStorage.setItem(KEY, theme); } catch { /* storage blocked */ }
   }, [theme]);
   // A change of theme fades the colours over one --dur-med (styles.css, :root[data-theming]); reduced motion snaps.

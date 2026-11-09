@@ -2,13 +2,13 @@ import type { FamilyKey } from '../lib/types';
 
 /**
  * Every family sits on the same pale-tint treatment, so no card in the grid looks selected. Families that share a
- * tint are told apart by their icon. Each icon is a short 24px stroke path that stays legible at 20px.
+ * tint are told apart by their icon, so each is one bold, simple shape (a plus, a heart, a sparkle) that reads at 18px.
  */
 const GLYPH: Record<FamilyKey, { tone: string; d: string }> = {
   // Gauge: weight and metabolism
   metabolic: { tone: 'lilac', d: 'M3 17a9 9 0 0 1 18 0M12 17l4-5M3 21h18' },
-  // Bandage: repair and recovery
-  repair: { tone: 'peach', d: 'M4.6 14.8 14.8 4.6a3 3 0 0 1 4.2 0l.4.4a3 3 0 0 1 0 4.2L9.2 19.4a3 3 0 0 1-4.2 0l-.4-.4a3 3 0 0 1 0-4.2zM10 10l4 4' },
+  // Plus: repair and recovery
+  repair: { tone: 'peach', d: 'M12 4v16M4 12h16' },
   // Rising bars: growth hormone
   gh: { tone: 'sky', d: 'M5 20v-5M10 20V10M15 20V6M20 20V3M3 20h18' },
   // Sparkle: skin, hair and tan
@@ -19,8 +19,8 @@ const GLYPH: Record<FamilyKey, { tone: string; d: string }> = {
   longevity: { tone: 'teal', d: 'M6 3h12M6 21h12M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9' },
   // Shield: immune and gut
   immune: { tone: 'mint', d: 'M12 21s7-3.5 7-9V5.5L12 3 5 5.5V12c0 5.5 7 9 7 9zM9 12l2 2 4-4' },
-  // Two linked rings: sexual health and hormones
-  sexual: { tone: 'sky', d: 'M9 15a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM15 19a5 5 0 1 0 0-10 5 5 0 0 0 0 10z' },
+  // Heart: sexual health and hormones
+  sexual: { tone: 'sky', d: 'M12 20s-8-4.6-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.4 12 20 12 20z' },
   // Droplet: lipotropics and nutrients
   lipo: { tone: 'lemon', d: 'M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z' },
 };

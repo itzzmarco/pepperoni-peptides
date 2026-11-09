@@ -226,11 +226,11 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved, onLog, onSignIn
           </details>
         </div>
         {oldUnitDoses.length > 0 && (
-          <div className="checks"><label><input type="checkbox" id="r-relabel" checked={relabel} onChange={e => setRelabel(e.target.checked)} /> Also change the {oldUnitDoses.length === 1 ? 'dose' : `${oldUnitDoses.length} doses`} you logged in {initial.unit} to {r.unit}. Only if they were saved in the wrong unit; the amounts stay the same.</label></div>
+          <div className="checks block"><label><input type="checkbox" id="r-relabel" checked={relabel} onChange={e => setRelabel(e.target.checked)} /> Also change the {oldUnitDoses.length === 1 ? 'dose' : `${oldUnitDoses.length} doses`} you logged in {initial.unit} to {r.unit}. Only if they were saved in the wrong unit; the amounts stay the same.</label></div>
         )}
         <label className="field"><span>Notes <small>(optional)</small></span><textarea id="r-notes" maxLength={500} value={r.notes} onChange={set('notes')} /></label>
         {firstTime && (
-          <div className="checks"><label><input type="checkbox" id="r-ack" {...invalid('r-ack')} checked={ack} onChange={e => setAck(e.target.checked)} /> I understand this log isn't medical advice and won't tell me what dose to take.</label></div>
+          <div className="checks block"><label><input type="checkbox" id="r-ack" {...invalid('r-ack')} checked={ack} onChange={e => setAck(e.target.checked)} /> I understand this log isn't medical advice and won't tell me what dose to take.</label></div>
         )}
         {errFor('r-ack')}
         <div className="sheet-foot">

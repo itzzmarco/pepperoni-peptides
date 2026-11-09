@@ -60,6 +60,7 @@ export function App() {
   const [sheet, setSheet] = useState<SheetState>(null);
   // The bar shows the page's name once its h1 has scrolled under it (see the observer below).
   const [titled, setTitled] = useState(false);
+  const [noteOpen, setNoteOpen] = useState(false);
   const { regimens, doses } = useLedger();
   const { recovering, linkError } = useAccount();
   // A password-reset link, or an email link that failed, lands here: open the account sheet to finish.
@@ -104,10 +105,22 @@ export function App() {
     document.title = route.tab === 'today' && !route.id ? 'Peptide Ledger' : `${pageName} · Peptide Ledger`;
     if (!arrived.current) return;
     arrived.current = false;
-    const h = mainRef.current?.querySelector('h1');
-    if (!h) return;
-    h.tabIndex = -1;
-    h.focus({ preventScroll: true });
+    const main = mainRef.current;
+    if (!main) return;
+    const land = (h: HTMLElement) => { h.tabIndex = -1; h.focus({ preventScroll: true }); };
+    const h = main.querySelector('h1');
+    if (h) { land(h); return; }
+    // A page still loading (Partner's skeleton) has no headline yet: land on it when it arrives, unless the user
+    // has already moved focus somewhere else by then.
+    const from = document.activeElement;
+    const mo = new MutationObserver(() => {
+      const late = main.querySelector('h1');
+      if (!late) return;
+      mo.disconnect();
+      if (document.activeElement === from || document.activeElement === document.body) land(late);
+    });
+    mo.observe(main, { childList: true, subtree: true });
+    return () => mo.disconnect();
   }, [route, pageName]);
   // The glass top bar picks up a hairline once the page scrolls under it.
   const [scrolled, setScrolled] = useState(false);
@@ -217,10 +230,14 @@ export function App() {
       {/* Outside the sticky bar: it greets every route at the top, then scrolls away so only the brand row stays pinned. */}
       <div className="gutter" inert={bg}>
         <div className="wrap">
-          <p className="notice" role="note">
-            <b>Education only.</b>
-            <span>Not medical advice. Most peptides here aren't FDA-approved for what's promoted online. Emergency: 911.</span>
-          </p>
+          {/* One line, so the page's headline is the first thing read; a tap opens the whole warning. Its text stays in the
+              button either way, so screen readers hear all of it. */}
+          <div className="notice" role="note">
+            <button type="button" className="notice-toggle" aria-expanded={noteOpen} onClick={() => setNoteOpen(o => !o)}>
+              <b>Education only.</b>{' '}
+              <span>Not medical advice. Most peptides here aren't FDA-approved for what's promoted online. Emergency: 911.</span>
+            </button>
+          </div>
         </div>
       </div>
       <main ref={mainRef} className="gutter" inert={bg}>

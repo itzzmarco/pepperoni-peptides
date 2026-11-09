@@ -72,9 +72,11 @@ export function Sheet({ onClose, children, label }: { onClose: () => void; child
     drag.current = null;
     if (!d || !el) return;
     el.removeAttribute('data-dragging');
-    // Closing keeps the dragged offset, so the exit slides on from where the finger let go.
-    if (shouldDismiss(dragOffset(d.y0, d.y), releaseVelocity(d.v, e.timeStamp - d.t))) onClose();
-    else el.style.transform = '';
+    // Closing keeps the dragged offset, so the exit slides on from where the finger let go. A close that was turned down
+    // (Backfill asks first when entries would be lost) leaves the sheet open, so it springs back like a short drag.
+    if (!shouldDismiss(dragOffset(d.y0, d.y), releaseVelocity(d.v, e.timeStamp - d.t))) { el.style.transform = ''; return; }
+    onClose();
+    requestAnimationFrame(() => { if (!el.closest('[data-closing]')) el.style.transform = ''; });
   };
 
   return (

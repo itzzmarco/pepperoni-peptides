@@ -47,8 +47,8 @@ export function BodyMap({ selected, onSelect, last, plan, route, suggested }: {
         ))}
       </div>
       <div className="site-legend">
-        <span><i style={{ background: 'var(--peach)', boxShadow: 'inset 0 0 0 2px var(--peach-bar)' }} />Used in last 3 days</span>
-        <span><i style={{ background: 'var(--surface)', boxShadow: 'inset 0 0 0 2px var(--sky-ink)' }} />Suggested</span>
+        <span><i style={{ background: 'var(--peach)', border: '2px solid var(--peach)' }} />Used in last 3 days</span>
+        <span><i style={{ background: 'var(--surface)', border: '2px dashed var(--sky-ink)' }} />Suggested</span>
       </div>
       <p className="small" style={{ textAlign: 'center', color: 'var(--ink-2)' }}>{plan.note}</p>
       {!selected && <p className="small" style={{ textAlign: 'center', color: 'var(--ink-2)' }}>Suggested next: <b>{label(next)}</b>. Rotating sites helps prevent lumps and scarring.</p>}

@@ -262,7 +262,7 @@ export function TodayView(actions: Actions) {
             <a href="#partner" className="tile span-2 partner-tile rise" style={rise(6)}>
               <span className="avatar" aria-hidden="true">{firstName(partner.name)[0]}</span>
               <span className="stack gap-1" style={{ flex: 1, minWidth: 0 }}>
-                <span className="label" style={{ color: 'var(--peach-ink)' }}>{firstName(partner.name)} · partner</span>
+                <span className="label">{firstName(partner.name)} · partner</span>
                 <span className="tile-title">
                   {pW ? <>{fmtNum(pW.last.w, 1)}<small className="sub"> {pUnit}</small>{pW.count > 1 && <span className="sub"> · {pW.change > 0 ? '+' : pW.change < 0 ? '−' : ''}{Math.abs(pW.change).toFixed(1)} since {fmtShort(pW.first.at)}</span>}</> : 'No weigh-ins yet'}
                 </span>
@@ -285,7 +285,7 @@ export function TodayView(actions: Actions) {
             </button>
           ))}
 
-          <button type="button" className={`tile mint rise gap-2${comingUp?.st.due ? '' : ' wide-sm'}`} style={rise(7)} onClick={actions.checkin}>
+          <button type="button" className={`tile rise gap-2${comingUp?.st.due ? '' : ' wide-sm'}`} style={rise(7)} onClick={actions.checkin}>
             <span className="label">Check-in</span>
             {checkedIn ? (
               <>
@@ -301,7 +301,7 @@ export function TodayView(actions: Actions) {
           </button>
 
           {comingUp?.st.due && (
-            <a href="#peptides" className="tile sky rise gap-2" style={rise(8)}>
+            <a href="#peptides" className="tile rise gap-2" style={rise(8)}>
               <span className="label">Coming up</span>
               <span className="tile-title">{regName(comingUp.r)}</span>
               <span className="sub">{fmtDay(comingUp.st.due)} · {fmtNum(Number(comingUp.r.dose), 3)} {comingUp.r.unit}</span>

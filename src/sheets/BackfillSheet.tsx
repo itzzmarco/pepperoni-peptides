@@ -12,8 +12,8 @@ const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
 const JUMP = 0.05;
 
 /**
- * Fill in past days from a paper log: a month grid laid out like a wall calendar. Type a weight in each
- * day (Enter moves to the next day), or pick a peptide and tap the days it was taken. Nothing is saved
+ * Fill in past days from a paper log: a month grid laid out like a wall calendar. Tap a day and type its
+ * weight (Enter moves to the next day), or pick a peptide and tap the days it was taken. Nothing is saved
  * until Save, so the whole month can be checked against the paper first.
  */
 export function BackfillSheet({ onClose }: { onClose: () => void }) {
@@ -28,13 +28,17 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
   const [unit, setUnit] = useState(() => checkins.find(c => c.weightUnit)?.weightUnit ?? 'lb');
   const [paste, setPaste] = useState('');
   const [bad, setBad] = useState<string[]>([]);
-  const grid = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLInputElement>(null);
   const tile = useRef<HTMLElement>(null);
   // The day being typed in. Its typo and jump warnings wait until you move on, so "3" on the way to "311" isn't flagged.
   const [editing, setEditing] = useState<string | null>(null);
+  // The day the editor under the calendar is set to. The grid cells are too narrow on a phone for a readable input.
+  const [pick, setPick] = useState(() => dayKey(now));
 
   const saved = useMemo(() => weightsByDay(checkins), [checkins]);
   const cells = monthGrid(ym.y, ym.m, now);
+  const open = cells.filter(c => c && !c.future).map(c => c!);
+  const sel = open.find(c => c.key === pick) ?? open[open.length - 1];
   const plan = useMemo(() => planBackfill(ledger, { weights, doses: ticks, unit }, new Date(), regName), [ledger, weights, ticks, unit]);
   const nWeights = plan.saveCheckins.length + plan.deleteCheckins.length;
   const nDoses = plan.addDoses.length;
@@ -88,15 +92,15 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
   const step = (n: number) => setYm(({ y, m }) => ({ y: y + Math.floor((m + n) / 12), m: (((m + n) % 12) + 12) % 12 }));
   const title = new Date(ym.y, ym.m, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 
-  // Enter (or Next on a phone keyboard) moves to the next day's box.
+  // Enter (or Next on a phone keyboard) moves the editor on to the next day.
   const onKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key !== 'Enter') return;
+    if (e.key !== 'Enter' || !sel) return;
     e.preventDefault();
-    const boxes = [...(grid.current?.querySelectorAll<HTMLInputElement>('input') ?? [])];
-    const next = boxes[boxes.indexOf(e.currentTarget) + 1];
-    if (next) next.focus();
+    const next = open[open.indexOf(sel) + 1];
+    if (next) { setPick(next.key); setEditing(next.key); }
     else e.currentTarget.blur();
   };
+  const choose = (key: string) => { setPick(key); box.current?.focus(); };
 
   const fill = () => {
     const { values, bad } = parsePasted(paste, new Date());
@@ -109,8 +113,10 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
     }
     setWeights(next);
     setMode('weight');
-    const first = dayAt(values.map(([k]) => k).sort()[0]);
+    const firstKey = values.map(([k]) => k).sort()[0];
+    const first = dayAt(firstKey);
     setYm({ y: first.getFullYear(), m: first.getMonth() });
+    setPick(firstKey);
     setPaste('');
     tile.current?.scrollIntoView({ block: 'start', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
     toast(`Filled in ${plural(values.length, 'day')}${bad.length ? `, skipped ${plural(bad.length, 'line')}` : ''}. Check them, then save.`);
@@ -129,6 +135,7 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
     if (invalid.length) {
       const d = dayAt(invalid.sort()[0]);
       setYm({ y: d.getFullYear(), m: d.getMonth() });
+      setPick(invalid[0]);
       setMode('weight');
       toast(`${fmtDay(d)} doesn't look like a weight. Fix or clear it first.`);
       return;
@@ -169,10 +176,10 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
           <button type="button" className="icon-btn" onClick={() => step(1)} disabled={isThisMonth} aria-label="Next month"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg></button>
         </div>
         <p className="small" style={{ color: 'var(--ink-2)' }}>
-          {r ? `Tap each day you took ${regName(r)}. It's logged as ${fmtNum(Number(r.dose), 3)} ${r.unit} at your usual time.` : 'Type each day’s weight. Enter jumps to the next day.'}
+          {r ? `Tap each day you took ${regName(r)}. It's logged as ${fmtNum(Number(r.dose), 3)} ${r.unit} at your usual time.` : 'Tap a day, then type its weight. Enter jumps to the next day.'}
         </p>
 
-        <div className="bf-grid" ref={grid}>
+        <div className="bf-grid">
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => <span key={i} className="bf-wd" aria-hidden="true">{d}</span>)}
           {cells.map((c, i) => {
             if (!c) return <span key={`x${i}`} />;
@@ -196,16 +203,24 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
             const jump = settled && !wrong && jumpFrom(c.key);
             const cls = ['bf-cell', saved.has(c.key) && !changed && 'saved', changed && 'changed', wrong && 'wrong', jump && 'jump', c.today && 'today'].filter(Boolean).join(' ');
             return (
-              <label key={c.key} className={cls} title={jump ? `Big change from ${fmtDay(dayAt(jump[0]))} (${jump[1]}). Double-check.` : undefined}>
+              <button key={c.key} type="button" className={`${cls} wt${sel?.key === c.key ? ' sel' : ''}`} aria-pressed={sel?.key === c.key} onClick={() => choose(c.key)}
+                aria-label={`${fmtDay(c.date)}, ${v ? `${v} ${unit}` : 'no weight'}`} title={jump ? `Big change from ${fmtDay(dayAt(jump[0]))} (${jump[1]}). Double-check.` : undefined}>
                 <span className="bf-d">{n}</span>
-                <input type="text" inputMode="decimal" enterKeyHint="next" autoComplete="off" maxLength={6} value={v}
-                  aria-label={`Weight on ${fmtDay(c.date)}`} aria-invalid={wrong || undefined}
-                  onChange={e => setWeight(c.key, e.target.value)} onKeyDown={onKey}
-                  onFocus={() => setEditing(c.key)} onBlur={() => setEditing(null)} />
-              </label>
+                <span className="bf-v">{v}</span>
+              </button>
             );
           })}
         </div>
+
+        {!r && sel && (
+          <label className="field bf-edit">
+            <span>Weight on {fmtDay(sel.date)}</span>
+            <input ref={box} type="text" inputMode="decimal" enterKeyHint="next" autoComplete="off" maxLength={6} value={shown(sel.key)}
+              aria-invalid={(editing !== sel.key && sel.key in weights && Number.isNaN(readWeight(weights[sel.key]))) || undefined}
+              onChange={e => setWeight(sel.key, e.target.value)} onKeyDown={onKey}
+              onFocus={() => setEditing(sel.key)} onBlur={() => setEditing(null)} />
+          </label>
+        )}
 
         {r ? (
           <>

@@ -189,7 +189,7 @@ export function PeptidesView(actions: Actions) {
           <IlloShelf />
           <span className="eyebrow">Your peptides</span>
           <h1>Nothing tracked yet.<br /><span className="soft">Add what you were prescribed.</span></h1>
-          <p className="muted small">Add a peptide or medication you've been prescribed. You'll get a due-date status, a 4-week history strip, and injection-site rotation.</p>
+          <p className="muted small">Each one gets a due-date status, a 4-week history strip, and injection-site rotation.</p>
           <div className="row-wrap">
             <button className="btn" onClick={actions.addRegimen}>{plus}Add a peptide</button>
             <a className="btn ghost" href="#learn">Browse the library</a>

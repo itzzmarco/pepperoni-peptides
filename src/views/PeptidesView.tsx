@@ -164,21 +164,33 @@ export function PeptidesView(actions: Actions) {
   const paused = regimens.filter(r => r.paused);
   const due = active.filter(r => ['due', 'late'].includes(regimenStatus(r, doses).s)).length;
 
+  const plus = <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>;
   return (
     <section className="view">
-      <header className="head rise">
-        <span className="eyebrow">Your peptides</span>
-        <h1>
-          {regimens.length ? <>{active.length} being tracked.<br /><span className="soft">{due ? `${due} due today.` : 'Nothing due today.'}</span></> : <>Nothing tracked yet.<br /><span className="soft">Add what you were prescribed.</span></>}
-        </h1>
-      </header>
-      <div className="head-actions rise" style={{ ['--i' as string]: 1 }}>
-        <button className="btn" onClick={actions.addRegimen}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-          Add a peptide
-        </button>
-        <a className="btn ghost" href="#learn">Browse the library</a>
-      </div>
+      {/* First run: one empty hero (art, headline, what you get, one primary action) instead of a header and a second empty card. */}
+      {regimens.length === 0 ? (
+        <div className="empty rise">
+          <IlloShelf />
+          <span className="eyebrow">Your peptides</span>
+          <h1>Nothing tracked yet.<br /><span className="soft">Add what you were prescribed.</span></h1>
+          <p className="muted small">Add a peptide or medication you've been prescribed. You'll get a due-date status, a 4-week history strip, and injection-site rotation.</p>
+          <div className="row-wrap">
+            <button className="btn" onClick={actions.addRegimen}>{plus}Add a peptide</button>
+            <a className="btn ghost" href="#learn">Browse the library</a>
+          </div>
+        </div>
+      ) : (
+        <>
+          <header className="head rise">
+            <span className="eyebrow">Your peptides</span>
+            <h1>{active.length} being tracked.<br /><span className="soft">{due ? `${due} due today.` : 'Nothing due today.'}</span></h1>
+          </header>
+          <div className="head-actions rise" style={{ ['--i' as string]: 1 }}>
+            <button className="btn" onClick={actions.addRegimen}>{plus}Add a peptide</button>
+            <a className="btn ghost" href="#learn">Browse the library</a>
+          </div>
+        </>
+      )}
 
       <Glp1Alert regimens={regimens} />
 
@@ -201,15 +213,7 @@ export function PeptidesView(actions: Actions) {
         </section>
       )}
 
-      {regimens.length === 0 ? (
-        <div className="empty">
-          <IlloShelf />
-          <span className="eyebrow">Start your log</span>
-          <h3>Nothing tracked yet</h3>
-          <p className="muted small">Add a peptide or medication you've been prescribed. You'll get a due-date status, a 4-week history strip, and injection-site rotation.</p>
-          <button className="btn" onClick={actions.addRegimen}>Add a peptide</button>
-        </div>
-      ) : (
+      {regimens.length > 0 && (
         <>
           {active.map((r, i) => <RegimenCard key={r.id} r={r} doses={doses} actions={actions} i={i} />)}
           {paused.length > 0 && (

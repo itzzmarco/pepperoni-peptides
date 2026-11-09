@@ -65,6 +65,8 @@ export function App() {
     // First-paint reveals (.rise) switch off for the rest of the session once a fade is used, so the root fade is the only page motion.
     // The switch flips inside the swap, after the old page is snapshotted, so the page being left never moves.
     // A second tap while a fade is still running swaps at once instead of starting another one (see transitionGate).
+    // A scrolled page goes to the top before the old page is snapshotted, so the fade runs top to top instead of
+    // crossfading the middle of one screen into the top of the next.
     let fade = false;
     const swap = () => {
       if (fade) document.documentElement.dataset.routed = '';
@@ -73,6 +75,7 @@ export function App() {
     const go = transitionGate(swap);
     const onHash = () => {
       fade = 'startViewTransition' in document && !prefersReducedMotion();
+      if (fade) window.scrollTo(0, 0);
       go(fade ? update => (document as WithTransitions).startViewTransition(() => flushSync(update)) : null);
     };
     window.addEventListener('hashchange', onHash);
@@ -119,7 +122,7 @@ export function App() {
 
   let view;
   if (route.id) view = <PeptideDetail p={PEP[route.id]} onTrack={id => setSheet({ kind: 'regimen', r: blankRegimen(id), isNew: true })} onLog={actions.logDose} />;
-  else if (route.tab === 'trends') view = <TrendsView onBackfill={() => setSheet({ kind: 'backfill' })} />;
+  else if (route.tab === 'trends') view = <TrendsView onBackfill={() => setSheet({ kind: 'backfill' })} onAdd={actions.addRegimen} />;
   else if (route.tab === 'learn') view = <LibraryView />;
   else if (route.tab === 'peptides') view = <PeptidesView {...actions} />;
   else if (route.tab === 'calculator') view = <CalculatorView />;

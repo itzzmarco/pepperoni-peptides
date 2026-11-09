@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from 'react';
+import { useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react';
 import type { Checkin, DoseEntry, Ledger } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { useAccount } from '../lib/account';
@@ -87,30 +87,50 @@ function ExportPanel({ ledger }: { ledger: Ledger }) {
 const RECENT = 12;
 
 /** Header chart: one bar per day in the range, as tall as that day's dose count, so the page opens on the shape of the log.
- *  A caption under it gives the total and the range's first and last day. With no doses in range it isn't drawn at all. */
+ *  A caption under it gives the total and the range's first and last day, and a hairline at the top marks the busiest day's count.
+ *  Pointing, touching or arrowing along the bars reads out one day (a slider for screen readers, so every day is reachable).
+ *  With no doses in range it isn't drawn at all. */
 function DoseBars({ doses, days, now }: { doses: DoseEntry[]; days: number; now: Date }) {
+  const [sel, setSel] = useState<number | null>(null);
   const perDay = new Map<string, number>();
   for (const d of doses) { const k = dayKey(new Date(d.at)); perDay.set(k, (perDay.get(k) ?? 0) + 1); }
-  const counts = Array.from({ length: days }, (_, i) => perDay.get(dayKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - (days - 1) + i))) ?? 0);
+  const dayAt = (i: number) => new Date(now.getFullYear(), now.getMonth(), now.getDate() - (days - 1) + i);
+  const counts = Array.from({ length: days }, (_, i) => perDay.get(dayKey(dayAt(i))) ?? 0);
   const max = Math.max(1, ...counts);
   const total = counts.reduce((a, b) => a + b, 0);
   if (!total) return null;
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (days - 1));
+  const at = sel == null ? null : Math.min(sel, days - 1);
+  const dayText = (i: number) => `${fmtDay(dayAt(i))}: ${counts[i]} dose${counts[i] === 1 ? '' : 's'}`;
+  const fromPointer = (e: PointerEvent<HTMLDivElement>) => {
+    const b = e.currentTarget.getBoundingClientRect();
+    setSel(Math.max(0, Math.min(days - 1, Math.floor(((e.clientX - b.left) / b.width) * days))));
+  };
+  const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    const cur = at ?? days - 1;
+    const next = { ArrowLeft: cur - 1, ArrowDown: cur - 1, ArrowRight: cur + 1, ArrowUp: cur + 1, Home: 0, End: days - 1 }[e.key];
+    if (next == null) return;
+    e.preventDefault();
+    setSel(Math.max(0, Math.min(days - 1, next)));
+  };
   return (
     <>
-      <div className="hero-bars" data-n={days} role="img" aria-label={`Doses logged each day over the last ${days} days: ${total} in total.`}>
-        {counts.map((n, i) => <i key={i} className={`grow up${n ? '' : ' none'}`} style={{ height: n ? `${(n / max) * 100}%` : undefined, ['--i' as string]: Math.round((i / days) * 12) }} />)}
+      <div className="hero-bars" data-n={days} tabIndex={0} role="slider" aria-label={`Doses logged each day over the last ${days} days, ${total} in total`}
+        aria-valuemin={0} aria-valuemax={days - 1} aria-valuenow={at ?? days - 1} aria-valuetext={dayText(at ?? days - 1)}
+        onKeyDown={onKey} onPointerDown={fromPointer} onPointerMove={fromPointer}
+        onPointerLeave={e => { if (e.pointerType === 'mouse') setSel(null); }} onBlur={() => setSel(null)}>
+        <span className="hero-max" aria-hidden="true">{max} a day</span>
+        {counts.map((n, i) => <i key={i} className={`grow up${n ? '' : ' none'}`} data-on={at === i || undefined} style={{ height: n ? `${(n / max) * 100}%` : undefined, ['--i' as string]: Math.round((i / days) * 12) }} />)}
       </div>
       <div className="hero-cap" aria-hidden="true">
-        <span>{fmtShort(start)}</span>
-        <span><b>{total} dose{total === 1 ? '' : 's'}</b> logged</span>
+        <span>{fmtShort(dayAt(0))}</span>
+        {at == null ? <span><b>{total} dose{total === 1 ? '' : 's'}</b> logged</span> : <span><b>{dayText(at)}</b></span>}
         <span>Today</span>
       </div>
     </>
   );
 }
 
-function History({ doses, checkins, onBackfill, art }: { doses: DoseEntry[]; checkins: Checkin[]; onBackfill: () => void; art?: ReactNode }) {
+function History({ doses, checkins, onBackfill, onAdd, art }: { doses: DoseEntry[]; checkins: Checkin[]; onBackfill: () => void; onAdd?: () => void; art?: ReactNode }) {
   const toast = useToast();
   const [showAll, setShowAll] = useState(false);
   type Item = { kind: 'dose'; at: string; e: DoseEntry } | { kind: 'check'; at: string; e: Checkin };
@@ -126,7 +146,11 @@ function History({ doses, checkins, onBackfill, art }: { doses: DoseEntry[]; che
       <span className="eyebrow">History</span>
       <h3 id="hist-h">Nothing logged yet</h3>
       <p className="small muted">Logged doses and check-ins appear here. Kept a paper log before? Fill in past days to bring it in.</p>
-      <button type="button" className="btn" onClick={onBackfill}>Fill in past days</button>
+      {/* A new log starts the same way as on Today and Peptides; a paper log can still come in after. */}
+      <div className="row-wrap">
+        {onAdd && <button type="button" className="btn" onClick={onAdd}>Add a peptide</button>}
+        <button type="button" className={onAdd ? 'btn ghost' : 'btn'} onClick={onBackfill}>Fill in past days</button>
+      </div>
     </section>
   );
   return (
@@ -247,7 +271,7 @@ function Pattern({ doses, checkins, now }: { doses: DoseEntry[]; checkins: Check
   );
 }
 
-export function TrendsView({ onBackfill }: { onBackfill: () => void }) {
+export function TrendsView({ onBackfill, onAdd }: { onBackfill: () => void; onAdd: () => void }) {
   const ledger = useLedger();
   const { regimens, doses, checkins } = ledger;
   const [days, setDays] = useState<7 | 30 | 90>(30);
@@ -288,7 +312,7 @@ export function TrendsView({ onBackfill }: { onBackfill: () => void }) {
       {/* Nothing logged yet: the history card explains what will show up and offers the first step, instead of a dashboard of dashes. */}
       {empty ? (
         <>
-          <History doses={doses} checkins={checkins} onBackfill={onBackfill} art={<IlloTrends />} />
+          <History doses={doses} checkins={checkins} onBackfill={onBackfill} onAdd={onAdd} art={<IlloTrends />} />
           <ExportPanel ledger={ledger} />
         </>
       ) : <>

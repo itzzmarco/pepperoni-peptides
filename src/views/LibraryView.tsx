@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import type { FamilyKey, LegalKey, Peptide, Tier } from '../lib/types';
 import { PEPTIDES } from '../data/peptides';
 import { AS_OF, FAMILIES, LEGAL, TIERS } from '../data/reference';
@@ -12,13 +12,16 @@ const TIER_LIST: Tier[] = [1, 2, 3, 4, 5];
 
 type Filters = { q: string; fam: 'all' | FamilyKey; tier: 'all' | `${Tier}`; legal: 'all' | LegalKey };
 const FILTER_KEY = 'pl-lib';
+/** Kept in memory for this visit only (never stored): the query, and where the page was when a profile was opened,
+    so coming back from a profile shows the same results at the same place. */
+const back: { q: string; y: number | null } = { q: '', y: null };
 
 function loadFilters(): Filters {
   const base: Filters = { q: '', fam: 'all', tier: 'all', legal: 'all' };
   try {
-    return { ...base, ...JSON.parse(localStorage.getItem(FILTER_KEY) || '{}'), q: '' };
+    return { ...base, ...JSON.parse(localStorage.getItem(FILTER_KEY) || '{}'), q: back.q };
   } catch {
-    return base;
+    return { ...base, q: back.q };
   }
 }
 
@@ -118,8 +121,20 @@ const GUIDES = [
 export function LibraryView() {
   const [f, setF] = useState<Filters>(loadFilters);
   useEffect(() => {
+    back.q = f.q;
     try { localStorage.setItem(FILTER_KEY, JSON.stringify({ ...f, q: '' })); } catch { /* storage blocked */ }
   }, [f]);
+  // Back from a profile: return to the spot it was opened from. A layout effect, so it lands before the route fade's
+  // new snapshot and after App's scroll to the top.
+  useLayoutEffect(() => {
+    if (back.y != null) window.scrollTo(0, back.y);
+    back.y = null;
+  }, []);
+  // Any link to a profile (cards, chart rows, tier lists) remembers where the page was.
+  const remember = (e: MouseEvent) => {
+    const a = (e.target as Element).closest('a[href^="#"]');
+    if (a && !GUIDES.some(g => g.href === a.getAttribute('href'))) back.y = window.scrollY;
+  };
   const list = useMemo(
     () => PEPTIDES.filter(p => matches(p, f)).sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0) || a.name.localeCompare(b.name)),
     [f],
@@ -141,7 +156,7 @@ export function LibraryView() {
     d.querySelector('summary')?.focus({ preventScroll: true });
   };
   return (
-    <section className="view wide">
+    <section className="view wide" onClickCapture={remember}>
       <header className="head rise">
         <span className="eyebrow">Learn</span>
         <h1>What the evidence says.<br /><span className="soft">{PEPTIDES.length} peptides, graded.</span></h1>
@@ -187,7 +202,7 @@ export function LibraryView() {
             <span className="badge-icon" style={{ width: 44, height: 44, background: 'var(--surface)', color: `var(--${g.tone}-ink)` }} aria-hidden="true">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={g.icon} /></svg>
             </span>
-            <span style={{ fontSize: '1.125rem', fontWeight: 600, lineHeight: 1.2 }}>{g.title}</span>
+            <span className="tile-title">{g.title}</span>
             <span className="sub">{g.sub}</span>
           </a>
         ))}
@@ -197,7 +212,7 @@ export function LibraryView() {
         <summary className="spread" style={{ alignItems: 'center', flexWrap: 'nowrap' }}>
           <span className="stack" style={{ gap: 4 }}>
             <span className="label">How evidence tiers work</span>
-            <span style={{ fontSize: '1.125rem', fontWeight: 600, lineHeight: 1.25 }}>Only {trialBacked} of {PEPTIDES.length} have randomized human trials</span>
+            <span className="tile-title">Only {trialBacked} of {PEPTIDES.length} have randomized human trials</span>
           </span>
           <span className="arrow" aria-hidden="true"><svg className="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
         </summary>

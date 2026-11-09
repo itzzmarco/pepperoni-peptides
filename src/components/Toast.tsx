@@ -16,11 +16,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastCtx.Provider value={show}>
       {children}
-      {msg && (
-        <div className="toast" role="status" key={msg.id} data-out={msg.out || undefined}>
-          {msg.text}
-        </div>
-      )}
+      {/* One live region stays mounted (empty between toasts), so each message is announced as it is added;
+          only the pill inside it is keyed, so it plays its own enter and exit. */}
+      <div role="status">
+        {msg && (
+          <div className="toast" key={msg.id} data-out={msg.out || undefined}>
+            {msg.text}
+          </div>
+        )}
+      </div>
     </ToastCtx.Provider>
   );
 }

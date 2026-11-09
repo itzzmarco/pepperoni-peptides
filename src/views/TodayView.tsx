@@ -46,14 +46,15 @@ function DayBar({ done, todo, now }: { done: Date[]; todo: Date[]; now: Date }) 
   );
 }
 
-/** Today's doses as a ring: the arc is the share logged, the count sits in the middle and the label reads it out. */
+/** Today's doses as a ring: the arc is the share logged, the count sits in the middle and the label reads it out.
+    The arc sweeps to a new share (useCountUp, so reduced motion jumps), like the stats around it count up. */
 function TodayRing({ done, total }: { done: number; total: number }) {
-  const share = Math.min(1, done / total) * 100;
+  const share = useCountUp(Math.min(1, done / total) * 100);
   return (
     <span className="today-ring pop" role="img" aria-label={`${done} of ${total} today`} style={rise(3)}>
       <svg viewBox="0 0 72 72" width="76" height="76" aria-hidden="true">
         <circle cx="36" cy="36" r="30" className="track" />
-        {done > 0 && <circle cx="36" cy="36" r="30" className="arc" pathLength={100} strokeDasharray={`${share} 100`} />}
+        {share > 0 && <circle cx="36" cy="36" r="30" className="arc" pathLength={100} strokeDasharray={`${share} 100`} />}
       </svg>
       <b className="num" aria-hidden="true">{done}<small>/{total}</small></b>
     </span>
@@ -156,8 +157,8 @@ export function TodayView(actions: Actions) {
 
   return (
     <section className="view">
-      <header className="head rise">
-        <div className="spread" style={{ alignItems: 'center' }}>
+      <header className="head">
+        <div className="spread rise" style={{ alignItems: 'center' }}>
           <span className="stack" style={{ gap: 2 }}>
             <span style={{ fontWeight: 500, color: 'var(--ink-3)' }}>{hello}</span>
             <span className="eyebrow">{fmtDay(now)}</span>
@@ -231,7 +232,7 @@ export function TodayView(actions: Actions) {
             <span className="label">Side effects</span>
             {effects.length ? (
               <>
-                <span style={{ fontSize: '1.3125rem', fontWeight: 600, lineHeight: 1.15 }}>{effects[0][0]}</span>
+                <span className="tile-title">{effects[0][0]}</span>
                 <span className="sub">{plural(effects[0][1], 'day')} this week{effects.length > 1 ? `, plus ${effects.length - 1} more` : ''}</span>
               </>
             ) : <span className="sub">None logged this week.</span>}
@@ -242,7 +243,7 @@ export function TodayView(actions: Actions) {
               <span className="avatar" aria-hidden="true">{firstName(partner.name)[0]}</span>
               <span className="stack" style={{ gap: 2, flex: 1, minWidth: 0 }}>
                 <span className="label" style={{ color: 'var(--peach-ink)' }}>{firstName(partner.name)} · partner</span>
-                <span style={{ fontSize: '1.3125rem', fontWeight: 600, lineHeight: 1.2 }}>
+                <span className="tile-title">
                   {pW ? <>{fmtNum(pW.last.w, 1)}<small className="sub"> {pUnit}</small>{pW.count > 1 && <span className="sub"> · {pW.change > 0 ? '+' : pW.change < 0 ? '−' : ''}{Math.abs(pW.change).toFixed(1)} since {fmtShort(pW.first.at)}</span>}</> : 'No weigh-ins yet'}
                 </span>
                 {pNext && <span className="sub">{regName(pNext.r)} · {pNext.st.text}</span>}
@@ -257,7 +258,7 @@ export function TodayView(actions: Actions) {
               <SiteFigure s={sug} size={76} />
               <span className="stack" style={{ gap: 2, minWidth: 0 }}>
                 <span className="label">Next shot · {regName(r)}</span>
-                <span style={{ fontSize: '1.375rem', fontWeight: 600, lineHeight: 1.2 }}>{siteLabel(sug.site, r.route)}</span>
+                <span className="tile-title">{siteLabel(sug.site, r.route)}</span>
                 <span className="sub" style={{ color: 'var(--ink-2)', fontWeight: 600 }}>{whenNext(r, doses, now)} · {doseText(r)}</span>
                 <span className="sub">{sug.why}</span>
               </span>
@@ -268,12 +269,12 @@ export function TodayView(actions: Actions) {
             <span className="label" style={{ color: 'var(--mint-ink)' }}>Check-in</span>
             {checkedIn ? (
               <>
-                <span style={{ fontSize: '1.3125rem', fontWeight: 600, lineHeight: 1.15 }}>Done today</span>
+                <span className="tile-title">Done today</span>
                 <span className="sub">{checkedIn.overall ? `Feeling ${checkedIn.overall}/5 · ` : ''}{fmtTime(new Date(checkedIn.at))}</span>
               </>
             ) : (
               <>
-                <span style={{ fontSize: '1.3125rem', fontWeight: 600, lineHeight: 1.15 }}>How do you feel?</span>
+                <span className="tile-title">How do you feel?</span>
                 <span className="sub">Takes 30 seconds</span>
               </>
             )}
@@ -282,7 +283,7 @@ export function TodayView(actions: Actions) {
           {comingUp?.st.due && (
             <a href="#peptides" className="tile rise" style={{ ...rise(8), gap: 6 }}>
               <span className="label" style={{ color: 'var(--sky-ink)' }}>Coming up</span>
-              <span style={{ fontSize: '1.3125rem', fontWeight: 600, lineHeight: 1.15 }}>{regName(comingUp.r)}</span>
+              <span className="tile-title">{regName(comingUp.r)}</span>
               <span className="sub">{fmtDay(comingUp.st.due)} · {fmtNum(Number(comingUp.r.dose), 3)} {comingUp.r.unit}</span>
             </a>
           )}
@@ -290,7 +291,7 @@ export function TodayView(actions: Actions) {
           <a href={learnP ? `#${learnP.id}` : '#calculator'} className={`tile lemon rise ${comingUp?.st.due ? 'span-2' : 'wide-sm'}`} style={{ ...rise(9), display: 'flex', alignItems: 'center', gap: 14 }}>
             <span className="stack" style={{ gap: 6, flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
               <span className="label">{learnP ? `Evidence · Tier ${learnP.tier} ${TIERS[learnP.tier].label}` : 'Guide'}</span>
-              <span style={{ fontSize: '1.25rem', fontWeight: 600, lineHeight: 1.2 }}>{learnP ? `What the research says about ${learnP.name}` : 'Dose math, step by step'}</span>
+              <span className="tile-title">{learnP ? `What the research says about ${learnP.name}` : 'Dose math, step by step'}</span>
             </span>
             <span className="arrow" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
           </a>

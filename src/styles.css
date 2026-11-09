@@ -161,9 +161,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
   view-transition-name: topbar;
 }
 .topbar[data-scrolled="true"] { box-shadow: 0 1px 0 var(--glass-edge), var(--shadow-1); }
-/* Scrolled, the wordmark shrinks a little. The bar itself never moves, so its glass always covers the content under it. */
-.topbar[data-scrolled="true"] .brand { transform: scale(.92); }
-.brand { transform-origin: left center; }
 .topbar .row { display: flex; align-items: center; gap: 8px; }
 .brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); margin-right: auto; font-weight: 600; font-size: 1.0625rem; }
 .brand svg { flex: none; }
@@ -194,12 +191,16 @@ main { padding-block: 8px 40px; }
 .head.hero .eyebrow { color: var(--lilac-ink); }
 .head.hero h1 { font-size: clamp(2.125rem, 9vw, 2.75rem); letter-spacing: -.02em; }
 .head.hero h1 .soft { color: var(--ink-3); }
-.hero-bars { display: flex; align-items: flex-end; gap: 3px; height: 56px; margin-top: 6px; }
+.hero-bars { position: relative; display: flex; align-items: flex-end; gap: 3px; height: 56px; margin-top: 20px; touch-action: pan-y; cursor: crosshair; border-radius: 4px; }
 .hero-bars[data-n="30"] { gap: 2px; } .hero-bars[data-n="90"] { gap: 1px; }
 .hero-bars i { flex: 1 1 0; min-width: 0; border-radius: 3px; background: var(--lilac-line); }
 .hero-cap { display: flex; justify-content: space-between; gap: 8px; font-size: var(--fs-xs); color: var(--ink-3); font-variant-numeric: tabular-nums; margin-top: -4px; }
 .hero-cap b { color: var(--lilac-ink); font-weight: 600; }
 .hero-bars i.none { height: 4px; background: color-mix(in srgb, var(--lilac-line) 25%, transparent); }
+/* The bars read out one day under a pointer, a finger or the arrow keys; the hairline on top is the busiest day's count. */
+.hero-bars:focus-visible { outline: 2px solid var(--lilac-ink); outline-offset: 4px; }
+.hero-bars i[data-on] { background: var(--lilac-ink); }
+.hero-max { position: absolute; left: 0; right: 0; bottom: 100%; padding-bottom: 3px; border-bottom: 1px dashed color-mix(in srgb, var(--lilac-ink) 35%, transparent); font-size: var(--fs-xs); line-height: 1; color: var(--ink-3); text-align: right; pointer-events: none; }
 .section-title { padding: 0 4px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 
 /* Tiles */
@@ -222,6 +223,8 @@ a.tile { color: var(--ink); }
 .tile.dark .sub { color: var(--on-dark-2); }
 .tile.dark a:not(.btn) { color: var(--on-dark); }
 .label { font-size: .9375rem; font-weight: 600; color: var(--ink-3); }
+/* The headline line of a tile: one step of the type scale for every tile in a grid. */
+.tile-title { font-size: var(--fs-lg); font-weight: 600; line-height: 1.2; }
 .sub { color: var(--ink-3); font-size: var(--fs-sm); }
 .big { font-size: 3.25rem; font-weight: 600; letter-spacing: -.02em; line-height: 1; font-variant-numeric: tabular-nums; }
 .mid { font-size: 1.875rem; font-weight: 600; letter-spacing: -.01em; line-height: 1.1; font-variant-numeric: tabular-nums; }
@@ -231,6 +234,8 @@ a.tile { color: var(--ink); }
 .bento > .row-2 { grid-row: span 2; display: flex; flex-direction: column; }
 /* Tiles that would sit half width with long text: full width on narrow phones. */
 @media (max-width: 480px) { .bento > .wide-sm { grid-column: span 2; } }
+/* A 320px phone leaves about 100px inside a half-width tile: the big stat steps down so "100%" keeps its inset. */
+@media (max-width: 359px) { .bento .big { font-size: 2.5rem; } }
 .miniclock .pop { transform-box: fill-box; transform-origin: center; }
 .inset { background: color-mix(in srgb, var(--surface) 65%, transparent); border-radius: 16px; padding: 10px 12px; }
 .tile.dark .inset { background: rgba(255,255,255,.08); }
@@ -454,7 +459,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .tile.mint .chart .pt { stroke: var(--mint); }
 .chart-wrap { position: relative; }
 .tip { position: absolute; pointer-events: none; background: var(--btn); color: var(--btn-ink); font-size: var(--fs-xs); padding: 5px 10px; border-radius: 10px; white-space: nowrap; transform: translate(-50%, -120%); z-index: 2; }
-.hbar { display: grid; grid-template-columns: minmax(84px, max-content) 1fr; column-gap: 10px; row-gap: 4px; }
+/* Names get a fixed share (long ones ellipsize, the full name is the row's label), so the bars keep a readable track at 320px. */
+.hbar { display: grid; grid-template-columns: minmax(84px, 34%) minmax(0, 1fr); column-gap: 10px; row-gap: 4px; }
 .hbar-grid, .hbar-axis { grid-column: 2; position: relative; margin-right: 78px; }
 .hbar-grid span { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--chart-grid); }
 .hbar-axis { height: 16px; font-size: var(--fs-xs); color: var(--ink-3); }
@@ -462,7 +468,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 @media (max-width: 480px) { .hbar-axis span:nth-child(even) { visibility: hidden; } }
 .hbar-row { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: center; min-height: 28px; color: var(--ink); text-decoration: none; border-radius: 8px; position: relative; }
 .hbar-row:hover .hbar-label, .hbar-row:focus-visible .hbar-label { text-decoration: underline; }
-.hbar-label { font-size: var(--fs-sm); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hbar-label { min-width: 0; font-size: var(--fs-sm); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hbar-track { position: relative; height: 18px; margin-right: 78px; }
 .hbar-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 0 6px 6px 0; }
 .hbar-val { position: absolute; top: 50%; transform: translateY(-50%); margin-left: 6px; white-space: nowrap; font-size: var(--fs-xs); color: var(--ink-2); font-variant-numeric: tabular-nums; }
@@ -488,6 +494,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .empty > .illo-ground { justify-self: stretch; }
 /* One empty-state layout everywhere: art on its ground, centred title, a line of copy, the main action. The dark Today card only swaps colours. */
 .empty :is(h1, h2, h3) { font-size: var(--fs-xl); }
+.empty h1 .soft { color: var(--ink-4); }
 .empty > .eyebrow { margin-bottom: -6px; }
 .empty > p, .empty > .sub { max-width: 46ch; }
 .empty > .row-wrap { justify-content: center; }
@@ -690,8 +697,8 @@ input.code-input { font-family: var(--f-mono); font-size: 1.375rem; letter-spaci
 
 /* Tab bar */
 .tabbar { position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: min(440px, calc(100% - 32px)); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; padding: 6px; border-radius: var(--r-xl); background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); box-shadow: var(--shadow-3), inset 0 0 0 1px var(--glass-edge); view-transition-name: tabbar; isolation: isolate; overflow: hidden; }
-/* One pill behind the current tab: one fifth of the bar. It slides only between neighbours on the same side of the log button
-   (column 2); a jump across it fades in at the new tab instead. The bar clips, so the spring never pokes past its rounded ends. */
+/* One pill behind the current tab: one fifth of the bar. It slides between any two tabs, passing under the opaque log button
+   (column 2) without stopping there. The bar clips, so the spring never pokes past its rounded ends. */
 /* Opaque fallback for both glass bars; it comes after both rules so it wins on equal specificity. */
 @supports not (backdrop-filter: blur(1px)) { .topbar, .tabbar { background: var(--bg); } }
 .tab-ind { position: absolute; z-index: -1; top: 6px; bottom: 6px; left: 6px; width: calc((100% - 12px) / 5); border-radius: 22px; background: var(--tab-pill); transform: translateX(calc(var(--k) * 100%)); pointer-events: none; }
@@ -713,17 +720,18 @@ a.tile, button.tile { position: relative; }
 .illo { display: block; max-width: 100%; height: auto; }
 /* Lit from the top left, like the shadows each scene casts down and to the right. */
 .illo-ground { display: grid; place-items: center; padding: 14px 12px 6px; border-radius: var(--r-md); background: radial-gradient(90% 110% at 15% 0%, var(--surface), transparent 70%), var(--surface-2); }
-/* On the instrument card the art is redrawn in the on-dark palette: an opaque outlined page with lighter cells and vial, a soft blue header,
-   outlines in --on-dark-3, so it sits in the card instead of reading as a light sticker. */
-.tile.dark .illo-ground { background: radial-gradient(90% 110% at 15% 0%, var(--dark-line), transparent 70%); }
-.tile.dark .illo { --illo-line: var(--on-dark-3); --illo-shade: rgba(0,0,0,.22); --surface: color-mix(in srgb, var(--on-dark) 22%, var(--dark)); --sky: color-mix(in srgb, var(--on-dark) 9%, var(--dark)); --sky-ink: var(--dose-cell); --mint-ink: var(--dark); --ink-4: var(--on-dark-3); }
+/* On the instrument card the art sits on its own raised plate (a lighter, outlined panel) and is redrawn in the on-dark palette:
+   a clearly lighter page and bright vial and cells, a blue header and --on-dark-3 outlines, so it reads at a glance without
+   turning into a light sticker. */
+.tile.dark .illo-ground { background: radial-gradient(90% 110% at 15% 0%, color-mix(in srgb, var(--on-dark) 16%, var(--dark)), transparent 75%), color-mix(in srgb, var(--on-dark) 8%, var(--dark)); box-shadow: inset 0 0 0 1px var(--dark-line); }
+.tile.dark .illo { --illo-line: var(--on-dark-3); --illo-shade: rgba(0,0,0,.28); --surface: color-mix(in srgb, var(--on-dark) 62%, var(--dark)); --sky: color-mix(in srgb, var(--on-dark) 26%, var(--dark)); --sky-ink: var(--dose-cell); --mint-ink: var(--dark); --ink-4: var(--on-dark-3); }
 .skel-page { display: grid; gap: 12px; }
 .skel { position: relative; overflow: hidden; border-radius: var(--r-lg); background: var(--skel); }
 
-/* Tablet and desktop: Learn and Trends (marked .view.wide) open up to a wider column, with more library
-   columns and trend tiles two by two. The other screens keep the phone-width column. */
+/* Tablet and desktop: Learn and Trends (marked .view.wide) open up to a wider content column, with more library
+   columns and trend tiles two by two. The top bar and notice keep one width on every route so the chrome holds still. */
 @media (min-width: 900px) {
-  body:has(.view.wide) .wrap { max-width: 1040px; }
+  body:has(.view.wide) main .wrap, body:has(.view.wide) footer.foot .wrap { max-width: 1040px; }
   .trend-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
 }
 .trend-grid { display: grid; gap: 16px; }
@@ -747,12 +755,11 @@ footer.foot p { max-width: 90ch; }
   @keyframes grow-up { from { transform: scaleY(0); } }
   .syringe .moves { transition: transform var(--dur-slow) var(--ease-out); }
   details > summary .chev { transition: transform var(--dur-med) var(--ease-out); }
-  .brand { transition: transform var(--dur-med) var(--ease-out); }
 
   /* Tactile feedback: quick press, gentle lift */
-  .btn, .fchip, .icon-btn, .tabbar .log, .tabbar a, .seg button, .hour { transition: transform var(--dur-fast) var(--ease-out), filter var(--dur-fast) var(--ease-out); }
+  .btn, .fchip, .icon-btn, .tabbar .log, .tabbar a, .seg button, .hour, .scale button { transition: transform var(--dur-fast) var(--ease-out), filter var(--dur-fast) var(--ease-out); }
   .btn:active, .fchip:active, .icon-btn:active, .tabbar .log:active { transform: scale(.97); }
-  .tabbar a:active, .seg button:active { transform: scale(.94); }
+  .tabbar a:active, .seg button:active, .scale button:active { transform: scale(.94); }
   .card, a.tile, button.tile { transition: transform var(--dur-med) var(--ease-out); }
   .card::after, a.tile::after, button.tile::after { transition: opacity var(--dur-med) var(--ease-out); }
   @media (hover: hover) { .card:hover, a.tile:hover, button.tile:hover { transform: translateY(-2px); } }
@@ -764,9 +771,6 @@ footer.foot p { max-width: 90ch; }
   /* Sliding selection: tab pill and segmented control */
   .tab-ind, .seg::before { transition: transform var(--dur-med) var(--ease-spring), opacity var(--dur-fast) var(--ease-out); }
   .tab-ind { animation: fade-in var(--dur-med) var(--ease-out) backwards; }
-  /* A new dose-math answer is shown at once; only its block gives a small nudge so the change is noticed. */
-  .result-big { animation: nudge var(--dur-med) var(--ease-spring); }
-  @keyframes nudge { from { transform: scale(.97); } }
 
   /* Sheets: scrim fades; phones slide up from the bottom, wider screens fade and scale from .96. Exit reverses. */
   .scrim { animation: fade-in var(--dur-med) var(--ease-out) backwards; }

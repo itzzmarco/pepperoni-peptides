@@ -285,14 +285,13 @@ export function TodayView(actions: Actions) {
           {partner && (
             <a href="#partner" className="tile span-2 partner-tile rise" style={rise(6)}>
               <span className="avatar" aria-hidden="true">{firstName(partner.name)[0]}</span>
-              <span className="stack gap-1" style={{ flex: 1, minWidth: 0 }}>
+              <span className="stack gap-1 flex-1 min-0">
                 <span className="label">{firstName(partner.name)} · partner</span>
                 <span className="tile-title">
                   {pW ? <>{fmtNum(pW.last.w, 1)}<small className="sub"> {pUnit}</small>{pW.count > 1 && <span className="sub"> · {pW.change > 0 ? '+' : pW.change < 0 ? '−' : ''}{Math.abs(pW.change).toFixed(1)} since {fmtShort(pW.first.at)}</span>}</> : 'No weigh-ins yet'}
                 </span>
                 {pNext && <span className="sub">{regName(pNext.r)} · {pNext.st.text}</span>}
               </span>
-              <span className="arrow" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
             </a>
           )}
 
@@ -333,11 +332,10 @@ export function TodayView(actions: Actions) {
           )}
 
           <a href={learnP ? `#${learnP.id}` : '#calculator'} className={`tile rise row-tile gap-4 ${comingUp?.st.due ? 'span-2' : 'wide-sm'}`} style={rise(9)}>
-            <span className="stack gap-2" style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
+            <span className="stack gap-2 flex-1 min-0 break-any">
               <span className="label">{learnP ? `Evidence · Tier ${learnP.tier} ${TIERS[learnP.tier].label}` : 'Guide'}</span>
               <span className="tile-title">{learnP ? `What the research says about ${learnP.name}` : 'Dose math, step by step'}</span>
             </span>
-            <span className="arrow" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
           </a>
         </div>
       )}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { dueDayKeys, monthGrid, parsePasted, planBackfill, readWeight, weightsByDay } from '../backfill';
+import { convertEntries, dueDayKeys, monthGrid, parsePasted, planBackfill, readWeight, weightsByDay } from '../backfill';
 import { LedgerStore, normalize } from '../store';
 import { dayKey } from '../format';
 import { MemoryKV, check, dose, reg } from './helpers';
@@ -144,5 +144,15 @@ describe('store.applyBatch', () => {
     expect(s.get().checkins.map(c => c.id)).toEqual(['new']);
     expect(s.get().doses.map(d => d.id)).toEqual(['d2', 'd1']);
     expect(weightsByDay(s.get().checkins).get('2026-09-07')?.weight).toBe(213);
+  });
+});
+
+describe('convertEntries', () => {
+  const toKg = (w: number) => w / 2.20462;
+  it('restates typed weights in the new unit instead of relabelling them', () => {
+    expect(convertEntries({ '2026-10-01': '200', '2026-10-02': '182,4' }, toKg)).toEqual({ '2026-10-01': '90.7', '2026-10-02': '82.7' });
+  });
+  it('keeps blank and unreadable entries as typed', () => {
+    expect(convertEntries({ '2026-10-01': '', '2026-10-02': '2x0' }, toKg)).toEqual({ '2026-10-01': '', '2026-10-02': '2x0' });
   });
 });

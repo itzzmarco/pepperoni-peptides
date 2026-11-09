@@ -56,6 +56,20 @@ export function readWeight(s: string): number | null {
 }
 
 /**
+ * Typed weights restated in another unit when the unit is switched, so 200 typed as lb becomes 90.7 in kg rather than
+ * being saved as 200 kg. `convert` maps one value from the old unit to the new one; results round to 0.1. Blank entries
+ * (clearing a saved day) and entries that aren't a weight stay exactly as typed.
+ */
+export function convertEntries(weights: Record<string, string>, convert: (w: number) => number): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(weights)) {
+    const w = readWeight(v);
+    out[k] = w == null || Number.isNaN(w) ? v : String(Math.round(convert(w) * 10) / 10);
+  }
+  return out;
+}
+
+/**
  * Days where a regimen was probably due: same spacing as its schedule, lined up on its first logged dose
  * (or its start date when nothing is logged). Only for whole-day schedules like daily, every other day,
  * weekly or every 2 weeks; "3 times a week" has no fixed days, so it gets no hints.

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { store, useLedger } from '../lib/store';
 import { dayKey, fmtDay, fmtNum } from '../lib/format';
-import { dayAt, dueDayKeys, monthGrid, parsePasted, planBackfill, readWeight, weightsByDay } from '../lib/backfill';
+import { convertEntries, dayAt, dueDayKeys, monthGrid, parsePasted, planBackfill, readWeight, weightsByDay } from '../lib/backfill';
 import { Sheet } from '../components/Sheet';
 import { useToast } from '../components/Toast';
 import { prefersReducedMotion } from '../components/Motion';
@@ -47,11 +47,19 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
   const pending = nWeights + nDoses;
 
   // A saved weight in the unit picked here, so a 220 lb entry never reads as 220 kg. Converted values round to 0.1.
-  const savedW = (key: string) => {
+  const savedW = (key: string, u = unit) => {
     const c = saved.get(key);
     if (!c) return undefined;
-    const from = c.weightUnit ?? unit;
-    return from === unit ? c.weight! : Math.round(convertWeight(c.weight!, from, unit) * 10) / 10;
+    const from = c.weightUnit ?? u;
+    return from === u ? c.weight! : Math.round(convertWeight(c.weight!, from, u) * 10) / 10;
+  };
+  // Switching the unit restates what's been typed so far in the new unit (200 lb becomes 90.7 kg, never 200 kg).
+  // An entry that now equals the saved weight for its day is no longer a change, so it drops out.
+  const changeUnit = (to: string) => {
+    const next = convertEntries(weights, w => convertWeight(w, unit, to));
+    for (const [k, v] of Object.entries(next)) if (saved.has(k) && readWeight(v) === savedW(k, to)) delete next[k];
+    setWeights(next);
+    setUnit(to);
   };
   const shown = (key: string) => (key in weights ? weights[key] : saved.has(key) ? String(savedW(key)) : '');
   // Every day's weight as it would be after saving, for spotting typos like 231 for 213.
@@ -257,7 +265,7 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
               <span><i className="bf-key changed" />New or changed</span>
               <span><i className="bf-key jump" />Big jump, check it</span>
             </div>
-            <label className="bf-unit"><span className="xsmall">Unit</span><select value={unit} onChange={e => setUnit(e.target.value)} aria-label="Weight unit"><option>lb</option><option>kg</option></select></label>
+            <label className="bf-unit"><span className="xsmall">Unit</span><select value={unit} onChange={e => changeUnit(e.target.value)} aria-label="Weight unit"><option>lb</option><option>kg</option></select></label>
           </div>
         )}
       </section>
@@ -274,7 +282,7 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
         <p className="sr-only" role="status">{leaving ? `Leave without saving? ${pending} ${pending === 1 ? 'entry' : 'entries'} you filled in will be lost.` : ''}</p>
         {leaving ? (
           <>
-            <p className="small" aria-hidden="true" style={{ flex: '1 1 100%' }}><b>Leave without saving?</b> {pending} {pending === 1 ? 'entry' : 'entries'} you filled in will be lost.</p>
+            <p className="small ask" aria-hidden="true"><b>Leave without saving?</b> {pending} {pending === 1 ? 'entry' : 'entries'} you filled in will be lost.</p>
             <button ref={keep} type="button" className="btn ghost" onClick={() => setLeaving(false)}>Keep editing</button>
             <button type="button" className="btn danger" onClick={onClose} style={{ flex: '1 1 160px' }}>Discard and leave</button>
           </>

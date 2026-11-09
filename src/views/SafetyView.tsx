@@ -22,7 +22,7 @@ export function SafetyView() {
   const after = 3 + SAFETY.cards.length;
   return (
     <section className="view">
-      <header className="head rise">
+      <header className="head hero guide peach rise">
         <span className="eyebrow">Guide · Safety &amp; law</span>
         <h1>Know the warning signs.<br /><span className="soft">And where US rules stand.</span></h1>
         <p>What to watch for, how to handle vials safely, and the state of US rules as of {AS_OF}.</p>

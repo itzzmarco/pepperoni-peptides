@@ -182,16 +182,15 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* Sub-pages (a profile, the guides): a bare chevron at the bar's start leads back up to Learn. */
 .topbar .bar-back { background: transparent; box-shadow: none; margin-left: -10px; }
 /* Once the page title scrolls under the bar, the wordmark gives its place to the route or peptide name. The name is plain
-   text laid over the wordmark's spot and never takes taps, so the whole spot stays the brand link. */
+   text laid over the wordmark's spot and lets taps through, so the whole spot stays the brand link. */
 .brand-wrap { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; margin-right: auto; min-width: 0; }
 .brand-wrap > * { grid-area: 1 / 1; }
 .wordmark, .bar-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bar-title { padding-left: 34px; font-weight: 600; font-size: var(--fs-md); color: var(--ink); min-width: 0; opacity: 0; transform: translateY(6px); pointer-events: none; }
 .topbar[data-titled] .wordmark { opacity: 0; transform: translateY(-6px); }
 .topbar[data-titled] .bar-title { opacity: 1; transform: none; }
-/* While the page name shows, only the vial mark is the home link; the name over the wordmark's spot takes no taps. */
-.topbar[data-titled] .brand { pointer-events: none; }
-.topbar[data-titled] .brand svg { pointer-events: auto; }
+/* The whole brand row stays the home link at 44px in both states: the page name lets taps through to the link under it. */
+.brand { min-height: 44px; }
 .sync { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--ink-2); background: var(--surface); box-shadow: var(--ring); border-radius: 999px; padding: 6px 12px 6px 10px; white-space: nowrap; min-height: 44px; }
 .sync i { width: 7px; height: 7px; border-radius: 50%; background: var(--good); display: inline-block; }
 .or { display: flex; align-items: center; gap: 12px; color: var(--ink-3); font-size: var(--fs-xs); }
@@ -209,9 +208,9 @@ button.sync[data-s="syncing"] i { background: linear-gradient(90deg, var(--sky-i
 button.sync[data-s="offline"] i { width: 9px; height: 3px; border-radius: 2px; }
 button.sync[data-s="error"] i { border-radius: 1px; transform: rotate(45deg); }
 .show-sm { display: none; }
-/* At the narrowest phones the signed-out pill drops its person icon, the status pills show only their mark (the word stays
-   in the accessible name and tooltip, and each status has its own shape), and the row tightens, so the wordmark keeps its whole name. */
-@media (max-width: 359px) { .topbar .row { gap: 6px; } button.sync:not([data-s]) { padding-inline: 12px; } button.sync:not([data-s]) > svg { display: none; } span.sync, button.sync[data-s] { padding-inline: 12px; } :is(span.sync, button.sync[data-s]) > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
+/* At the narrowest phones the signed-out pill drops its person icon, the status pills keep their word and drop the mark
+   instead (touch has no tooltip, so the word is what tells Synced from Offline), and the row tightens, so the wordmark keeps its whole name. */
+@media (max-width: 359px) { .topbar .row { gap: 6px; } button.sync:not([data-s]) { padding-inline: 12px; } button.sync:not([data-s]) > svg { display: none; } span.sync, button.sync[data-s] { padding-inline: 10px; } :is(span.sync, button.sync[data-s]) > i { display: none; } }
 @media (max-width: 420px) { .hide-sm { display: none; } .show-sm { display: inline; } button.sync[data-s] { min-width: 44px; justify-content: center; padding: 0 10px; } }
 /* One quiet line of small print under the bar (no card, no edge), so each page's greeting or hero leads. */
 .notice { margin-top: 2px; padding: 0 4px; color: var(--ink-3); font-size: var(--fs-xs); line-height: 1.4; text-wrap: pretty; }
@@ -232,6 +231,9 @@ main { padding-block: 8px 40px; }
 .hero-bars { position: relative; display: flex; align-items: flex-end; gap: 3px; height: 56px; margin-top: 20px; touch-action: pan-y; border-radius: 4px; }
 .hero-bars[data-n="30"] { gap: 2px; }
 .hero-bars i { flex: 1 1 0; min-width: 0; border-radius: 3px; background: var(--lilac-line); }
+/* The two Learn guides open on the same hero card, washed from the corner with their tint: lilac for dose math, peach for safety. */
+.head.hero.guide { --gc: var(--lilac-line); background: radial-gradient(120% 100% at 100% 0%, color-mix(in srgb, var(--gc) 14%, transparent), transparent 60%), var(--surface); }
+.head.hero.guide.peach { --gc: var(--peach-bar); } .head.hero.guide.peach .eyebrow { color: var(--peach-ink); }
 .hero-cap { display: flex; justify-content: space-between; gap: 8px; font-size: var(--fs-xs); color: var(--ink-3); font-variant-numeric: tabular-nums; margin-top: -4px; }
 .hero-cap b { color: var(--lilac-ink); font-weight: 600; }
 /* Says the bars can be scrubbed; it sits under the total and gives way to the day readout while one is picked. */
@@ -323,6 +325,7 @@ a.tile { color: var(--ink); }
 .tile.dark .btn:not(.glass) { background: var(--on-dark); color: var(--dark); }
 @media (hover: hover) { .tile.dark .btn:not(.glass):hover { background: var(--on-dark-2); } }
 .tile.dark .btn.glass { background: var(--dark-line); color: var(--on-dark); }
+@media (hover: hover) { .tile.dark .btn.glass:hover { background: var(--dark-edge); } }
 .icon-btn { appearance: none; width: 44px; height: 44px; border-radius: 22px; border: 0; background: var(--surface); box-shadow: var(--ring); color: var(--ink); display: inline-grid; place-items: center; cursor: pointer; flex: none; text-decoration: none; }
 @media (hover: hover) { .icon-btn:hover { background: var(--surface-2); } }
 /* Theme: a sun, a moon or a half disc for Auto, with the word beside it wherever the bar has room. */
@@ -627,7 +630,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 /* Family and tier on one quiet line under the name: the ladder carries the tier colour, the words stay grey. */
 .card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: var(--fs-xs); font-weight: 500; color: var(--ink-3); }
-.card h3 { font-size: var(--fs-md); overflow-wrap: anywhere; }
+.card h3 { font-size: var(--fs-lg); overflow-wrap: anywhere; }
 .card .aka { font-size: var(--fs-xs); color: var(--ink-3); margin-top: 2px; }
 .card .sum { font-size: var(--fs-sm); line-height: 1.4; color: var(--ink-3); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .card .row-wrap { gap: 6px; }
@@ -744,6 +747,8 @@ tr:last-child td { border-bottom: 0; }
 .sheet:has(.sheet-foot) { padding-bottom: 16px; }
 .sheet-foot { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; position: sticky; bottom: -16px; background: var(--sheet-bg); padding: 10px 0 calc(4px + env(safe-area-inset-bottom, 0px)); }
 .sheet-foot .btn[type="submit"] { flex: 1 1 160px; }
+/* The leave-without-saving question takes its own line above Keep editing and Discard. */
+.sheet-foot .ask { flex: 1 1 100%; }
 /* The dose sheet's site card: a hairline over the chosen spot and its note. A chip on a tinted card sits on white. */
 .site-foot { display: grid; gap: var(--sp-1); border-top: 1px solid color-mix(in srgb, var(--sky-ink) 15%, transparent); padding-top: var(--sp-3); }
 .chip.on-tint { background: var(--surface); color: var(--sky-ink); }
@@ -835,6 +840,12 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 .strip28 i.on { background: var(--mint-ink); }
 .strip28 i.today { box-shadow: inset 0 0 0 1.5px var(--mint-ink); }
 .partner-tile { display: flex; align-items: center; gap: 14px; }
+/* Every Today tile that opens something carries the same quiet chevron, so a touch user can tell which cards open.
+   Stat tiles show it beside their label; the wide row tiles show it at the middle of their right edge. */
+.bento.quad > :is(a, button).tile::before { content: ""; position: absolute; top: 25px; right: 20px; width: 8px; height: 8px; border: solid var(--ink-3); border-width: 2px 2px 0 0; transform: rotate(45deg); pointer-events: none; }
+.bento.quad > :is(a, button).tile > .label:first-child { padding-right: 16px; }
+.bento.quad > :is(.row-tile, .partner-tile)::before { top: 50%; margin-top: -5px; }
+.bento.quad > :is(.row-tile, .partner-tile) { padding-right: 40px; }
 
 /* Tab bar */
 .tabbar { position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: min(440px, calc(100% - 32px)); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; padding: 6px; border-radius: var(--r-xl); background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); box-shadow: var(--shadow-3), inset 0 0 0 1px var(--glass-edge); view-transition-name: tabbar; isolation: isolate; overflow: hidden; }
@@ -843,11 +854,11 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 /* People who ask the OS for less transparency get the same opaque bars, with no blur behind them. */
 @media (prefers-reduced-transparency: reduce) { .topbar, .tabbar { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; } }
 /* One pill behind the current tab: one fifth of the track. It slides from tab to tab in one piece; the track only cuts a
-   round hole a little wider than the log button, so crossing sides the pill passes around the button (a thin gap rings
-   it) instead of fading out and back, and never paints or rests behind it. */
+   round hole 3px wider than the log button's 40px disc, centred on the disc, so crossing sides the pill wraps under and
+   around the disc (a thin gap rings it) and stays one visible shape, and it never rests there.
+   The disc sits 10.5px above the middle of its column: the column holds the 40px disc, a 3px gap and an 18px word line. */
 .tab-track { position: absolute; z-index: -1; inset: 6px; pointer-events: none;
-  --hole: min(31px, (100vw - 44px) / 10 - 1px);
-  -webkit-mask: radial-gradient(circle at 50% 50%, transparent var(--hole), black calc(var(--hole) + 1px)); mask: radial-gradient(circle at 50% 50%, transparent var(--hole), black calc(var(--hole) + 1px)); }
+  -webkit-mask: radial-gradient(circle at 50% calc(50% - 10.5px), transparent 23px, black 24px); mask: radial-gradient(circle at 50% calc(50% - 10.5px), transparent 23px, black 24px); }
 .tab-ind { position: absolute; top: 0; bottom: 0; left: 0; width: 20%; border-radius: 22px; background: var(--tab-pill); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); }
 .tabbar a { color: var(--ink-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; font-size: var(--fs-xs); font-weight: 500; text-decoration: none; border-radius: 22px; }
 @media (hover: hover) { .tabbar a:hover { color: var(--ink); } }
@@ -928,7 +939,7 @@ footer.foot p { max-width: 90ch; }
 /* Spacing utilities on the --sp-* scale. They come after the components they adjust, so they win on equal specificity. */
 .gap-1 { gap: var(--sp-1); } .gap-2 { gap: var(--sp-2); } .gap-3 { gap: var(--sp-3); } .gap-4 { gap: var(--sp-4); }
 .mt-1 { margin-top: var(--sp-1); } .mt-2 { margin-top: var(--sp-2); } .mt-3 { margin-top: var(--sp-3); }
-.mid { align-items: center; } .nowrap { flex-wrap: nowrap; } .self-start { justify-self: start; }
+.mid { align-items: center; } .nowrap { flex-wrap: nowrap; } .self-start { justify-self: start; } .flex-1 { flex: 1 1 0; } .tap { min-height: 44px; }
 
 /* Motion: staggered first-paint reveal, lines that draw in, syringe that fills, sheets, toasts, route fades.
    Only transform, opacity and filter move, always on the --ease-* and --dur-* tokens. Off for reduced motion. */
@@ -939,8 +950,9 @@ footer.foot p { max-width: 90ch; }
   @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
   .draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw calc(var(--dur-slow) * 2) var(--dur-med) var(--ease-out) forwards; }
   @keyframes draw { to { stroke-dashoffset: 0; } }
-  /* Single marks (the day ring, the Now pin) settle on the same damped spring as the tab pill and sheets, with no bounce. */
-  .pop { animation: pop var(--dur-med) var(--ease-spring) both; animation-delay: calc(min(var(--i, 0), 6) * 20ms + 80ms); }
+  /* Single marks (the day ring, the Now pin) settle on the same damped spring as the tab pill and sheets, with no bounce.
+     backwards, like .rise: once landed they let go of transform, so a belly-clock hour still shrinks under a finger. */
+  .pop { animation: pop var(--dur-med) var(--ease-spring) backwards; animation-delay: calc(min(var(--i, 0), 6) * 20ms + 80ms); }
   @keyframes pop { from { transform: scale(0); } }
   /* Dense grids (calendar days, week dots, the pattern, 28-day strips) fade in as one piece instead of cell by cell. */
   :is(.cal, .pattern, .dots7, .strip, .strip28, .daybar) .pop { animation-name: fade-in; animation-delay: 80ms; }
@@ -971,7 +983,8 @@ footer.foot p { max-width: 90ch; }
   :is(.wordmark, .bar-title) { transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-med) var(--ease-out); }
 
   /* Learn search and filters: cards that stay slide to their new place, cards that leave or arrive fade, the rest holds still. */
-  :root[data-filtering] .cards > .card { view-transition-name: var(--vt); }
+  /* Only cards in or near the viewport are named (LibraryView marks them), so a filter never snapshots the whole library. */
+  :root[data-filtering] .cards > .card[data-vt] { view-transition-name: var(--vt); }
   :root[data-filtering]::view-transition-group(*) { animation-duration: var(--dur-med); animation-timing-function: var(--ease-out); }
   :root[data-filtering]::view-transition-old(root) { display: none; }
   :root[data-filtering]::view-transition-new(root) { animation: none; }
@@ -1005,6 +1018,11 @@ footer.foot p { max-width: 90ch; }
     .scrim[data-closing] .sheet { animation-name: sheet-out; }
     @keyframes sheet-in { from { opacity: 0; transform: scale(.96); } }
     @keyframes sheet-out { to { opacity: 0; transform: scale(.96); } }
+  }
+  /* Switching theme: surfaces, text and outlines fade into their new colours instead of snapping (ThemeToggle sets the
+     flag for one --dur-med). It comes after the press and selection transitions, so it wins for that moment. */
+  :root[data-theming] body, :root[data-theming] body::before, :root[data-theming] body *, :root[data-theming] body *::before, :root[data-theming] body *::after {
+    transition: background-color var(--dur-med) var(--ease-out), color var(--dur-med) var(--ease-out), border-color var(--dur-med) var(--ease-out), box-shadow var(--dur-med) var(--ease-out), fill var(--dur-med) var(--ease-out), stroke var(--dur-med) var(--ease-out);
   }
   @keyframes fade-in { from { opacity: 0; } }
   @keyframes fade-out { to { opacity: 0; } }

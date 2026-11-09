@@ -93,6 +93,9 @@ export function App() {
     };
     const go = transitionGate(swap);
     const onHash = () => {
+      // The page being left is snapshotted with no direction, so a profile's header glyph (named only while data-dir is
+      // "forward") stays in the page fade instead of dissolving on its own when no glyph is there to meet it.
+      delete document.documentElement.dataset.dir;
       const start = viewTransition();
       go(start ? update => start(() => { fading = true; try { flushSync(update); } finally { fading = false; } }) : null);
     };
@@ -227,7 +230,7 @@ export function App() {
               </a>
             )}
             {/* The link is the vial and wordmark. Once the headline scrolls away, the page name takes the wordmark's
-                place as plain text that takes no taps, and only the vial stays the link (styles.css). */}
+                place as plain text that lets taps through, so the whole row stays the home link (styles.css). */}
             <div className="brand-wrap">
             <a className="brand" href="#today" aria-label="Peptide Ledger, today">
               {/* The installed icon's vial, drawn the same way: a pink cap on a dark rounded tile. */}

@@ -14,7 +14,7 @@ export function CalculatorView() {
   const drawn = Number(c.drawn);
   return (
     <section className="view">
-      <header className="head rise">
+      <header className="head hero guide rise">
         <span className="eyebrow">Guide · Dose math</span>
         <h1>How many units to draw.<br /><span className="soft">For a dose you were prescribed.</span></h1>
         <p>How concentrated the vial is, and how many units that dose is on a U-100 insulin syringe. FDA has reports of measuring mistakes that sent people to the hospital, so check the result with your pharmacist.</p>

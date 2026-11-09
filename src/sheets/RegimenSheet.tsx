@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Peptide, Regimen } from '../lib/types';
 import { samePeptide, store, useLedger } from '../lib/store';
 import { DAY_SHORT, FREQS, WEEK, freqText, weekdaysOf } from '../lib/schedule';
@@ -102,7 +102,8 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved, onLog, onSignIn
   const { regimens, doses } = useLedger();
   const signedIn = !!useAccount().user;
   const [r, setR] = useState<Regimen>(initial);
-  const [pick, setPick] = useState(initial.compoundId || (initial.name ? OTHER : ''));
+  const startPick = initial.compoundId || (initial.name ? OTHER : '');
+  const [pick, setPick] = useState(startPick);
   const [ack, setAck] = useState(false);
   // A rejected save names the field at fault, under it and with focus on it (see useFieldError).
   const { err, fail, errFor, invalid } = useFieldError('r-err');
@@ -117,6 +118,23 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved, onLog, onSignIn
   const [relabel, setRelabel] = useState(false);
   // Adding something already in the list is usually someone looking for where to log today's dose.
   const already = isNew && pick ? regimens.find(x => !x.paused && samePeptide(x, { compoundId: p ? pick : '', name: pick === OTHER ? r.name : '' })) : undefined;
+
+  // Dismissing a changed form (Escape, a scrim tap, a drag, the close button, Cancel) first asks in the footer, as Fill
+  // in past days does: Keep editing, or Discard and leave. A second dismiss leaves; any new edit takes the question away.
+  // `close` keeps one identity for the sheet's life, since Sheet re-focuses itself whenever onClose changes.
+  const dirty = pick !== startPick || ack || relabel || JSON.stringify(r) !== JSON.stringify(initial);
+  const dirtyRef = useRef(false);
+  dirtyRef.current = dirty;
+  const [leaving, setLeaving] = useState(false);
+  const leavingRef = useRef(false);
+  leavingRef.current = leaving;
+  const keep = useRef<HTMLButtonElement>(null);
+  const close = useCallback(() => {
+    if (dirtyRef.current && !leavingRef.current) { setLeaving(true); return; }
+    onClose();
+  }, [onClose]);
+  useEffect(() => { setLeaving(false); }, [r, pick, ack, relabel]);
+  useEffect(() => { if (leaving) keep.current?.focus(); }, [leaving]);
 
   // Choosing set weekdays starts with today's day ticked, so there's always at least one.
   const setFreq = (freq: string) => setR(cur => ({ ...cur, freq, weekdays: freq === 'days' && !weekdaysOf(cur).length ? [new Date().getDay()] : cur.weekdays }));
@@ -149,14 +167,14 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved, onLog, onSignIn
   };
 
   return (
-    <Sheet onClose={onClose} label={isNew ? 'Track a peptide' : 'Edit regimen'}>
+    <Sheet onClose={close} label={isNew ? 'Track a peptide' : 'Edit regimen'}>
       <form className="stack gap-4" onSubmit={submit} noValidate>
         <div className="sheet-head">
           <div>
             <h2>{isNew ? 'Track a peptide' : `Edit ${regName(initial)}`}</h2>
             <p className="small muted mt-1">Enter what your prescriber told you. This app doesn't suggest doses.</p>
           </div>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
+          <button type="button" className="icon-btn" onClick={close} aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
         </div>
         {firstTime && configured && !signedIn && onSignIn && (
           <div className="alert info" role="note">
@@ -265,14 +283,23 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved, onLog, onSignIn
         )}
         {errFor('r-ack')}
         <div className="sheet-foot">
+          <p className="sr-only" role="status">{leaving ? 'Leave without saving? Your changes to this form will be lost.' : ''}</p>
+          {leaving ? (
+            <>
+              <p className="small ask" aria-hidden="true"><b>Leave without saving?</b> Your changes to this form will be lost.</p>
+              <button ref={keep} type="button" className="btn ghost" onClick={() => setLeaving(false)}>Keep editing</button>
+              <button type="button" className="btn danger" onClick={onClose}>Discard and leave</button>
+            </>
+          ) : <>
           {!isNew && (
             <button type="button" className={`btn ${armed ? 'danger' : 'quiet'}`}
               onClick={() => { if (armed) { store.deleteRegimen(r.id); toast('Removed. Logged doses stay in your history.'); onSaved(); } else setArmed(true); }}>
               {armed ? 'Delete it? Tap again' : 'Delete'}
             </button>
           )}
-          <button type="button" className="btn ghost" onClick={onClose}>Cancel</button>
+          <button type="button" className="btn ghost" onClick={close}>Cancel</button>
           <button type="submit" className="btn">{isNew ? 'Start tracking' : 'Save'}</button>
+          </>}
         </div>
       </form>
     </Sheet>

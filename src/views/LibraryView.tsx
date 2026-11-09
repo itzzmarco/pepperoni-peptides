@@ -110,8 +110,12 @@ function FilterRow({ label, children }: { label: string; children: ReactNode }) 
       if (past > 0) el.scrollLeft += past + 48;
     }
     check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
+    // The row's own size, not the window's: a row inside More filters has no width until the disclosure opens, so its
+    // arrow and edge fade are measured again the moment it shows, as well as on any resize.
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => ro.disconnect();
   }, [check]);
   // While chips sit off screen a round arrow at the end says so, and a tap brings the next ones in.
   const next = () => ref.current?.scrollBy({ left: ref.current.clientWidth * 0.7, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
@@ -147,13 +151,24 @@ export function LibraryView() {
   const seq = useRef(0);
   const typing = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => () => clearTimeout(typing.current), []);
+  // Only cards within a screen of the viewport get a name (data-vt), before the change and again after it, so the
+  // transition snapshots a dozen cards, not the whole library; the rest swap without animation.
+  const grid = useRef<HTMLDivElement>(null);
+  const nameNear = () => {
+    const h = window.innerHeight;
+    for (const c of Array.from(grid.current?.children ?? [])) {
+      const b = c.getBoundingClientRect();
+      c.toggleAttribute('data-vt', b.bottom > -h && b.top < 2 * h);
+    }
+  };
   const apply = (next: Filters) => {
     const start = viewTransition();
     if (!start) { setApplied(next); return; }
     const root = document.documentElement, mine = ++seq.current;
     const done = () => { if (mine === seq.current) delete root.dataset.filtering; };
+    nameNear();
     root.dataset.filtering = '';
-    try { start(() => flushSync(() => setApplied(next))).finished.then(done, done); } catch { done(); setApplied(next); }
+    try { start(() => { flushSync(() => setApplied(next)); nameNear(); }).finished.then(done, done); } catch { done(); setApplied(next); }
   };
   const setF = (next: Filters) => {
     setRaw(next);
@@ -242,12 +257,12 @@ export function LibraryView() {
             <FilterRow label="Category">{chip('fam', 'all', 'All')}{(Object.keys(FAMILIES) as FamilyKey[]).map(k => chip('fam', k, FAMILIES[k].name))}</FilterRow>
             <FilterRow label="US status">{chip('legal', 'all', 'All')}{usedLegal.map(k => chip('legal', k, LEGAL[k].label))}</FilterRow>
             {/* Every card shows a tier, but the explainer sits after the library; this opens it and jumps there. */}
-            <button type="button" className="linkish small" style={{ justifySelf: 'start', minHeight: 44 }} onClick={showTiers}>What do tiers mean?</button>
+            <button type="button" className="linkish small self-start tap" onClick={showTiers}>What do tiers mean?</button>
           </div>
         </details>
       </div>
       <p className="sr-only" aria-live="polite">{count}</p>
-      <div className="cards">
+      <div className="cards" ref={grid}>
         {list.length ? list.map(p => (
           // The name leads; family and tier share one quiet line under it, and legal status is the only chip.
           // The tapped card marks its glyph, which travels into the profile header as the page opens (styles.css).

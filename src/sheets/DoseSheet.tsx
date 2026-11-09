@@ -133,7 +133,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
                 ? <p className="small">That's <b className="mono tone-lilac">{drugAmount(math.doseMg, PEP[r.compoundId]?.defaultUnit)}</b> ({fmtNum(math.vol, 2)} mL) from a vial with {fmtNum(Number(r.vialMg))} mg in {fmtNum(Number(r.diluentMl))} mL.</p>
                 : <p className="small">Draw to <b className="mono tone-lilac">{fmtNum(math.units, 1)} units</b> ({fmtNum(math.vol, 2)} mL) on a U-100 syringe. {fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL water.</p>}
               <div className="syringe-wrap"><Syringe units={math.units} cap={math.units > 50 ? 100 : 50} /></div>
-              <a className="small" href="#calculator">How this is calculated</a>
+              <a className="small" href="#calculator" onClick={e => { e.preventDefault(); guard.ask(() => { location.hash = '#calculator'; }); }}>How this is calculated</a>
             </div>
           )}
           {checks.length > 0 && injectable && (

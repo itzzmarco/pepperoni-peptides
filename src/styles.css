@@ -20,6 +20,8 @@
   --sky: #E1ECFD; --sky-ink: #1D4FB8; --sky-deep: #163C8C; --sky-dot: #C3D3EE;
   --lemon: #FBF1C9; --lemon-ink: #6E5200;
   --teal: #DCF1EF; --teal-ink: #0F6B66;
+  /* Three more family tints, so each of the nine library families has its own colour. */
+  --rose: #FCE4EF; --rose-ink: #A3245E; --lime: #EAF5D3; --lime-ink: #44620C; --sand: #EFE7DD; --sand-ink: #6B4C2E;
   --dose-cell: #8DB4FF; --effect-cell: #F5B08C; --go: #7FE0B5;
   --accent: #1D4FB8;
   --btn: #1E2230; --btn-ink: #FFFFFF;
@@ -83,6 +85,7 @@
     --sky: #16243D; --sky-ink: #8DB4FF; --sky-deep: #B7CDF7; --sky-dot: #34507F;
     --lemon: #33290C; --lemon-ink: #F2D27A;
     --teal: #10302D; --teal-ink: #7FD9CF;
+    --rose: #3A1828; --rose-ink: #F7A8CB; --lime: #1F2C12; --lime-ink: #BFE38A; --sand: #2E261E; --sand-ink: #DDC3A3;
     --accent: #8DB4FF; --btn: #EEF0F5; --btn-ink: #101218;
     --t1: #7FE0B5; --t2: #7FD9CF; --t3: #F2D27A; --t4: #F5A47A; --t5: #FF8A80;
     --t1-bg: #14301F; --t2-bg: #10302D; --t3-bg: #33290C; --t4-bg: #3A2117; --t5-bg: #3B1A18;
@@ -115,6 +118,7 @@
   --sky: #16243D; --sky-ink: #8DB4FF; --sky-deep: #B7CDF7; --sky-dot: #34507F;
   --lemon: #33290C; --lemon-ink: #F2D27A;
   --teal: #10302D; --teal-ink: #7FD9CF;
+  --rose: #3A1828; --rose-ink: #F7A8CB; --lime: #1F2C12; --lime-ink: #BFE38A; --sand: #2E261E; --sand-ink: #DDC3A3;
   --accent: #8DB4FF; --btn: #EEF0F5; --btn-ink: #101218;
   --t1: #7FE0B5; --t2: #7FD9CF; --t3: #F2D27A; --t4: #F5A47A; --t5: #FF8A80;
   --t1-bg: #14301F; --t2-bg: #10302D; --t3-bg: #33290C; --t4-bg: #3A2117; --t5-bg: #3B1A18;
@@ -178,17 +182,20 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .topbar .row { display: flex; align-items: center; gap: 8px; }
 .brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); font-weight: 600; font-size: var(--fs-md); min-width: 0; }
 .brand svg { flex: none; }
-/* Sub-pages (a profile, the guides): a bare chevron at the bar's start leads back up to Learn. */
-.topbar .bar-back { background: transparent; box-shadow: none; margin-left: -10px; }
-/* Once the page title scrolls under the bar, the wordmark gives its place to the route or peptide name. The name is plain
-   text laid over the wordmark's spot and lets taps through, so the whole spot stays the brand link. */
+/* Sub-pages (a profile, the guides): a bare chevron leads back up to Learn. It sits over the vial and the two crossfade,
+   so the wordmark never moves when a page with a way back opens; elsewhere the chevron is invisible and inert. */
+.topbar .bar-back { background: transparent; box-shadow: none; margin-left: -9px; justify-self: start; opacity: 0; visibility: hidden; }
+.topbar[data-sub] .bar-back { opacity: 1; visibility: visible; }
+.topbar[data-sub] .brand svg { opacity: 0; }
+/* Once the page title scrolls under the bar, the wordmark gives its place to the route or peptide name. The name is its
+   own button over the wordmark's spot that scrolls back to the top; the vial beside it stays the home link. */
 .brand-wrap { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; margin-right: auto; min-width: 0; }
 .brand-wrap > * { grid-area: 1 / 1; }
 .wordmark, .bar-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.bar-title { margin-left: 34px; font-weight: 600; font-size: var(--fs-md); color: var(--ink); min-width: 0; opacity: 0; transform: translateY(6px); pointer-events: none; }
+.bar-title { appearance: none; border: 0; background: none; padding: 0; font: inherit; text-align: left; cursor: pointer; align-self: stretch; margin-left: 34px; font-weight: 600; font-size: var(--fs-md); color: var(--ink); min-width: 0; opacity: 0; transform: translateY(6px); pointer-events: none; }
 .topbar[data-titled] .wordmark { opacity: 0; transform: translateY(-6px); }
-.topbar[data-titled] .bar-title { opacity: 1; transform: none; }
-/* The whole brand row stays the home link at 44px in both states: the page name lets taps through to the link under it. */
+.topbar[data-titled] .bar-title { opacity: 1; transform: none; pointer-events: auto; }
+/* The brand row keeps a 44px target in both states. */
 .brand { min-height: 44px; }
 .sync { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--ink-2); background: var(--surface); box-shadow: var(--ring); border-radius: 999px; padding: 6px 12px 6px 10px; white-space: nowrap; min-height: 44px; }
 .sync i { width: 7px; height: 7px; border-radius: 50%; background: var(--good); display: inline-block; }
@@ -342,7 +349,9 @@ a.tile { color: var(--ink); }
 .seg button { appearance: none; border: 0; background: none; min-height: 44px; padding: 0 12px; border-radius: 20px; font-size: var(--fs-sm); cursor: pointer; color: var(--ink-2); font-weight: 500; white-space: nowrap; }
 .seg button[aria-pressed="true"] { color: var(--btn-ink); font-weight: 600; }
 /* Two-line options (syringe sizes): the second line is smaller, so each label fits a 320px column. */
-.seg button small { display: block; font-size: var(--fs-2xs); font-weight: 500; opacity: .85; line-height: 1.2; }
+/* The unit line takes its button's ink (beating .field small's muted grey), so the selected option's reads on the pill. */
+.seg button small { display: block; font-size: var(--fs-2xs); font-weight: 500; opacity: .85; line-height: 1.2; color: inherit; }
+.seg button[aria-pressed="true"] small { opacity: 1; }
 .seg button:has(small) { padding: 4px 6px; line-height: 1.2; min-height: 44px; }
 /* One pill slides under whichever button has aria-pressed="true"; the buttons are equal grid columns. */
 .seg::before { content: ""; position: absolute; z-index: -1; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px - (var(--n) - 1) * 2px) / var(--n)); border-radius: 20px; background: var(--btn); transform: translateX(calc(var(--k) * (100% + 2px))); }
@@ -825,7 +834,7 @@ tr:last-child td { border-bottom: 0; }
 .bf-key.changed { box-shadow: inset 0 0 0 2px var(--lilac-line); }
 .bf-key.jump { background: var(--peach); box-shadow: inset 0 0 0 2px var(--peach-bar); }
 .bf-unit { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-2); }
-.bf-unit select { width: auto; min-height: 36px; padding: 4px 10px; }
+.bf-unit select { width: auto; min-height: 44px; padding: 4px 10px; }
 .bf-badge { font-size: var(--fs-2xs); font-weight: 700; border-radius: 999px; padding: 1px 6px; background: var(--mint-ink); color: var(--mint); }
 .fchip[aria-pressed="true"] .bf-badge { background: var(--btn-ink); color: var(--btn); }
 .bf-paste > summary { font-weight: 600; }
@@ -874,11 +883,13 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 @media (hover: hover) { .tabbar .log:hover .log-dot { background: color-mix(in srgb, var(--brand) 86%, var(--ink)); } }
 .app-end { height: calc(96px + env(safe-area-inset-bottom, 0px)); }
 .toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 12px 18px; border-radius: 999px; font-size: var(--fs-sm); z-index: 60; box-shadow: var(--shadow-3); max-width: calc(100% - 32px); }
-/* Mouse and keyboard widths: the same five destinations dock as a rail at the left edge, and the page makes room for it.
-   The pill slides down the rail instead of along it, around the log button the same way. */
+/* Mouse and keyboard widths: the same five destinations become a full-height glass rail along the left edge, from the
+   top of the window down, with a hairline where the page starts; the page makes room for it. The tabs stack from the top
+   and the pill slides down them instead of along, around the log button the same way (the track spans just the five). */
 @media (min-width: 900px) {
   body { padding-left: 100px; }
-  .tabbar { left: max(16px, env(safe-area-inset-left, 0px)); top: 50%; bottom: auto; transform: translateY(-50%); width: 76px; grid-template-columns: minmax(0, 1fr); grid-auto-rows: 64px; }
+  .tabbar { left: 0; top: 0; bottom: 0; transform: none; width: calc(88px + env(safe-area-inset-left, 0px)); padding: 12px 6px 12px calc(6px + env(safe-area-inset-left, 0px)); border-radius: 0; align-content: start; box-shadow: inset -1px 0 0 var(--line); grid-template-columns: minmax(0, 1fr); grid-auto-rows: 64px; }
+  .tab-track { inset: 12px 6px auto calc(6px + env(safe-area-inset-left, 0px)); height: calc(5 * 64px); }
   .tab-ind { right: 0; bottom: auto; width: auto; height: 20%; transform: translateY(calc(var(--k) * 100%)); }
   .app-end { height: 32px; }
   .toast { left: calc(50% + 50px); bottom: 32px; }
@@ -953,10 +964,11 @@ footer.foot p { max-width: 90ch; }
      The first paint settles in one short move: a --dur-med rise with the stagger capped at four steps, about 360ms in all. */
   .rise { animation: rise var(--dur-med) var(--ease-out) backwards; animation-delay: calc(min(var(--i, 0), 4) * 30ms); }
   @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
-  .draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw calc(var(--dur-slow) * 2) var(--dur-med) var(--ease-out) forwards; }
+  /* Lines draw in one shared entrance of about 600ms all told (--dur-fast delay, --dur-slow draw), so a sparkline settles with the page. */
+  .draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw var(--dur-slow) var(--dur-fast) var(--ease-out) forwards; }
   @keyframes draw { to { stroke-dashoffset: 0; } }
   /* A line chart's wash and points come in with its stroke, on the same delay and length, so a first open never shows loose dots over a fill. */
-  .chart :is(.area, .pt) { animation: fade-in calc(var(--dur-slow) * 2) var(--dur-med) var(--ease-out) backwards; }
+  .chart :is(.area, .pt) { animation: fade-in var(--dur-slow) var(--dur-fast) var(--ease-out) backwards; }
   /* Single marks (the day ring, the Now pin) settle on the same damped spring as the tab pill and sheets, with no bounce.
      backwards, like .rise: once landed they let go of transform, so a belly-clock hour still shrinks under a finger. */
   .pop { animation: pop var(--dur-med) var(--ease-spring) backwards; animation-delay: calc(min(var(--i, 0), 6) * 20ms + 80ms); }
@@ -965,6 +977,9 @@ footer.foot p { max-width: 90ch; }
   :is(.cal, .pattern, .dots7, .strip, .strip28, .daybar) .pop { animation-name: fade-in; animation-delay: 80ms; }
   .grow { animation: grow var(--dur-slow) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 60ms + 250ms); transform-origin: left; }
   @keyframes grow { from { transform: scaleX(0); } }
+  /* A bar's value arrives with it: hidden while the bar starts out, then sliding the last few pixels into place. */
+  .hbar-val { animation: val-in var(--dur-slow) var(--ease-out) backwards; animation-delay: calc(var(--i, 0) * 60ms + 250ms); }
+  @keyframes val-in { 0%, 40% { opacity: 0; transform: translate(-8px, -50%); } }
   .grow.up { animation-name: grow-up; transform-origin: bottom; }
   /* The Trends header chart settles in one short entrance: a tight stagger, like the rise blocks, not 60ms a bar. */
   .hero-bars .grow { animation-delay: calc(var(--i, 0) * 16ms + 120ms); }
@@ -990,6 +1005,9 @@ footer.foot p { max-width: 90ch; }
   .site:active { transform: translate(-50%, -50%) scale(.94); }
 
   :is(.wordmark, .bar-title) { transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-med) var(--ease-out); }
+  .topbar .bar-back { transition: opacity var(--dur-med) var(--ease-out), visibility 0s var(--ease-out) var(--dur-med); }
+  .topbar[data-sub] .bar-back { transition: opacity var(--dur-med) var(--ease-out), visibility 0s; }
+  .brand svg { transition: opacity var(--dur-med) var(--ease-out); }
 
   /* Learn search and filters: cards that stay slide to their new place, cards that leave or arrive fade, the rest holds still. */
   /* Only cards in or near the viewport are named (LibraryView marks them), so a filter never snapshots the whole library. */
@@ -1086,13 +1104,12 @@ footer.foot p { max-width: 90ch; }
   /* Rows a disclosure reveals (a card's More row, its reminders) settle in with a short fade and rise. */
   .reveal { animation: rise-soft var(--dur-med) var(--ease-out) backwards; }
   @keyframes rise-soft { from { opacity: 0; transform: translateY(6px); } }
-  :root[data-routed] :is(.pop, .grow) { animation-duration: var(--dur-med); animation-delay: calc(min(var(--i, 0), 12) * 12ms + 60ms); }
+  :root[data-routed] :is(.pop, .grow, .hbar-val) { animation-duration: var(--dur-med); animation-delay: calc(min(var(--i, 0), 12) * 12ms + 60ms); }
   :root[data-routed] :is(.cal, .pattern, .dots7, .strip, .strip28, .daybar) .pop { animation-delay: 60ms; }
-  :root[data-routed] :is(.draw, .chart .area, .chart .pt) { animation-duration: var(--dur-slow); animation-delay: var(--dur-fast); }
   /* A route that arrives through the page fade has no entrances of its own: the fade is its entrance. Otherwise the new
      page would be captured mid-entrance (headlines at opacity 0, marks at scale 0) and the fade would show a blank page.
      The flag stays until the next route change, so nothing replays once the fade ends. */
-  :root[data-routed="fade"] :is(.rise, .pop, .grow, .draw, .chart .area, .chart .pt) { animation: none; }
+  :root[data-routed="fade"] :is(.rise, .pop, .grow, .hbar-val, .draw, .chart .area, .chart .pt) { animation: none; }
   :root[data-routed="fade"] .draw { stroke-dashoffset: 0; }
   /* A sheet closed by a route change leaves on its own: only its live exit shows, never a frozen copy in the crossfade. */
   .scrim { view-transition-name: sheet; }

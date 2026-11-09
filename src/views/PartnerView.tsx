@@ -180,7 +180,7 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
               </div>
               <div className="spread tone-mint">
                 <span className="small">{st.last ? `Last ${fmtDay(st.last)}` : 'Not logged yet'}</span>
-                <span className="small" style={{ fontWeight: 600, color: st.s === 'late' ? 'var(--danger)' : 'var(--mint-ink)' }}>{st.text}</span>
+                <span className={`sub em ${st.s === 'late' ? 'tone-danger' : 'tone-mint'}`}>{st.text}</span>
               </div>
               <span className="strip28" role="img" aria-label={`Last 4 weeks: ${name} logged ${r.name || regName(r)} on ${strip.filter(d => d.on).length} days`}>
                 {strip.map((d, i) => <i key={i} className={`${d.on ? 'on' : ''}${d.today ? ' today' : ''}`} title={fmtDay(d.date)} />)}

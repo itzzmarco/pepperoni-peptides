@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react';
+import { useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import type { Checkin, DoseEntry, Ledger } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { useAccount } from '../lib/account';
@@ -135,7 +135,9 @@ function DoseBars({ doses, days, now }: { doses: DoseEntry[]; days: number; now:
   );
 }
 
-function History({ doses, checkins, onBackfill, onAdd, art }: { doses: DoseEntry[]; checkins: Checkin[]; onBackfill: () => void; onAdd?: () => void; art?: ReactNode }) {
+const HIST_EMPTY = 'Logged doses and check-ins appear here. Kept a paper log before? Fill in past days to bring it in.';
+
+function History({ doses, checkins, onBackfill }: { doses: DoseEntry[]; checkins: Checkin[]; onBackfill: () => void }) {
   const toast = useToast();
   // How many of the newest entries are listed; "Load older entries" pages back through the whole journal.
   const [count, setCount] = useState(RECENT);
@@ -146,18 +148,13 @@ function History({ doses, checkins, onBackfill, onAdd, art }: { doses: DoseEntry
   ].sort((a, b) => b.at.localeCompare(a.at));
   const shown = items.slice(0, count);
   let lastDay = '';
-  // Nothing logged yet: the same empty-state card as every other screen (art, title, one line, one action).
+  // Peptides tracked but nothing logged yet: the same empty-state card as every other screen (title, one line, one action).
   if (!items.length) return (
     <section className="empty" aria-labelledby="hist-h">
-      {art}
       <span className="eyebrow">History</span>
       <h3 id="hist-h">Nothing logged yet</h3>
-      <p className="small muted">Logged doses and check-ins appear here. Kept a paper log before? Fill in past days to bring it in.</p>
-      {/* A new log starts the same way as on Today and Peptides; a paper log can still come in after. */}
-      <div className="row-wrap">
-        {onAdd && <button type="button" className="btn" onClick={onAdd}>Add a peptide</button>}
-        <button type="button" className={onAdd ? 'btn ghost' : 'btn'} onClick={onBackfill}>Fill in past days</button>
-      </div>
+      <p className="small muted">{HIST_EMPTY}</p>
+      <div className="row-wrap"><button type="button" className="btn" onClick={onBackfill}>Fill in past days</button></div>
     </section>
   );
   return (
@@ -340,18 +337,27 @@ export function TrendsView({ onBackfill, onAdd }: { onBackfill: () => void; onAd
 
   return (
     <section className="view">
-      <header className={`head rise${empty ? '' : ' hero'}`}>
-        {/* No range control on an empty log, so the eyebrow doesn't name one. */}
-        <span className="eyebrow">{empty ? 'Trends' : `Trends · ${RANGES.find(r => r[0] === days)![1]}`}</span>
-        <h1>{line1}{line2 && <><br /><span className="soft">{line2[0].toUpperCase() + line2.slice(1)}.</span></>}</h1>
-        {!empty && <DoseBars doses={doses} days={days} now={now} />}
-      </header>
-      {/* Nothing logged yet: one card explains what will show up and offers the first step, instead of a dashboard of dashes.
-          The share panel stays under it, so a fresh device can restore a backup before logging anything. */}
+      {/* Nothing logged yet: one empty hero (art, one title, what will show up, the two first steps), as on Peptides,
+          instead of a headline over a second empty card. The share panel stays under it, so a fresh device can restore
+          a backup before logging anything. A new log starts the same way as on Today; a paper log can come in instead. */}
       {empty ? <>
-        <History doses={doses} checkins={checkins} onBackfill={onBackfill} onAdd={onAdd} art={<IlloTrends />} />
+        <div className="empty rise">
+          <IlloTrends />
+          <span className="eyebrow">Trends</span>
+          <h1>Nothing logged yet.</h1>
+          <p className="small muted">{HIST_EMPTY}</p>
+          <div className="row-wrap">
+            <button type="button" className="btn" onClick={onAdd}>Add a peptide</button>
+            <button type="button" className="btn ghost" onClick={onBackfill}>Fill in past days</button>
+          </div>
+        </div>
         <ExportPanel ledger={ledger} />
       </> : <>
+      <header className="head rise hero">
+        <span className="eyebrow">{`Trends · ${RANGES.find(r => r[0] === days)![1]}`}</span>
+        <h1>{line1}{line2 && <><br /><span className="soft">{line2[0].toUpperCase() + line2.slice(1)}.</span></>}</h1>
+        <DoseBars doses={doses} days={days} now={now} />
+      </header>
       <div className="seg rise" role="group" aria-label="Time range" style={rise(1)}>
         {RANGES.map(([d, l]) => <button key={d} type="button" aria-pressed={days === d} onClick={() => setDays(d)}>{l}</button>)}
       </div>

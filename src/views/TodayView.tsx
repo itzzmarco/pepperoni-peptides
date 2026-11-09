@@ -192,8 +192,8 @@ export function TodayView(actions: Actions) {
   // Signed out on a site with accounts, an empty log usually means "sign in", not "start over".
   const offerSignIn = configured && !signedIn && !regimens.length;
   if (!regimens.length && offerSignIn && seenHere) { line1 = "You're signed out."; line2 = 'Sign in to see your log.'; }
-  // No regimens: the start card below is the call to action, so the title is just the greeting.
-  else if (!regimens.length) { line1 = hasLog ? 'Nothing to take yet.' : 'Welcome.'; line2 = ''; }
+  // No regimens: the start card below is the call to action; a first visit also gets one line on what the app is.
+  else if (!regimens.length) { line1 = hasLog ? 'Nothing to take yet.' : 'Welcome.'; line2 = hasLog ? '' : 'Your private shot and peptide log.'; }
   else if (late) { line1 = `${plural(late, 'dose')} overdue.`; line2 = 'Log it when you take it.'; }
   else if (left) { line1 = adh.pct == null || adh.pct >= 0.8 ? "You're on track." : "Here's today."; line2 = `${plural(left, 'dose')} left today.`; }
   else { line1 = "You're all set today."; line2 = next?.st.due ? `Next: ${regName(next.r)}, ${fmtShort(next.st.due)}.` : 'Nothing scheduled.'; }

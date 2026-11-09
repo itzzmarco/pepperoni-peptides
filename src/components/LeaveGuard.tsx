@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 /**
  * Dismissing a changed form (Escape, a scrim tap, a drag, the close button, Cancel) first asks in the footer:
  * Keep editing, or Discard and leave. A second dismiss leaves; any new edit takes the question away.
+ * `ask(go)` puts the same question in front of any other action that would drop the form, such as a link away.
  * `snapshot` is the form's values as one string; the form counts as changed once it differs from the first one.
  * `close` keeps one identity for the sheet's life, since Sheet re-focuses itself whenever onClose changes.
  */
@@ -14,13 +15,16 @@ export function useLeaveGuard(snapshot: string, onClose: () => void) {
   const leavingRef = useRef(false);
   leavingRef.current = leaving;
   const keep = useRef<HTMLButtonElement>(null);
-  const close = useCallback(() => {
-    if (dirty.current && !leavingRef.current) { setLeaving(true); return; }
-    onClose();
-  }, [onClose]);
+  // What "Discard and leave" does: close the sheet, or the in-sheet action (a link away, a swap to another sheet) that asked.
+  const next = useRef(onClose);
+  const ask = useCallback((go: () => void) => {
+    if (dirty.current && !leavingRef.current) { next.current = go; setLeaving(true); return; }
+    go();
+  }, []);
+  const close = useCallback(() => ask(onClose), [ask, onClose]);
   useEffect(() => { setLeaving(false); }, [snapshot]);
   useEffect(() => { if (leaving) keep.current?.focus(); }, [leaving]);
-  return { close, leaving, stay: () => setLeaving(false), keep, onClose };
+  return { close, ask, leaving, stay: () => setLeaving(false), keep, leave: () => next.current() };
 }
 
 /** The footer of a guarded sheet: its own buttons, or the leave question in their place. */
@@ -32,7 +36,7 @@ export function LeaveFoot({ guard: g, children }: { guard: ReturnType<typeof use
         <>
           <p className="small ask" aria-hidden="true"><b>Leave without saving?</b> Your changes to this form will be lost.</p>
           <button ref={g.keep} type="button" className="btn ghost" onClick={g.stay}>Keep editing</button>
-          <button type="button" className="btn danger" onClick={g.onClose}>Discard and leave</button>
+          <button type="button" className="btn danger" onClick={g.leave}>Discard and leave</button>
         </>
       ) : children}
     </div>

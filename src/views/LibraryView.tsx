@@ -62,11 +62,11 @@ function TopChart() {
           {ticks.map(t => <span key={t} style={{ left: `${pct(t)}%` }} />)}
         </div>
         {top.map((p, i) => (
-          <a key={p.id} className="hbar-row" role="listitem" href={`#${p.id}`} style={{ gridRow: i + 1 }}
+          <a key={p.id} className="hbar-row" role="listitem" href={`#${p.id}`} style={{ gridRow: i + 1, ['--i' as string]: i }}
             title={`${p.name}: ${fmtNum(p.popularity!, 0)} engagement points, Tier ${p.tier} (${TIERS[p.tier].label})`}>
             <span className="hbar-label">{p.name}</span>
             <span className="hbar-track">
-              <span className="hbar-fill grow" style={{ width: `max(${pct(p.popularity!)}%, 4px)`, background: `var(--t${p.tier})`, ['--i' as string]: i }} />
+              <span className="hbar-fill grow" style={{ width: `max(${pct(p.popularity!)}%, 4px)`, background: `var(--t${p.tier})` }} />
               <span className="hbar-val" style={{ left: `max(${pct(p.popularity!)}%, 4px)` }}>{fmtNum(p.popularity!, 0)} · T{p.tier}</span>
             </span>
           </a>
@@ -269,7 +269,7 @@ export function LibraryView() {
           <a className="card" href={`#${p.id}`} key={p.id} data-t={p.tier} style={{ ['--vt' as string]: `c-${p.id}` }} onClick={open}>
             <div className="card-top">
               <div><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 2).join(' · ')}</div> : null}</div>
-              <FamilyGlyph family={p.family} size={32} />
+              <FamilyGlyph family={p.family} />
             </div>
             <div className="card-meta"><span>{FAMILIES[p.family]?.name}</span><Ladder t={p.tier} /><span>T{p.tier} · {TIERS[p.tier].label}</span></div>
             <p className="sum">{p.summary}</p>

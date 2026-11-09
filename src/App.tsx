@@ -224,13 +224,9 @@ export function App() {
       <header ref={barRef} className="topbar gutter" inert={bg} data-scrolled={scrolled ? 'true' : undefined} data-titled={titled ? '' : undefined} data-sub={sub ? '' : undefined}>
         <div className="wrap">
           <div className="row">
-            {sub && (
-              <a className="icon-btn bar-back" href="#learn" aria-label="Back to Learn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
-              </a>
-            )}
             {/* The link is the vial and wordmark. Once the headline scrolls away, the page name takes the wordmark's
-                place as a plain label laid over it that lets taps through, so the whole spot stays the home link (styles.css). */}
+                place as its own button that scrolls back to the top; the vial stays the home link. On a sub-page the back
+                chevron crossfades in over the vial, so nothing in the bar shifts sideways (styles.css). */}
             <div className="brand-wrap">
             <a className="brand" href="#today" aria-label="Peptide Ledger, today">
               {/* The installed icon's vial, drawn the same way: a pink cap on a dark rounded tile. */}
@@ -243,7 +239,11 @@ export function App() {
               </svg>
               <span className="wordmark">Peptide Ledger</span>
             </a>
-            <span className="bar-title" aria-hidden="true">{pageName}</span>
+            <button type="button" className="bar-title" inert={titled ? undefined : true} aria-label={`${pageName}, back to top`}
+              onClick={() => window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })}>{pageName}</button>
+            <a className="icon-btn bar-back" href="#learn" aria-label="Back to Learn" inert={sub ? undefined : true}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+            </a>
             </div>
             <AccountButton onOpen={() => setSheet({ kind: 'account' })} />
             <ThemeToggle />

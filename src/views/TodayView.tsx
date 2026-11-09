@@ -150,7 +150,8 @@ export function TodayView(actions: Actions) {
   // Signed out on a site with accounts, an empty log usually means "sign in", not "start over".
   const offerSignIn = configured && !signedIn && !regimens.length;
   if (!regimens.length && offerSignIn && seenHere) { line1 = "You're signed out."; line2 = 'Sign in to see your log.'; }
-  else if (!regimens.length) { line1 = hasLog ? 'Nothing to take yet.' : 'Welcome.'; line2 = 'Add what you were prescribed to start.'; }
+  // No regimens: the start card below is the call to action, so the title is just the greeting.
+  else if (!regimens.length) { line1 = hasLog ? 'Nothing to take yet.' : 'Welcome.'; line2 = ''; }
   else if (late) { line1 = `${plural(late, 'dose')} overdue.`; line2 = 'Log it when you take it.'; }
   else if (dueNow.length) { line1 = adh.pct == null || adh.pct >= 0.8 ? "You're on track." : "Here's today."; line2 = `${plural(dueNow.length, 'dose')} left today.`; }
   else { line1 = "You're all set today."; line2 = next?.st.due ? `Next: ${regName(next.r)}, ${fmtShort(next.st.due)}.` : 'Nothing scheduled.'; }
@@ -164,7 +165,7 @@ export function TodayView(actions: Actions) {
             <span className="eyebrow">{fmtDay(now)}</span>
           </span>
         </div>
-        <h1 className="rise" style={rise(1)}>{line1}<br /><span className="soft">{line2}</span></h1>
+        <h1 className="rise" style={rise(1)}>{line1}{line2 && <><br /><span className="soft">{line2}</span></>}</h1>
       </header>
 
       {lastFlag && (
@@ -207,7 +208,7 @@ export function TodayView(actions: Actions) {
       )}
 
       {hasLog && (
-        <div className="bento">
+        <div className="bento quad">
           <a href="#trends" className="tile mint row-2 rise" style={rise(3)}>
             <span className="label">Adherence</span>
             <span className="big">{adh.pct == null ? '–' : `${Math.round(pct)}%`}</span>
@@ -221,7 +222,7 @@ export function TodayView(actions: Actions) {
             <span className="label">Weight</span>
             {wNow ? (
               <>
-                <span className="mid">{wShown.toFixed(1)}<small> {wNow.weightUnit}</small></span>
+                <span className="stat">{wShown.toFixed(1)}<small> {wNow.weightUnit}</small></span>
                 {weights.length > 1 && <svg className="spark" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true"><polyline className="draw" pathLength={1} points={spark} /></svg>}
                 <span className="sub">{wChange != null ? `${wChange > 0 ? '+' : '−'}${Math.abs(wChange).toFixed(1)} since ${fmtShort(new Date(wFirst.at))}` : 'Add more check-ins for a trend.'}</span>
               </>
@@ -253,7 +254,7 @@ export function TodayView(actions: Actions) {
           )}
 
           {shots.map(({ r, s: sug }, i) => (
-            <button key={r.id} type="button" className="tile sky span-2 rise" style={{ ...rise(6 + i), border: 0, textAlign: 'left', font: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 16 }} onClick={() => actions.logDose(r)}
+            <button key={r.id} type="button" className="tile sky span-2 rise" style={{ ...rise(6 + i), display: 'flex', alignItems: 'center', gap: 16 }} onClick={() => actions.logDose(r)}
               aria-label={`Next shot of ${regName(r)}: ${siteLabel(sug.site, r.route)}, ${whenNext(r, doses, now)}. Log it.`}>
               <SiteFigure s={sug} size={76} />
               <span className="stack" style={{ gap: 2, minWidth: 0 }}>
@@ -265,7 +266,7 @@ export function TodayView(actions: Actions) {
             </button>
           ))}
 
-          <button type="button" className={`tile rise${comingUp?.st.due ? '' : ' wide-sm'}`} style={{ ...rise(7), border: 0, textAlign: 'left', font: 'inherit', cursor: 'pointer', gap: 6 }} onClick={actions.checkin}>
+          <button type="button" className={`tile rise${comingUp?.st.due ? '' : ' wide-sm'}`} style={{ ...rise(7), gap: 6 }} onClick={actions.checkin}>
             <span className="label" style={{ color: 'var(--mint-ink)' }}>Check-in</span>
             {checkedIn ? (
               <>
@@ -288,9 +289,9 @@ export function TodayView(actions: Actions) {
             </a>
           )}
 
-          <a href={learnP ? `#${learnP.id}` : '#calculator'} className={`tile lemon rise ${comingUp?.st.due ? 'span-2' : 'wide-sm'}`} style={{ ...rise(9), display: 'flex', alignItems: 'center', gap: 14 }}>
+          <a href={learnP ? `#${learnP.id}` : '#calculator'} className={`tile rise ${comingUp?.st.due ? 'span-2' : 'wide-sm'}`} style={{ ...rise(9), display: 'flex', alignItems: 'center', gap: 14 }}>
             <span className="stack" style={{ gap: 6, flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
-              <span className="label">{learnP ? `Evidence · Tier ${learnP.tier} ${TIERS[learnP.tier].label}` : 'Guide'}</span>
+              <span className="label" style={{ color: 'var(--lemon-ink)' }}>{learnP ? `Evidence · Tier ${learnP.tier} ${TIERS[learnP.tier].label}` : 'Guide'}</span>
               <span className="tile-title">{learnP ? `What the research says about ${learnP.name}` : 'Dose math, step by step'}</span>
             </span>
             <span className="arrow" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>

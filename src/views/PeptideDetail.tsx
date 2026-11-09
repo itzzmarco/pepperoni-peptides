@@ -75,7 +75,7 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
           <section key={r.id} className="tile dark rise" aria-label={`${p.name} in your log`} style={rise(4)}>
             <div className="spread"><span className="eyebrow">In your log</span><span className="sub">{st.text}</span></div>
             <div className="stack" style={{ gap: 4 }}>
-              <span style={{ fontSize: '1.375rem', fontWeight: 600 }}>{fmtNum(Number(r.dose), 3)} {r.unit} · {freqText(r)}</span>
+              <span className="stat">{fmtNum(Number(r.dose), 3)}<small> {r.unit} · {freqText(r)}</small></span>
               <span className="sub">{[r.route, r.prescriber && `prescribed by ${r.prescriber}`, r.paused && 'paused'].filter(Boolean).join(' · ')}</span>
             </div>
             <Strip rid={r.id} doses={doses} />
@@ -87,6 +87,7 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
         );
       })}
 
+      <div className="cols">
       <section className="tile rise" aria-labelledby="ev-h" style={rise(5)}>
         <h2 id="ev-h" className="eyebrow">Evidence strength</h2>
         <div className="stack" style={{ gap: 6 }}>
@@ -106,6 +107,7 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
           {p.mechanism && <div><dt>How it works</dt><dd>{p.mechanism}</dd></div>}
         </dl>
       </section>
+      </div>
 
       {(p.claim || p.shows) && (
         <section className="stack" aria-label="What's claimed vs what's shown">

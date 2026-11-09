@@ -1,3 +1,4 @@
+import { flushSync } from 'react-dom';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from 'react';
 import type { FamilyKey, LegalKey, Peptide, Tier } from '../lib/types';
 import { PEPTIDES } from '../data/peptides';
@@ -6,7 +7,7 @@ import { fmtNum } from '../lib/format';
 import { Ladder, LegalChip, TierChip } from '../components/Chips';
 import { FamilyGlyph } from '../components/FamilyGlyph';
 import { IlloSearch } from '../components/Illustration';
-import { prefersReducedMotion } from '../components/Motion';
+import { prefersReducedMotion, viewTransition } from '../components/Motion';
 
 const TIER_LIST: Tier[] = [1, 2, 3, 4, 5];
 
@@ -119,7 +120,21 @@ const GUIDES = [
 ];
 
 export function LibraryView() {
-  const [f, setF] = useState<Filters>(loadFilters);
+  const [f, setRaw] = useState<Filters>(loadFilters);
+  // Searching or filtering moves the cards instead of snapping them: the box and chips update at once, and the grid
+  // follows inside a view transition where each card has its own name (see :root[data-filtering] in styles.css), so
+  // cards that stay slide and the rest fade. Reduced motion, or no view transitions, updates the grid at once.
+  const [applied, setApplied] = useState(f);
+  const seq = useRef(0);
+  const setF = (next: Filters) => {
+    setRaw(next);
+    const start = viewTransition();
+    if (!start) { setApplied(next); return; }
+    const root = document.documentElement, mine = ++seq.current;
+    const done = () => { if (mine === seq.current) delete root.dataset.filtering; };
+    root.dataset.filtering = '';
+    try { start(() => flushSync(() => setApplied(next))).finished.then(done, done); } catch { done(); setApplied(next); }
+  };
   useEffect(() => {
     back.q = f.q;
     try { localStorage.setItem(FILTER_KEY, JSON.stringify({ ...f, q: '' })); } catch { /* storage blocked */ }
@@ -136,8 +151,8 @@ export function LibraryView() {
     if (a && !GUIDES.some(g => g.href === a.getAttribute('href'))) back.y = window.scrollY;
   };
   const list = useMemo(
-    () => PEPTIDES.filter(p => matches(p, f)).sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0) || a.name.localeCompare(b.name)),
-    [f],
+    () => PEPTIDES.filter(p => matches(p, applied)).sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0) || a.name.localeCompare(b.name)),
+    [applied],
   );
   const chip = <K extends keyof Filters>(key: K, val: Filters[K], label: string, dot?: string) => (
     <button key={String(val)} className="fchip" aria-pressed={f[key] === val} onClick={() => setF({ ...f, [key]: val })}>
@@ -156,14 +171,23 @@ export function LibraryView() {
     d.querySelector('summary')?.focus({ preventScroll: true });
   };
   return (
-    <section className="view wide" onClickCapture={remember}>
+    <section className="view" onClickCapture={remember}>
       <header className="head rise">
         <span className="eyebrow">Learn</span>
         <h1>What the evidence says.<br /><span className="soft">{PEPTIDES.length} peptides, graded.</span></h1>
         <p>Compounds that trend online, with what studies show, how they're regulated in the US, and the warning signs to know. Updated {AS_OF}.</p>
+        {/* The two guides are one tap from the top; their full tiles and the overview come after the library. */}
+        <nav className="row-wrap" aria-label="Guides">
+          {GUIDES.map(g => (
+            <a key={g.href} href={g.href} className="btn soft sm">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={`var(--${g.tone}-ink)`} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={g.icon} /></svg>
+              {g.title}
+            </a>
+          ))}
+        </nav>
       </header>
-      {/* Finding a peptide is the main job here, so search, filters and results sit together right under the title;
-          the guides and the overview come after the library, so a query never filters a grid that is out of view. */}
+      {/* Finding a peptide is the main job here, so search, filters and results sit together right under the title,
+          so a query never filters a grid that is out of view. */}
       <div className="section-title"><h2>Library</h2><span className="count" aria-live="polite">{list.length === PEPTIDES.length ? `All ${list.length}` : `${list.length} of ${PEPTIDES.length}`}</span></div>
       <div className="search">
         <label className="sr-only" htmlFor="lib-q">Search peptides</label>
@@ -179,7 +203,7 @@ export function LibraryView() {
       </div>
       <div className="cards">
         {list.length ? list.map(p => (
-          <a className="card" href={`#${p.id}`} key={p.id}>
+          <a className="card" href={`#${p.id}`} key={p.id} style={{ ['--vt' as string]: `c-${p.id}` }}>
             <div className="card-top"><FamilyGlyph family={p.family} size={36} /><Ladder t={p.tier} /></div>
             <div><span className="fam">{FAMILIES[p.family]?.name}</span><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 2).join(' · ')}</div> : null}</div>
             <p className="sum">{p.summary}</p>

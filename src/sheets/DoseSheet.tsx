@@ -116,7 +116,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
 
         <section className="tile dark" aria-label="Prescribed dose">
           <div className="spread"><span className="eyebrow">Prescribed</span><span className="sub">{freqText(r)}</span></div>
-          <span style={{ fontSize: '2.25rem', fontWeight: 600, letterSpacing: '-.02em', lineHeight: 1 }}>{fmtNum(Number(r.dose), 3)} <span className="sub" style={{ fontSize: '1.125rem' }}>{r.unit}</span></span>
+          <span className="stat">{fmtNum(Number(r.dose), 3)}<small> {r.unit}</small></span>
           {math && injectable && (
             <div className="white-inset stack" style={{ gap: 8 }}>
               {isVolumeUnit(d.unit)

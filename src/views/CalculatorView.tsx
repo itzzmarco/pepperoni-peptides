@@ -24,6 +24,8 @@ export function CalculatorView() {
         <p>How concentrated the vial is, and how many units that dose is on a U-100 insulin syringe. FDA has reports of measuring mistakes that sent people to the hospital, so check the result with your pharmacist.</p>
       </header>
 
+      {/* Inputs and answer side by side on wide screens, then the check and the explainer. */}
+      <div className="cols">
       <form className="tile lilac rise" onSubmit={e => e.preventDefault()} autoComplete="off" style={rise(2)}>
         <div className="spread"><h2 className="label">Your vial</h2><span className="xsmall muted">Example values filled in</span></div>
         <div className="grid-2">
@@ -75,7 +77,9 @@ export function CalculatorView() {
           </>
         )}
       </section>
+      </div>
 
+      <div className="cols">
       {m && (
         <section className="tile rise" style={rise(4)}>
           <h2 className="label" style={{ color: 'var(--lilac-ink)' }}>Double-check a draw</h2>
@@ -106,6 +110,7 @@ export function CalculatorView() {
         </ol>
         <p className="small muted">Common mistakes: mixing up mcg and mg (a 1,000× error), reading a U-40 or tuberculin syringe as if it were U-100, and grabbing the wrong vial when you keep several. Label every vial with what it is, its concentration, and the date you mixed it.</p>
       </section>
+      </div>
     </section>
   );
 }

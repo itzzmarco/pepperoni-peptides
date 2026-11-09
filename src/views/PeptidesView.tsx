@@ -215,7 +215,8 @@ export function PeptidesView(actions: Actions) {
 
       {regimens.length > 0 && (
         <>
-          {active.map((r, i) => <RegimenCard key={r.id} r={r} doses={doses} actions={actions} i={i} />)}
+          {/* Two across on wide screens. */}
+          <div className="cols">{active.map((r, i) => <RegimenCard key={r.id} r={r} doses={doses} actions={actions} i={i} />)}</div>
           {paused.length > 0 && (
             <details className="tile">
               <summary className="spread" style={{ alignItems: 'center', flexWrap: 'nowrap' }}>

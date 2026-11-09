@@ -22,11 +22,11 @@ function Tab({ k, label, current }: { k: keyof typeof ICON; label: string; curre
 /** Floating glass tab bar; the dark button in the middle logs the next due dose. A pill slides to the current tab. */
 export function TabBar({ current, onLog, inert }: { current: Route; onLog: () => void; inert?: boolean }) {
   const col = COL[current as keyof typeof COL];
-  // One pill travels the whole bar, so every tab change is one slide the eye can follow. Crossing the middle it
-  // passes under the opaque log button and only ever comes to rest on a tab.
+  // The pill slides between the two tabs on one side of the log button. Keyed by side, so crossing to the other
+  // side remounts it at the new tab with a fade: it never travels under the button.
   return (
     <nav className="tabbar" aria-label="Main" inert={inert}>
-      {col != null && <span className="tab-ind" aria-hidden="true" style={{ ['--k' as string]: col }} />}
+      {col != null && <span key={col < 2 ? 'start' : 'end'} className="tab-ind" aria-hidden="true" style={{ ['--k' as string]: col }} />}
       <Tab k="today" label="Today" current={current} />
       <Tab k="trends" label="Trends" current={current} />
       <button className="log" type="button" onClick={onLog} aria-label="Log a dose">

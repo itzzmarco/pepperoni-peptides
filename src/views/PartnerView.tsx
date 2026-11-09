@@ -139,6 +139,7 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
         {RANGES.map(([d, l]) => <button key={d} type="button" aria-pressed={days === d} onClick={() => setDays(d)}>{l}</button>)}
       </div>
 
+      <div className="cols">
       <section className="tile lilac rise" aria-labelledby="p-wt-h" style={rise(2)}>
         <div className="spread"><h2 id="p-wt-h" className="label">Weight change, together</h2><span className="count">{unit}</span></div>
         <div className="together">
@@ -189,6 +190,7 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
           );
         }) : <p className="small" style={{ color: 'var(--mint-2)' }}>{name} isn't tracking a peptide yet.</p>}
       </section>
+      </div>
 
       <Recent log={log} name={name} />
 

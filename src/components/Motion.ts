@@ -1,9 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { cssMs } from '../lib/duration';
+import type { StartTransition } from '../lib/routeSwap';
 
 /** The user asked the OS for less motion. Read this instead of repeating the media query in components. */
 export const prefersReducedMotion = () =>
   typeof window === 'undefined' || !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+/** View Transitions aren't in every browser or in every TS DOM lib, so feature-detect with a narrow type. */
+type WithTransitions = Document & { startViewTransition: StartTransition };
+/** `document.startViewTransition` when the browser has it and motion is on; null means swap at once. */
+export const viewTransition = (): StartTransition | null =>
+  typeof document !== 'undefined' && 'startViewTransition' in document && !prefersReducedMotion()
+    ? update => (document as WithTransitions).startViewTransition(update)
+    : null;
 
 /** Reduced motion, or a background tab where animation frames don't run: jump straight to the end. */
 const still = () => prefersReducedMotion() || document.visibilityState === 'hidden';

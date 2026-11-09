@@ -302,31 +302,29 @@ export function TrendsView({ onBackfill, onAdd }: { onBackfill: () => void; onAd
   const empty = !regimens.length && !doses.length && !checkins.length;
 
   return (
-    <section className="view wide">
+    <section className="view">
       <header className={`head rise${empty ? '' : ' hero'}`}>
         {/* No range control on an empty log, so the eyebrow doesn't name one. */}
         <span className="eyebrow">{empty ? 'Trends' : `Trends · ${RANGES.find(r => r[0] === days)![1]}`}</span>
         <h1>{line1}{line2 && <><br /><span className="soft">{line2[0].toUpperCase() + line2.slice(1)}.</span></>}</h1>
         {!empty && <DoseBars doses={doses} days={days} now={now} />}
       </header>
-      {/* Nothing logged yet: the history card explains what will show up and offers the first step, instead of a dashboard of dashes. */}
+      {/* Nothing logged yet: one card explains what will show up and offers the first step, instead of a dashboard of dashes.
+          The share row waits until there is a log to export. */}
       {empty ? (
-        <>
-          <History doses={doses} checkins={checkins} onBackfill={onBackfill} onAdd={onAdd} art={<IlloTrends />} />
-          <ExportPanel ledger={ledger} />
-        </>
+        <History doses={doses} checkins={checkins} onBackfill={onBackfill} onAdd={onAdd} art={<IlloTrends />} />
       ) : <>
       <div className="seg rise" role="group" aria-label="Time range" style={rise(1)}>
         {RANGES.map(([d, l]) => <button key={d} type="button" aria-pressed={days === d} onClick={() => setDays(d)}>{l}</button>)}
       </div>
 
       {/* Two by two on wide screens, one column on phones. */}
-      <div className="trend-grid">
+      <div className="cols">
       <section className="tile mint rise" aria-labelledby="adh-h" style={rise(2)}>
         <div className="spread" style={{ alignItems: 'flex-end' }}>
           <div className="stack" style={{ gap: 2 }}>
             <h2 id="adh-h" className="label">Doses logged</h2>
-            <span className="big" style={{ fontSize: '2.75rem' }}>{adh.pct == null ? '–' : `${Math.round(pct)}%`}</span>
+            <span className="big">{adh.pct == null ? '–' : `${Math.round(pct)}%`}</span>
           </div>
           <span className="sub" style={{ color: 'var(--mint-2)' }}>{adh.expected ? `${adh.logged} of ${adh.expected} due doses` : 'No scheduled doses yet'}</span>
         </div>
@@ -342,7 +340,7 @@ export function TrendsView({ onBackfill, onAdd }: { onBackfill: () => void; onAd
           <div className="stack" style={{ gap: 2 }}>
             <h2 id="wt-h" className="label">Weight</h2>
             {change != null
-              ? <span className="big" style={{ fontSize: '2.75rem' }}>{changeShown < 0 ? '−' : '+'}{Math.abs(changeShown).toFixed(1)}<small> {wUnit} {weeksSpan >= 1.5 ? `in ${Math.round(weeksSpan)} weeks` : ''}</small></span>
+              ? <span className="big">{changeShown < 0 ? '−' : '+'}{Math.abs(changeShown).toFixed(1)}<small> {wUnit} {weeksSpan >= 1.5 ? `in ${Math.round(weeksSpan)} weeks` : ''}</small></span>
               : <span className="sub">{weights.length ? 'Add another weigh-in to see a trend.' : 'No weights logged in this range. Add one in a daily check-in.'}</span>}
           </div>
           <button type="button" className="btn soft sm" onClick={onBackfill}>Add past days</button>

@@ -24,7 +24,7 @@ import { AccountButton } from './components/AccountButton';
 import { ThemeToggle } from './components/ThemeToggle';
 import { TabBar } from './components/TabBar';
 import { SheetClosing } from './components/Sheet';
-import { exitMs, prefersReducedMotion } from './components/Motion';
+import { exitMs, prefersReducedMotion, viewTransition } from './components/Motion';
 
 const ROUTES = ['today', 'trends', 'learn', 'peptides', 'calculator', 'safety', 'partner'] as const;
 export type Route = (typeof ROUTES)[number];
@@ -48,8 +48,8 @@ type SheetState =
   | { kind: 'account' }
   | null;
 
-/** View Transitions aren't in every browser or in every TS DOM lib, so feature-detect with a narrow type. */
-type WithTransitions = Document & { startViewTransition: (update: () => void) => { finished: Promise<unknown> } };
+/** What the compact bar says once a page's own title has scrolled under it. */
+const TITLES: Record<Route, string> = { today: 'Today', trends: 'Trends', learn: 'Learn', peptides: 'Peptides', calculator: 'Dose math', safety: 'Safety & law', partner: 'Partner' };
 
 export function App() {
   const [route, setRoute] = useState(parseHash);
@@ -65,8 +65,8 @@ export function App() {
     // First-paint reveals (.rise) switch off for the rest of the session once a fade is used, so the root fade is the only page motion.
     // The switch flips inside the swap, after the old page is snapshotted, so the page being left never moves.
     // A second tap while a fade is still running swaps at once instead of starting another one (see transitionGate).
-    // A scrolled page goes to the top before the old page is snapshotted, so the fade runs top to top instead of
-    // crossfading the middle of one screen into the top of the next.
+    // The old page is snapshotted where the user was looking (the card they just tapped); the scroll to the top
+    // happens inside the update, so only the new screen opens at the top.
     let fade = false;
     const swap = () => {
       if (fade) document.documentElement.dataset.routed = '';
@@ -74,17 +74,18 @@ export function App() {
     };
     const go = transitionGate(swap);
     const onHash = () => {
-      fade = 'startViewTransition' in document && !prefersReducedMotion();
-      if (fade) window.scrollTo(0, 0);
-      go(fade ? update => (document as WithTransitions).startViewTransition(() => flushSync(update)) : null);
+      const start = viewTransition();
+      fade = !!start;
+      go(start ? update => start(() => flushSync(update)) : null);
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
-  // The glass top bar picks up a hairline once the page scrolls under it.
+  // The glass top bar picks up a hairline once the page scrolls under it, and the page's name once its title has gone.
   const [scrolled, setScrolled] = useState(false);
+  const [titled, setTitled] = useState(false);
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    const onScroll = () => { setScrolled(window.scrollY > 8); setTitled(window.scrollY > 120); };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -135,7 +136,7 @@ export function App() {
   const tab = route.tab === 'calculator' || route.tab === 'safety' ? 'learn' : route.tab === 'partner' ? 'today' : route.tab;
   return (
     <>
-      <header className="topbar gutter" inert={bg} data-scrolled={scrolled ? 'true' : undefined}>
+      <header className="topbar gutter" inert={bg} data-scrolled={scrolled ? 'true' : undefined} data-titled={titled ? '' : undefined}>
         <div className="wrap">
           <div className="row">
             <a className="brand" href="#today" aria-label="Peptide Ledger, today">
@@ -147,7 +148,10 @@ export function App() {
                 <path d="M9 13.5 Q9 12 10.5 12 H21.5 Q23 12 23 13.5 V25 Q23 28 20 28 H12 Q9 28 9 25 Z" fill="var(--on-dark)" />
                 <path d="M10.3 21 H21.7 V25 Q21.7 26.7 20 26.7 H12 Q10.3 26.7 10.3 25 Z" fill="var(--on-dark-3)" />
               </svg>
-              Peptide Ledger
+              <span className="brand-text">
+                <span className="wordmark">Peptide Ledger</span>
+                <span className="bar-title" aria-hidden="true">{route.id ? PEP[route.id].name : TITLES[route.tab]}</span>
+              </span>
             </a>
             <AccountButton onOpen={() => setSheet({ kind: 'account' })} />
             <ThemeToggle />

@@ -4,6 +4,8 @@ import { dayKey, fmtDay, fmtNum } from '../lib/format';
 import { dayAt, dueDayKeys, monthGrid, parsePasted, planBackfill, readWeight, weightsByDay } from '../lib/backfill';
 import { Sheet } from '../components/Sheet';
 import { useToast } from '../components/Toast';
+import { nearbyDose, spanText } from '../lib/schedule';
+import { INJECTABLE } from '../data/options';
 import { regName } from '../views/PeptidesView';
 
 const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
@@ -77,6 +79,22 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
   const ticked = new Set(r ? ticks[r.id] ?? [] : []);
   const due = r ? dueDayKeys(r, doses, cells) : new Set<string>();
   const dueOpen = [...due].filter(k => !logged.has(k) && !ticked.has(k));
+  // Ticked days too close to another dose of this peptide for its schedule, like a Friday ticked from memory when
+  // the shot was really taken and logged on Sunday. Two ticked days close together are named once.
+  const crowded = useMemo(() => {
+    if (!r) return [];
+    const mine = plan.addDoses.filter(a => a.rid === r.id);
+    const out: { day: Date; other: Date; logged: boolean }[] = [];
+    for (const a of mine) {
+      const near = nearbyDose(r, [...doses, ...mine.filter(b => b !== a)], new Date(a.at));
+      if (!near) continue;
+      const isLogged = doses.includes(near);
+      if (!isLogged && Date.parse(near.at) < Date.parse(a.at)) continue;
+      out.push({ day: new Date(a.at), other: new Date(near.at), logged: isLogged });
+    }
+    return out.sort((x, y) => x.day.getTime() - y.day.getTime());
+  }, [r, plan, doses]);
+  const word = r && INJECTABLE.has(r.route) ? 'shot' : 'dose';
   const toggle = (key: string) => {
     if (!r) return;
     if (logged.has(key)) { toast('Already logged. To remove it, delete it under History on Trends.'); return; }
@@ -217,6 +235,17 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
               <button type="button" className="btn soft sm" style={{ justifySelf: 'start' }} onClick={() => setTicks({ ...ticks, [r.id]: [...ticked, ...dueOpen] })}>
                 Tick all {dueOpen.length} due days in {new Date(ym.y, ym.m, 1).toLocaleDateString(undefined, { month: 'long' })}
               </button>
+            )}
+            {crowded.length > 0 && (
+              <p className="alert warn small" role="status">
+                <b>{crowded.length === 1 ? `Is this a separate ${word}?` : `Is each of these a separate ${word}?`}</b>
+                {crowded.map(c => (
+                  <span key={c.day.toISOString()}>
+                    {fmtDay(c.day)} is {spanText(c.other.getTime() - c.day.getTime())} from {c.logged ? `the ${word} already logged` : 'the day ticked'} on {fmtDay(c.other)}.
+                    {' '}{c.logged ? `If it's the same ${word}, untick ${fmtDay(c.day)}.` : `If they're the same ${word}, untick one.`}
+                  </span>
+                ))}
+              </p>
             )}
           </>
         ) : (

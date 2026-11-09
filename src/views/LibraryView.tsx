@@ -115,7 +115,7 @@ function FilterRow({ label, children }: { label: string; children: ReactNode }) 
         <span className="label muted">{label}</span>{children}
       </div>
       {more && (
-        <button type="button" className="filter-more" onClick={next} aria-label={`More ${label} filters`} tabIndex={-1}>
+        <button type="button" className="filter-more" onClick={next} aria-label={`More ${label} filters`}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
         </button>
       )}

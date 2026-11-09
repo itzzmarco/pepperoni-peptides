@@ -146,3 +146,23 @@ export function IlloPartner({ size = 168 }: Props) {
     </svg></Ground>
   );
 }
+
+/** Profile band backdrop: a peptide chain of linked residues drifting off the band's top right corner.
+ *  It takes the band's tier tint (`--tc`) and sits behind the text, faint enough that every line on the band keeps its contrast. */
+const CHAIN: [number, number, number][] = [[18, 132, 9], [50, 112, 12], [88, 120, 10], [116, 92, 14], [150, 98, 11], [170, 64, 15], [204, 56, 12], [222, 22, 16]];
+export function BandArt() {
+  const bonds = CHAIN.slice(1).map(([x, y], i) => `M${CHAIN[i][0]} ${CHAIN[i][1]}L${x} ${y}`).join('');
+  return (
+    <svg className="band-art" width="240" height="160" viewBox="0 0 240 160" aria-hidden="true" focusable="false">
+      <path d={bonds} fill="none" stroke="var(--tc)" strokeWidth="3" strokeLinecap="round" opacity=".28" />
+      <path d="M88 120l-6 26M150 98l8 26M204 56l-18-18" fill="none" stroke="var(--tc)" strokeWidth="2" strokeLinecap="round" strokeDasharray="2 5" opacity=".3" />
+      {CHAIN.map(([x, y, r], i) => (
+        <g key={i}>
+          <circle cx={x} cy={y} r={r} fill="var(--surface)" opacity=".5" />
+          <circle cx={x} cy={y} r={r} fill="none" stroke="var(--tc)" strokeWidth="2" opacity=".32" />
+          <circle cx={x - r * 0.35} cy={y - r * 0.35} r={r * 0.28} fill="var(--surface)" opacity=".7" />
+        </g>
+      ))}
+    </svg>
+  );
+}

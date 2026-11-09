@@ -5,6 +5,7 @@ import { useLedger } from '../lib/store';
 import { freqText, regimenStatus } from '../lib/schedule';
 import { fmtNum } from '../lib/format';
 import { FamilyGlyph } from '../components/FamilyGlyph';
+import { BandArt } from '../components/Illustration';
 import { Glp1Alert, Strip } from './PeptidesView';
 
 function ListSec({ title, items, tone = '' }: { title: string; items?: string[]; tone?: string }) {
@@ -42,6 +43,7 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
         Learn
       </a></div>
       <header className="head band rise" data-t={p.tier} style={rise(1)}>
+        <BandArt />
         <div className="band-top">
           <FamilyGlyph family={p.family} size={44} ground="surface" />
           <span className="eyebrow">{FAMILIES[p.family]?.name}{p.isPeptide === false ? ' · not technically a peptide' : ''}</span>

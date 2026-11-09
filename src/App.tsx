@@ -79,6 +79,7 @@ export function App() {
       root.dataset.routed = '';
       root.dataset.dir = at.id && !next.id ? 'back' : 'forward';
       at = next;
+      arrived.current = true;
       setRoute(next); setSheet(null); setTitled(false); window.scrollTo(0, 0);
     };
     const go = transitionGate(swap);
@@ -89,6 +90,19 @@ export function App() {
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
+  // Arriving on a route names it in the window title and moves focus to its headline, so keyboard and screen-reader
+  // users land on the new page instead of staying in the navigation. The first load keeps focus where the browser put it.
+  const arrived = useRef(false);
+  const pageName = route.id ? PEP[route.id].name : TITLES[route.tab];
+  useEffect(() => {
+    document.title = route.tab === 'today' && !route.id ? 'Peptide Ledger' : `${pageName} · Peptide Ledger`;
+    if (!arrived.current) return;
+    arrived.current = false;
+    const h = mainRef.current?.querySelector('h1');
+    if (!h) return;
+    h.tabIndex = -1;
+    h.focus({ preventScroll: true });
+  }, [route, pageName]);
   // The glass top bar picks up a hairline once the page scrolls under it.
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -186,7 +200,7 @@ export function App() {
               </svg>
               <span className="brand-text">
                 <span className="wordmark">Peptide Ledger</span>
-                <span className="bar-title" aria-hidden="true">{route.id ? PEP[route.id].name : TITLES[route.tab]}</span>
+                <span className="bar-title" aria-hidden="true">{pageName}</span>
               </span>
             </a>
             <AccountButton onOpen={() => setSheet({ kind: 'account' })} />

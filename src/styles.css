@@ -50,15 +50,13 @@
   --illo-shade: rgba(30,34,48,.07); --illo-line: #3F4452;
   /* Brand mark: the vial cap, same pink as the installed icon. */
   --brand: #E05A9E;
-  /* Solid family glyphs: how much of the ink stays in the tile, and of the tint in the icon. Dark mode keeps them dark tiles with light icons. */
-  --glyph-solid: 100%; --glyph-solid-fg: 100%;
   /* Sheets: their own surface, a 1px top light, and the scrim that dims the page behind. Primary-button hover. */
   --sheet-bg: #F6F6F8; --sheet-hi: rgba(255,255,255,.8); --scrim: rgba(16,18,24,.5);
   --btn-hover: #353B4D;
   /* Motion */
   --ease-out: cubic-bezier(.22, 1, .36, 1);
   --ease-in: cubic-bezier(.4, 0, 1, 1);
-  --ease-spring: cubic-bezier(.34, 1.4, .64, 1);
+  --ease-spring: cubic-bezier(.34, 1.1, .64, 1);
   --ease-pop: cubic-bezier(.34, 1.56, .64, 1);
   --dur-fast: 140ms; --dur-med: 240ms; --dur-slow: 450ms;
   --f-body: "Outfit Variable", "Outfit", "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -96,7 +94,6 @@
     --skel: #222632; --skel-shine: rgba(255,255,255,.16);
     --illo-shade: rgba(0,0,0,.3); --illo-line: #C3C8D3;
     --brand: #EE79B4;
-    --glyph-solid: 32%; --glyph-solid-fg: 0%;
     --sheet-bg: #171A23; --sheet-hi: rgba(255,255,255,.09); --scrim: rgba(0,0,0,.66);
     --btn-hover: #CDD2DC;
     color-scheme: dark;
@@ -129,7 +126,6 @@
   --skel: #222632; --skel-shine: rgba(255,255,255,.16);
   --illo-shade: rgba(0,0,0,.3); --illo-line: #C3C8D3;
   --brand: #EE79B4;
-  --glyph-solid: 32%; --glyph-solid-fg: 0%;
   --sheet-bg: #171A23; --sheet-hi: rgba(255,255,255,.09); --scrim: rgba(0,0,0,.66);
   --btn-hover: #CDD2DC;
   color-scheme: dark;
@@ -195,6 +191,8 @@ button.sync:hover { background: var(--surface-2); }
 .sync[data-s="error"] i, .sync-chip[data-s="error"] .dot { background: var(--danger); }
 .sync-chip .dot { background: var(--good); }
 .show-sm { display: none; }
+/* At the narrowest phones the signed-out pill drops its person icon and the row tightens, so the wordmark keeps its whole name. */
+@media (max-width: 359px) { .topbar .row { gap: 6px; } .brand { font-size: var(--fs-md); } button.sync:not([data-s]) { padding-inline: 12px; } button.sync:not([data-s]) > svg { display: none; } }
 @media (max-width: 420px) { .hide-sm { display: none; } .show-sm { display: inline; } button.sync[data-s] { min-width: 44px; justify-content: center; padding: 0 10px; } }
 .notice { margin-top: 10px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; background: var(--lemon); color: var(--ink); border-radius: 16px; padding: 8px 14px; font-size: var(--fs-xs); line-height: 1.45; }
 .notice b { color: var(--lemon-ink); }
@@ -520,7 +518,10 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .regimen { display: grid; gap: 12px; }
 .regimen .top { display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; }
 .regimen .dose { font-size: var(--fs-sm); color: var(--ink-3); }
-.regimen.paused { opacity: .65; }
+.regimen.paused { background: var(--surface-2); box-shadow: inset 0 0 0 1.5px var(--surface-3); }
+/* Paused reads as set aside by its sunken ground and its Paused badge, never by fading, so every line stays readable. */
+.regimen.paused .due { background: var(--surface); color: var(--ink-2); box-shadow: var(--ring); }
+.regimen.paused :is(.strip i:not(.on), .btn.quiet:hover) { background: var(--surface-3); }
 .due { font-size: var(--fs-xs); font-weight: 600; padding: 5px 10px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; }
 .due[data-s="due"] { background: var(--sky); color: var(--sky-ink); }
 .due[data-s="late"] { background: var(--peach); color: var(--peach-ink); }
@@ -561,12 +562,11 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 12px; }
 .card { position: relative; display: grid; gap: 8px; align-content: start; grid-template-rows: auto auto 1fr auto; text-align: left; background: var(--surface); box-shadow: var(--ring), var(--shadow-1); border-radius: var(--r-md); padding: 16px; color: var(--ink); text-decoration: none; min-width: 0; }
 .glyph { display: inline-grid; place-items: center; border-radius: 14px; flex: none; }
-.glyph.solid { background: color-mix(in srgb, var(--g-ink) var(--glyph-solid), var(--dark)); color: color-mix(in srgb, var(--g-tint) var(--glyph-solid-fg), var(--on-dark)); }
 .card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
 .card h3 { font-size: 1.0625rem; overflow-wrap: anywhere; }
 .card .fam { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); margin-bottom: 2px; }
 .card .aka { font-size: var(--fs-xs); color: var(--ink-3); margin-top: 2px; }
-.card .sum { font-size: .8125rem; line-height: 1.4; color: var(--ink-3); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.card .sum { font-size: var(--fs-sm); line-height: 1.4; color: var(--ink-3); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .card .row-wrap { gap: 6px; }
 .card .chip { white-space: normal; }
 .count { font-size: var(--fs-sm); color: var(--ink-3); }
@@ -590,6 +590,9 @@ details[open] > summary .chev { transform: rotate(90deg); }
   background: radial-gradient(120% 100% at 100% 0%, color-mix(in srgb, var(--tc) 16%, transparent), transparent 60%), linear-gradient(180deg, var(--tb), color-mix(in srgb, var(--tb) 45%, var(--surface))); }
 .band[data-t="2"] { --tc: var(--t2); --tb: var(--t2-bg); } .band[data-t="3"] { --tc: var(--t3); --tb: var(--t3-bg); }
 .band[data-t="4"] { --tc: var(--t4); --tb: var(--t4-bg); } .band[data-t="5"] { --tc: var(--t5); --tb: var(--t5-bg); }
+.band { position: relative; overflow: hidden; isolation: isolate; }
+.band-art { position: absolute; z-index: -1; top: -6px; right: -18px; pointer-events: none; }
+@media (max-width: 480px) { .band-art { width: 180px; height: 120px; right: -28px; } }
 .band .band-top { display: flex; align-items: center; gap: 10px; }
 .band .tier { background: var(--surface); }
 .band .seq span { background: color-mix(in srgb, var(--surface) 70%, transparent); }
@@ -758,7 +761,7 @@ input.code-input { font-family: var(--f-mono); font-size: 1.375rem; letter-spaci
 /* Opaque fallback for both glass bars; it comes after both rules so it wins on equal specificity. */
 @supports not (backdrop-filter: blur(1px)) { .topbar, .tabbar { background: var(--bg); } }
 .tab-ind { position: absolute; z-index: -1; top: 6px; bottom: 6px; left: 6px; width: calc((100% - 12px) / 5); border-radius: 22px; background: var(--tab-pill); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); pointer-events: none; }
-.tabbar a { color: var(--ink-3); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; font-size: 11px; font-weight: 500; text-decoration: none; border-radius: 22px; }
+.tabbar a { color: var(--ink-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; font-size: var(--fs-xs); font-weight: 500; text-decoration: none; border-radius: 22px; }
 .tabbar a:hover { color: var(--ink); }
 .tabbar a[aria-current] { color: var(--ink); font-weight: 700; }
 .tabbar .log { justify-self: center; width: 56px; height: 56px; border-radius: 28px; border: 0; background: var(--btn); color: var(--btn-ink); display: grid; place-items: center; cursor: pointer; }
@@ -766,15 +769,16 @@ input.code-input { font-family: var(--f-mono); font-size: 1.375rem; letter-spaci
 .app-end { height: calc(96px + env(safe-area-inset-bottom, 0px)); }
 /* Mouse and keyboard widths: the same five destinations dock as a rail at the left edge, and the page makes room for it.
    The pill slides down the rail instead of along it. */
+.toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 12px 18px; border-radius: 999px; font-size: var(--fs-sm); z-index: 60; box-shadow: var(--shadow-3); max-width: calc(100% - 32px); }
 @media (min-width: 900px) {
   body { padding-left: 100px; }
   .tabbar { left: max(16px, env(safe-area-inset-left, 0px)); top: 50%; bottom: auto; transform: translateY(-50%); width: 76px; grid-template-columns: minmax(0, 1fr); grid-auto-rows: 64px; }
   .tab-ind { left: 6px; right: 6px; bottom: auto; width: auto; height: calc((100% - 12px) / 5); transform: translateY(calc(var(--k) * 100%)); }
   .app-end { height: 32px; }
   .toast { left: calc(50% + 50px); bottom: 32px; }
+  .scrim { padding-left: 124px; }
 }
 
-.toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 12px 18px; border-radius: 999px; font-size: var(--fs-sm); z-index: 60; box-shadow: var(--shadow-3); max-width: calc(100% - 32px); }
 /* Hover elevation where a pointer can hover: a --shadow-2 layer that fades in, so it moves with the lift.
    Press scale and the lift itself live in the motion section below. */
 a.tile, button.tile { position: relative; }
@@ -827,7 +831,7 @@ footer.foot p { max-width: 90ch; }
   /* Tactile feedback: quick press, gentle lift */
   .btn, .fchip, .icon-btn, .tabbar .log, .tabbar a, .hour, .scale button { transition: transform var(--dur-fast) var(--ease-out), filter var(--dur-fast) var(--ease-out); }
   .btn:active, .fchip:active, .icon-btn:active, .tabbar .log:active { transform: scale(.97); }
-  .tabbar a:active, .seg button:active, .scale button:active { transform: scale(.94); }
+  .tabbar a:active, .seg button:active, .scale button:active { transform: scale(.97); }
   .card, a.tile, button.tile { transition: transform var(--dur-med) var(--ease-out); }
   .card::after, a.tile::after, button.tile::after { transition: opacity var(--dur-med) var(--ease-out); }
   @media (hover: hover) { .card:hover, a.tile:hover, button.tile:hover { transform: translateY(-2px); } }

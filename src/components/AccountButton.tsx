@@ -21,8 +21,8 @@ export function AccountButton({ onOpen }: { onOpen: () => void }) {
     );
   }
   const pending = acct.pending ? `, ${acct.pending} waiting to send` : '';
-  // The word shows on phones too, since a dot colour alone can't tell Synced from Syncing. Only below 360px, where the
-  // wordmark would be cut, the pill drops to its dot; the word stays in the accessible name and the tooltip.
+  // The word shows on phones too. Only below 360px, where the wordmark would be cut, the pill drops to its mark, which
+  // has a different shape per status (styles.css); the word stays in the accessible name and the tooltip.
   return (
     <button className="sync" data-s={acct.status} onClick={onOpen} aria-label={`Account: ${acct.user.email}. ${LABEL[acct.status]}${pending}`} title={`${acct.user.email} · ${LABEL[acct.status]}${pending}`}>
       <i /><span>{LABEL[acct.status]}</span>

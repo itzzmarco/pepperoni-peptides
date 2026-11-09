@@ -22,16 +22,16 @@ function Tab({ k, label, current, exact }: { k: keyof typeof ICON; label: string
 
 /** Floating glass tab bar; the dark button in the middle logs the next due dose. A pill slides to the current tab.
  *  `exact` is false on a screen that belongs to the tab's section without being the tab's own page. */
-export function TabBar({ current, exact, onLog, inert }: { current: Route; exact: boolean; onLog: () => void; inert?: boolean }) {
+export function TabBar({ current, exact, onLog, logLabel, inert }: { current: Route; exact: boolean; onLog: () => void; logLabel: string; inert?: boolean }) {
   const col = COL[current as keyof typeof COL];
-  // One pill stays mounted and slides to every tab. Crossing sides it passes under the opaque log button, which is
-  // painted above it, so the move stays continuous and the pill never comes to rest there.
+  // One pill stays mounted and slides to every tab. Its track is masked out over the log column, so crossing sides the
+  // pill fades out around the log button instead of showing behind it, and never comes to rest there.
   return (
     <nav className="tabbar" aria-label="Main" inert={inert}>
-      {col != null && <span className="tab-ind" aria-hidden="true" style={{ ['--k' as string]: col }} />}
+      {col != null && <span className="tab-track"><span className="tab-ind" aria-hidden="true" style={{ ['--k' as string]: col }} /></span>}
       <Tab k="today" label="Today" current={current} exact={exact} />
       <Tab k="trends" label="Trends" current={current} exact={exact} />
-      <button className="log" type="button" onClick={onLog} aria-label="Log a dose">
+      <button className="log" type="button" onClick={onLog} aria-label={logLabel}>
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
       </button>
       <Tab k="learn" label="Learn" current={current} exact={exact} />

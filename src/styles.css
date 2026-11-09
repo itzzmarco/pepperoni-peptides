@@ -49,7 +49,7 @@
   --recent-1: #F9C9AE; --recent-2: #FBDCCB; --recent-3: #FDEBE1; --recent-ink: #7C2D12;
   /* Skeleton blocks and their shimmer; illustration ground shadow and outline. */
   --skel: #E8E9EE; --skel-shine: rgba(255,255,255,.7);
-  --illo-shade: rgba(30,34,48,.07); --illo-line: #3F4452;
+  --illo-shade: rgba(30,34,48,.07); --illo-shade-on-dark: rgba(0,0,0,.28); --illo-line: #3F4452;
   /* Brand pink: the vial cap in the mark, and the Log button at the centre of the tab bar, so the app's one main action wears it. */
   --brand: #E05A9E; --brand-ink: #FFFFFF;
   /* Sheets: their own surface, a 1px top light, and the scrim that dims the page behind. Primary-button hover. */
@@ -69,7 +69,7 @@
   --f-body: "Outfit Variable", "Outfit", "Segoe UI", system-ui, -apple-system, sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   --r-sm: 14px; --r-md: 22px; --r-lg: 26px; --r-xl: 28px;
-  /* --fs-2xs is the caption step (chart ticks, legends, family labels); --fs-label sits between body and small for labels and buttons. */
+  /* --fs-2xs is the small-label step (badges, family labels, map sites); reading captions such as chart ticks and legends use --fs-xs; --fs-label sits between body and small for labels and buttons. */
   --fs-2xs: .6875rem; --fs-xs: .75rem; --fs-sm: .875rem; --fs-label: .9375rem; --fs-md: 1rem; --fs-lg: 1.1875rem; --fs-xl: 1.375rem; --fs-2xl: 2.125rem;
   /* Display numbers: the hero stat of a screen's lead tile, and the stat line of any other tile or sheet. */
   --fs-hero: 3.25rem; --fs-stat: 2.25rem;
@@ -101,7 +101,7 @@
     --tile-sheen: rgba(255,255,255,.05); --lift-hi: rgba(255,255,255,.05); --lift-edge: rgba(255,255,255,.12);
     --recent-1: #7A3A1E; --recent-2: #5E2D18; --recent-3: #472316; --recent-ink: #FDE8DC;
     --skel: #222632; --skel-shine: rgba(255,255,255,.16);
-    --illo-shade: rgba(0,0,0,.3); --illo-line: #C3C8D3;
+    --illo-shade: rgba(0,0,0,.3); --illo-shade-on-dark: rgba(0,0,0,.3); --illo-line: #C3C8D3;
     --brand: #EE79B4; --brand-ink: #101218;
     --sheet-bg: #171A23; --sheet-hi: rgba(255,255,255,.09); --scrim: rgba(0,0,0,.66);
     --btn-hover: #CDD2DC;
@@ -134,7 +134,7 @@
   --tile-sheen: rgba(255,255,255,.05); --lift-hi: rgba(255,255,255,.05); --lift-edge: rgba(255,255,255,.12);
   --recent-1: #7A3A1E; --recent-2: #5E2D18; --recent-3: #472316; --recent-ink: #FDE8DC;
   --skel: #222632; --skel-shine: rgba(255,255,255,.16);
-  --illo-shade: rgba(0,0,0,.3); --illo-line: #C3C8D3;
+  --illo-shade: rgba(0,0,0,.3); --illo-shade-on-dark: rgba(0,0,0,.3); --illo-line: #C3C8D3;
   --brand: #EE79B4; --brand-ink: #101218;
   --sheet-bg: #171A23; --sheet-hi: rgba(255,255,255,.09); --scrim: rgba(0,0,0,.66);
   --btn-hover: #CDD2DC;
@@ -200,15 +200,19 @@ button.sync:hover { background: var(--surface-2); }
 .sync[data-s="offline"] i, .sync-chip[data-s="offline"] .dot { background: var(--ink-4); }
 .sync[data-s="error"] i, .sync-chip[data-s="error"] .dot { background: var(--danger); }
 .sync-chip .dot { background: var(--good); }
+/* Each status has its own mark as well as its colour, so the dot alone still tells them apart where the word is hidden:
+   synced a dot, signed in a ring, syncing a half-filled ring, offline a dash, a sync issue a diamond. */
+button.sync[data-s="idle"] i { background: transparent; box-shadow: inset 0 0 0 2px var(--sky-ink); }
+button.sync[data-s="syncing"] i { background: linear-gradient(90deg, var(--sky-ink) 50%, transparent 50%); box-shadow: inset 0 0 0 1.5px var(--sky-ink); }
+button.sync[data-s="offline"] i { width: 9px; height: 3px; border-radius: 2px; }
+button.sync[data-s="error"] i { border-radius: 1px; transform: rotate(45deg); }
 .show-sm { display: none; }
-/* At the narrowest phones the signed-out pill drops its person icon, the status pills show only their dot (the word stays
-   in the accessible name and tooltip), and the row tightens, so the wordmark keeps its whole name. */
+/* At the narrowest phones the signed-out pill drops its person icon, the status pills show only their mark (the word stays
+   in the accessible name and tooltip, and each status has its own shape), and the row tightens, so the wordmark keeps its whole name. */
 @media (max-width: 359px) { .topbar .row { gap: 6px; } button.sync:not([data-s]) { padding-inline: 12px; } button.sync:not([data-s]) > svg { display: none; } span.sync, button.sync[data-s] { padding-inline: 12px; } :is(span.sync, button.sync[data-s]) > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
 @media (max-width: 420px) { .hide-sm { display: none; } .show-sm { display: inline; } button.sync[data-s] { min-width: 44px; justify-content: center; padding: 0 10px; } }
-.notice { margin-top: 10px; background: var(--lemon); color: var(--ink); border-radius: var(--r-sm); font-size: var(--fs-xs); line-height: 1.45; }
-.notice-toggle { appearance: none; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; display: block; width: 100%; min-height: 44px; padding: 13px 14px; border-radius: inherit; }
-.notice-toggle[aria-expanded="false"] { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.notice-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Quiet on purpose: a neutral card with a lemon edge, so the instrument card stays the loudest thing on screen. */
+.notice { margin-top: 10px; padding: 10px 14px; background: var(--surface); border-left: 3px solid color-mix(in srgb, var(--lemon-ink) 45%, transparent); box-shadow: var(--ring); color: var(--ink-2); border-radius: var(--r-sm); font-size: var(--fs-xs); line-height: 1.45; text-wrap: pretty; }
 .notice b { color: var(--lemon-ink); }
 
 main { padding-block: 8px 40px; }
@@ -230,7 +234,7 @@ main { padding-block: 8px 40px; }
 .hero-cap { display: flex; justify-content: space-between; gap: 8px; font-size: var(--fs-xs); color: var(--ink-3); font-variant-numeric: tabular-nums; margin-top: -4px; }
 .hero-cap b { color: var(--lilac-ink); font-weight: 600; }
 /* Says the bars can be scrubbed; it sits under the total and gives way to the day readout while one is picked. */
-.hero-hint { display: block; text-align: center; font-size: var(--fs-2xs); }
+.hero-hint { display: block; text-align: center; font-size: var(--fs-xs); }
 .hero-bars i.none { height: 4px; background: color-mix(in srgb, var(--lilac-line) 25%, transparent); }
 /* The bars read out one day under a pointer, a finger or the arrow keys; the hairline on top is the busiest day's count. */
 .hero-bars:focus-visible { outline: 2px solid var(--lilac-ink); outline-offset: 4px; }
@@ -249,6 +253,8 @@ a.tile { color: var(--ink); }
 .tile.sky { --tint: var(--sky); } .tile.sky .label { color: var(--sky-ink); }
 .tile.lemon { --tint: var(--lemon); } .tile.lemon .label { color: var(--lemon-ink); }
 .tile.teal { --tint: var(--teal); } .tile.teal .label { color: var(--teal-ink); }
+/* A sunken neutral tile, for a quoted claim set beside an evidence tile. */
+.tile.sunk { background: var(--surface-2); box-shadow: none; }
 .tile.dark {
   background:
     radial-gradient(120% 90% at 100% 0%, var(--dark-glow), transparent 62%),
@@ -351,6 +357,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .checks label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
 /* Sentence-long options (the first-run acknowledgement, the relabel choice) wrap onto a rounded row that keeps its checkbox. */
 .checks.block label { border-radius: var(--r-sm); padding: var(--sp-3) var(--sp-4); align-items: flex-start; line-height: 1.4; }
+.weekdays { gap: 6px; }
+.weekdays .fchip { min-width: 44px; padding: 0 10px; justify-content: center; }
 .checks.block input { margin-top: 2px; flex: none; }
 .checks label:has(input:checked) { background: var(--btn); color: var(--btn-ink); box-shadow: none; }
 .checks.peachy label:has(input:checked) { background: var(--peach-ink); color: var(--peach); }
@@ -418,11 +426,11 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .daybar .track { position: absolute; left: 0; right: 0; top: 24px; height: 6px; border-radius: 3px; background: var(--dark-line); }
 .daybar .fill { position: absolute; left: 0; top: 24px; height: 6px; border-radius: 3px; background: var(--go); }
 .daybar .now { position: absolute; top: 12px; width: 2px; height: 30px; margin-left: -1px; border-radius: 1px; background: var(--on-dark); }
-.daybar .now span { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: var(--fs-2xs); font-weight: 600; white-space: nowrap; }
+.daybar .now span { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: var(--fs-xs); font-weight: 600; white-space: nowrap; }
 .daybar .mark { position: absolute; top: 15px; width: 24px; height: 24px; margin-left: -12px; border-radius: 12px; display: grid; place-items: center; }
 .daybar .mark.done { background: var(--go); color: var(--dark); border: 3px solid var(--dark); }
 .daybar .mark.todo { background: var(--dark); border: 2.5px solid var(--on-dark); }
-.daybar .t { position: absolute; top: 46px; text-align: center; font-size: var(--fs-2xs); color: var(--on-dark-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.daybar .t { position: absolute; top: 46px; text-align: center; font-size: var(--fs-xs); color: var(--on-dark-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .daybar .t.end { right: 0; text-align: right; }
 /* Next up: the name at display size, with a ring of today's doses beside it */
 .next-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: center; }
@@ -507,7 +515,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 
 /* Charts */
 .chart { width: 100%; height: auto; display: block; overflow: visible; }
-.chart text { fill: var(--ink-3); font-size: var(--fs-2xs); font-family: var(--f-body); }
+.chart text { fill: var(--ink-3); font-size: var(--fs-xs); font-family: var(--f-body); }
 .chart .grid { stroke: var(--chart-grid); stroke-width: 1; }
 .chart .ln { fill: none; stroke: var(--chart-line); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }
 .chart .area { fill: var(--chart-line); opacity: .1; }
@@ -539,7 +547,9 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 
 /* Peptides (regimens) */
 .regimen { display: grid; gap: 12px; }
-.regimen .top { display: flex; gap: 10px; align-items: flex-start; justify-content: space-between; }
+.regimen .top { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: flex-start; justify-content: space-between; }
+/* A long name wraps (breaking a long word if it must) and the status badge drops under it when the row runs out of room. */
+.regimen .top > :first-child { flex: 1 1 12rem; min-width: 0; overflow-wrap: anywhere; }
 .regimen .dose { font-size: var(--fs-sm); color: var(--ink-3); }
 .regimen.paused { background: var(--surface-2); box-shadow: inset 0 0 0 1.5px var(--surface-3); }
 /* Paused reads as set aside by its sunken ground and its Paused badge, never by fading, so every line stays readable. */
@@ -555,7 +565,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .strip i.today { box-shadow: inset 0 0 0 1.5px var(--ink-3); }
 .tile.dark .strip i { background: var(--dark-fill-2); }
 .tile.dark .strip i.on { background: var(--go); }
-.strip-legend { display: flex; justify-content: space-between; font-size: var(--fs-2xs); color: var(--ink-3); }
+.strip-legend { display: flex; justify-content: space-between; font-size: var(--fs-xs); color: var(--ink-3); }
 .tile.dark .strip-legend { color: var(--on-dark-3); }
 .empty { background: var(--surface); box-shadow: var(--ring); border-radius: var(--r-lg); padding: 18px 18px 22px; display: grid; gap: 12px; justify-items: center; text-align: center; }
 .empty > .illo-ground { justify-self: stretch; }
@@ -704,7 +714,7 @@ tr:last-child td { border-bottom: 0; }
 .bodymap { position: relative; width: 260px; max-width: 100%; margin: 0 auto; }
 .bodymap svg { width: 100%; height: auto; display: block; }
 .bodymap svg path, .bodymap svg rect, .bodymap svg circle.head { fill: var(--surface); stroke: none; }
-.site { position: absolute; transform: translate(-50%, -50%); width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--sky-dot); background: var(--surface); color: var(--ink); font-size: 10px; font-weight: 600; cursor: pointer; display: grid; place-items: center; padding: 0; }
+.site { position: absolute; transform: translate(-50%, -50%); width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--sky-dot); background: var(--surface); color: var(--ink); font-size: var(--fs-2xs); font-weight: 600; cursor: pointer; display: grid; place-items: center; padding: 0; }
 /* The dot stays 36px so the figure isn't crowded; an invisible ring around it makes the tap target 44px or more. */
 .site::before { content: ""; position: absolute; inset: -7px; border-radius: 50%; }
 .site[data-age="fresh"] { background: var(--peach); border-color: var(--peach); color: var(--peach-deep); }
@@ -721,7 +731,7 @@ tr:last-child td { border-bottom: 0; }
 .clock .ring { fill: none; stroke: var(--sky-dot); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: .5 7.2; }
 .clock .zone { fill: color-mix(in srgb, var(--sky) 60%, var(--surface)); stroke: var(--ink-4); stroke-width: 1.5; stroke-dasharray: 4 4; }
 .clock .navel { fill: var(--ink-4); }
-.clock text { fill: var(--ink-3); font-family: var(--f-body); font-size: 10px; font-weight: 600; }
+.clock text { fill: var(--ink-3); font-family: var(--f-body); font-size: var(--fs-2xs); font-weight: 600; }
 .clock .arc { fill: none; stroke: var(--sky-ink); stroke-width: 4; stroke-linecap: round; }
 .clock .tipmark { fill: var(--sky-ink); }
 .hour { position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 22px; border: 1.5px solid var(--sky-dot); background: var(--surface); color: var(--ink); font-size: var(--fs-label); font-weight: 600; font-variant-numeric: tabular-nums; padding: 0; cursor: pointer; }
@@ -786,24 +796,27 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 
 /* Tab bar */
 .tabbar { position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: min(440px, calc(100% - 32px)); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; padding: 6px; border-radius: var(--r-xl); background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); box-shadow: var(--shadow-3), inset 0 0 0 1px var(--glass-edge); view-transition-name: tabbar; isolation: isolate; overflow: hidden; }
-/* One pill behind the current tab: one fifth of the bar. It slides from tab to tab and, crossing sides, passes under the
-   opaque log button (the pill sits at z-index -1), so it never rests there and the motion stays continuous. */
 /* Opaque fallback for both glass bars; it comes after both rules so it wins on equal specificity. */
 @supports not (backdrop-filter: blur(1px)) { .topbar, .tabbar { background: var(--bg); } }
-.tab-ind { position: absolute; z-index: -1; top: 6px; bottom: 6px; left: 6px; width: calc((100% - 12px) / 5); border-radius: 22px; background: var(--tab-pill); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); pointer-events: none; }
+/* One pill behind the current tab: one fifth of the track. It slides from tab to tab; the track is masked out over the
+   log column, so crossing sides the pill fades out around the log button and never paints or rests there. */
+.tab-track { position: absolute; z-index: -1; inset: 6px; pointer-events: none;
+  -webkit-mask: linear-gradient(to right, black 40%, transparent 44% 56%, black 60%); mask: linear-gradient(to right, black 40%, transparent 44% 56%, black 60%); }
+.tab-ind { position: absolute; top: 0; bottom: 0; left: 0; width: 20%; border-radius: 22px; background: var(--tab-pill); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); }
 .tabbar a { color: var(--ink-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; font-size: var(--fs-xs); font-weight: 500; text-decoration: none; border-radius: 22px; }
 .tabbar a:hover { color: var(--ink); }
 .tabbar a[aria-current] { color: var(--ink); }
 .tabbar .log { justify-self: center; width: 56px; height: 56px; border-radius: 28px; border: 0; background: var(--brand); color: var(--brand-ink); display: grid; place-items: center; cursor: pointer; }
 .tabbar .log:hover { background: color-mix(in srgb, var(--brand) 86%, var(--ink)); }
 .app-end { height: calc(96px + env(safe-area-inset-bottom, 0px)); }
-/* Mouse and keyboard widths: the same five destinations dock as a rail at the left edge, and the page makes room for it.
-   The pill slides down the rail instead of along it, under the log button the same way. */
 .toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 12px 18px; border-radius: 999px; font-size: var(--fs-sm); z-index: 60; box-shadow: var(--shadow-3); max-width: calc(100% - 32px); }
+/* Mouse and keyboard widths: the same five destinations dock as a rail at the left edge, and the page makes room for it.
+   The pill slides down the rail instead of along it, masked out over the log button the same way. */
 @media (min-width: 900px) {
   body { padding-left: 100px; }
   .tabbar { left: max(16px, env(safe-area-inset-left, 0px)); top: 50%; bottom: auto; transform: translateY(-50%); width: 76px; grid-template-columns: minmax(0, 1fr); grid-auto-rows: 64px; }
-  .tab-ind { left: 6px; right: 6px; bottom: auto; width: auto; height: calc((100% - 12px) / 5); transform: translateY(calc(var(--k) * 100%)); }
+  .tab-track { -webkit-mask: linear-gradient(to bottom, black 40%, transparent 44% 56%, black 60%); mask: linear-gradient(to bottom, black 40%, transparent 44% 56%, black 60%); }
+  .tab-ind { right: 0; bottom: auto; width: auto; height: 20%; transform: translateY(calc(var(--k) * 100%)); }
   .app-end { height: 32px; }
   .toast { left: calc(50% + 50px); bottom: 32px; }
   .scrim { padding-left: 124px; }
@@ -824,8 +837,9 @@ button.tile { appearance: none; border: 0; text-align: left; font: inherit; curs
 /* On the instrument card the art sits on its own raised plate (a lighter, outlined panel) and is redrawn in the on-dark palette:
    a clearly lighter page and bright vial and cells, a blue header and --on-dark-3 outlines, so it reads at a glance without
    turning into a light sticker. */
-.tile.dark .illo-ground { background: radial-gradient(90% 110% at 15% 0%, color-mix(in srgb, var(--on-dark) 16%, var(--dark)), transparent 75%), color-mix(in srgb, var(--on-dark) 8%, var(--dark)); box-shadow: inset 0 0 0 1px var(--dark-line); }
-.tile.dark .illo { --illo-line: var(--on-dark-3); --illo-shade: rgba(0,0,0,.28); --surface: color-mix(in srgb, var(--on-dark) 62%, var(--dark)); --sky: color-mix(in srgb, var(--on-dark) 26%, var(--dark)); --sky-ink: var(--dose-cell); --mint-ink: var(--dark); --ink-4: var(--on-dark-3); --lilac-line: color-mix(in srgb, var(--on-dark) 26%, var(--dark)); }
+/* On the instrument card the scene sits in a recess of the card's own material: its glow and its top highlight line. */
+.tile.dark .illo-ground { background: radial-gradient(120% 90% at 100% 0%, var(--dark-glow), transparent 62%), radial-gradient(90% 110% at 15% 0%, color-mix(in srgb, var(--on-dark) 16%, var(--dark)), transparent 75%), color-mix(in srgb, var(--on-dark) 8%, var(--dark)); box-shadow: inset 0 1px 0 var(--dark-hi), inset 0 0 0 1px var(--dark-line); }
+.tile.dark .illo { --illo-line: var(--on-dark-3); --illo-shade: var(--illo-shade-on-dark); --surface: color-mix(in srgb, var(--on-dark) 62%, var(--dark)); --sky: color-mix(in srgb, var(--on-dark) 26%, var(--dark)); --sky-ink: var(--dose-cell); --mint-ink: var(--dark); --ink-4: var(--on-dark-3); --lilac-line: color-mix(in srgb, var(--on-dark) 26%, var(--dark)); }
 .skel-page { display: grid; gap: 12px; }
 .skel { position: relative; overflow: hidden; border-radius: var(--r-lg); background: var(--skel); }
 
@@ -844,6 +858,16 @@ footer.foot p { max-width: 90ch; }
 
 /* A form error shown right under the field it names; the field itself takes the same red edge. */
 .field-err { color: var(--danger); font-weight: 500; }
+/* Track a peptide: the library search inside the sheet, each row with its glyph and tier; a choice folds to one row. */
+.find-list { display: grid; gap: 4px; max-height: 320px; overflow-y: auto; overscroll-behavior: contain; padding: 2px; }
+.find-row { appearance: none; border: 0; background: none; font: inherit; color: var(--ink); text-align: left; cursor: pointer; display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px; border-radius: var(--r-sm); }
+.find-row:hover { background: var(--surface-2); }
+.find-row[aria-pressed="true"] { background: var(--surface-2); box-shadow: inset 0 0 0 2px var(--accent); }
+:is(.find-row, .picked) .nm { flex: 1 1 auto; min-width: 0; display: grid; gap: 4px; justify-items: start; font-weight: 600; overflow-wrap: anywhere; }
+.find-row .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.find-row .nm small { font-size: var(--fs-xs); font-weight: 500; color: var(--ink-3); }
+.find-none { padding: 8px; }
+.picked { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--r-sm); background: var(--surface-2); }
 :is(input, select, textarea)[aria-invalid="true"] { box-shadow: inset 0 0 0 2px var(--danger); }
 .bullets { margin: 0; padding-left: 18px; display: grid; gap: var(--sp-2); }
 .greet { font-weight: 500; color: var(--ink-3); }
@@ -978,5 +1002,3 @@ footer.foot p { max-width: 90ch; }
   ::view-transition-old(sheet) { display: none; }
   ::view-transition-new(sheet) { animation: none; }
 }
-.weekdays { gap: 6px; }
-.weekdays .fchip { min-width: 44px; padding: 0 10px; justify-content: center; }

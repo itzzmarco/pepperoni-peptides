@@ -1,0 +1,17 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { DAY, fmtShort } from '../lib/format';
+import { SITES, siteLabel, suggestSite } from '../lib/sites';
+/**
+ * Front-facing figure with tappable injection sites: peach if used in the last 3 days, dashed ring on the suggested one.
+ * Only the sites that fit this kind of injection (`plan`) are shown. `suggested` is this peptide's
+ * next spot in its own rotation; without it, the allowed site rested longest.
+ */
+export function BodyMap({ selected, onSelect, last, plan, route, suggested }) {
+    const shown = SITES.filter(s => plan.sites.includes(s.k));
+    const label = (k) => siteLabel(k, route);
+    const age = (k) => (!last[k] ? 'never' : Date.now() - last[k].getTime() < 3 * DAY ? 'fresh' : 'rested');
+    const lastTxt = (k) => (last[k] ? `last used ${fmtShort(last[k])}` : 'not used yet');
+    const pick = (k) => onSelect(selected === k ? '' : k);
+    const next = suggested && plan.sites.includes(suggested) ? suggested : suggestSite(last, plan.sites);
+    return (_jsxs("div", { className: "stack gap-3", children: [_jsxs("div", { className: "bodymap", children: [_jsxs("svg", { viewBox: "0 0 200 300", "aria-hidden": "true", children: [_jsx("circle", { className: "head", cx: "100", cy: "28", r: "18" }), _jsx("rect", { x: "92", y: "44", width: "16", height: "12", rx: "3" }), _jsx("rect", { x: "36", y: "58", width: "20", height: "104", rx: "10", transform: "rotate(8 46 58)" }), _jsx("rect", { x: "144", y: "58", width: "20", height: "104", rx: "10", transform: "rotate(-8 154 58)" }), _jsx("path", { d: "M62 56 Q100 48 138 56 L134 168 Q100 178 66 168 Z" }), _jsx("rect", { x: "69", y: "166", width: "29", height: "128", rx: "13" }), _jsx("rect", { x: "102", y: "166", width: "29", height: "128", rx: "13" }), _jsx("text", { x: "22", y: "292", style: { fontSize: 'var(--fs-2xs)', fill: 'var(--ink-3)' }, children: "your right" }), _jsx("text", { x: "178", y: "292", textAnchor: "end", style: { fontSize: 'var(--fs-2xs)', fill: 'var(--ink-3)' }, children: "your left" })] }), shown.filter(s => 'x' in s).map(s => (_jsx("button", { type: "button", className: "site", style: { left: `${s.x}%`, top: `${s.y}%` }, "data-age": age(s.k), "data-next": s.k === next && selected !== s.k ? true : undefined, "aria-pressed": selected === s.k, "aria-label": `${label(s.k)}, ${lastTxt(s.k)}${s.k === next ? ', suggested' : ''}`, title: `${label(s.k)}: ${lastTxt(s.k)}`, onClick: () => pick(s.k) }, s.k)))] }), _jsx("div", { className: "row-wrap", style: { justifyContent: 'center' }, children: shown.filter(s => !('x' in s)).map(s => (_jsxs("button", { type: "button", className: "fchip", "aria-pressed": selected === s.k, onClick: () => pick(s.k), children: [label(s.k), " ", _jsx("span", { className: "xsmall", style: { opacity: .75 }, children: lastTxt(s.k) })] }, s.k))) }), _jsxs("div", { className: "site-legend", children: [_jsxs("span", { children: [_jsx("i", { style: { background: 'var(--peach)', border: '2px solid var(--peach)' } }), "Used in last 3 days"] }), _jsxs("span", { children: [_jsx("i", { style: { background: 'var(--surface)', border: '2px dashed var(--sky-ink)' } }), "Suggested"] })] }), _jsx("p", { className: "small", style: { textAlign: 'center', color: 'var(--ink-2)' }, children: plan.note }), !selected && _jsxs("p", { className: "small", style: { textAlign: 'center', color: 'var(--ink-2)' }, children: ["Suggested next: ", _jsx("b", { children: label(next) }), ". Rotating sites helps prevent lumps and scarring."] })] }));
+}

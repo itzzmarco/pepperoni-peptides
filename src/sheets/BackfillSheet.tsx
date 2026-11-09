@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { store, useLedger } from '../lib/store';
 import { dayKey, fmtDay, fmtNum } from '../lib/format';
 import { dayAt, dueDayKeys, monthGrid, parsePasted, planBackfill, readWeight, weightsByDay } from '../lib/backfill';
@@ -6,6 +6,7 @@ import { Sheet } from '../components/Sheet';
 import { useToast } from '../components/Toast';
 import { prefersReducedMotion } from '../components/Motion';
 import { regName } from '../views/PeptidesView';
+import { convertWeight } from '../lib/partner';
 
 const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
 /** A day-to-day change bigger than this is flagged as a possible typo. */
@@ -45,18 +46,25 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
   const invalid = Object.entries(weights).filter(([, v]) => Number.isNaN(readWeight(v))).map(([k]) => k);
   const pending = nWeights + nDoses;
 
-  const shown = (key: string) => (key in weights ? weights[key] : saved.has(key) ? String(saved.get(key)!.weight) : '');
+  // A saved weight in the unit picked here, so a 220 lb entry never reads as 220 kg. Converted values round to 0.1.
+  const savedW = (key: string) => {
+    const c = saved.get(key);
+    if (!c) return undefined;
+    const from = c.weightUnit ?? unit;
+    return from === unit ? c.weight! : Math.round(convertWeight(c.weight!, from, unit) * 10) / 10;
+  };
+  const shown = (key: string) => (key in weights ? weights[key] : saved.has(key) ? String(savedW(key)) : '');
   // Every day's weight as it would be after saving, for spotting typos like 231 for 213.
   const after = useMemo(() => {
     const m = new Map<string, number>();
-    for (const [k, c] of saved) m.set(k, c.weight!);
+    for (const k of saved.keys()) m.set(k, savedW(k)!);
     for (const [k, v] of Object.entries(weights)) {
       const w = readWeight(v);
       if (w == null || Number.isNaN(w)) m.delete(k);
       else m.set(k, w);
     }
     return m;
-  }, [saved, weights]);
+  }, [saved, weights, unit]);
   const jumpFrom = (key: string): [string, number] | null => {
     const v = after.get(key);
     if (v == null) return null;
@@ -71,8 +79,8 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
 
   const setWeight = (key: string, v: string) => {
     const next = { ...weights };
-    const had = saved.get(key);
-    if (had ? readWeight(v) === had.weight : !v.trim()) delete next[key];
+    const had = savedW(key);
+    if (had != null ? readWeight(v) === had : !v.trim()) delete next[key];
     else next[key] = v;
     setWeights(next);
   };
@@ -108,7 +116,7 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
     if (!values.length) { toast('No dates with weights found. Try one day per line, like 9/7 213.'); return; }
     const next = { ...weights };
     for (const [k, v] of values) {
-      if (saved.get(k)?.weight === readWeight(v)) delete next[k];
+      if (saved.has(k) && savedW(k) === readWeight(v)) delete next[k];
       else next[k] = v;
     }
     setWeights(next);
@@ -123,13 +131,20 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
   };
 
   // Sheet re-focuses itself whenever onClose changes, so this must keep one identity while typing.
+  // With unsaved entries, the first close (Escape, scrim, close button, Cancel, a drag) arms a confirmation in the footer
+  // instead of leaving; a second close, or Discard, leaves. Any new edit disarms it.
   const pendingRef = useRef(0);
   pendingRef.current = pending;
+  const [leaving, setLeaving] = useState(false);
+  const leavingRef = useRef(false);
+  leavingRef.current = leaving;
+  const keep = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => {
-    const n = pendingRef.current;
-    if (n && !window.confirm(`Leave without saving? ${n} ${n === 1 ? 'entry' : 'entries'} you filled in will be lost.`)) return;
+    if (pendingRef.current && !leavingRef.current) { setLeaving(true); return; }
     onClose();
   }, [onClose]);
+  useEffect(() => { setLeaving(false); }, [weights, ticks]);
+  useEffect(() => { if (leaving) keep.current?.focus(); }, [leaving]);
 
   const save = () => {
     if (invalid.length) {
@@ -256,10 +271,21 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
       </details>
 
       <div className="sheet-foot">
-        <button type="button" className="btn ghost" onClick={close}>Cancel</button>
-        <button type="button" className="btn" onClick={save} disabled={!pending && !invalid.length} style={{ flex: '1 1 160px' }}>
-          {invalid.length ? `Fix ${plural(invalid.length, 'day')} first` : pending ? `Save ${[nWeights && plural(nWeights, 'weight'), nDoses && plural(nDoses, 'dose')].filter(Boolean).join(' and ')}` : 'Nothing to save yet'}
-        </button>
+        <p className="sr-only" role="status">{leaving ? `Leave without saving? ${pending} ${pending === 1 ? 'entry' : 'entries'} you filled in will be lost.` : ''}</p>
+        {leaving ? (
+          <>
+            <p className="small" aria-hidden="true" style={{ flex: '1 1 100%' }}><b>Leave without saving?</b> {pending} {pending === 1 ? 'entry' : 'entries'} you filled in will be lost.</p>
+            <button ref={keep} type="button" className="btn ghost" onClick={() => setLeaving(false)}>Keep editing</button>
+            <button type="button" className="btn danger" onClick={onClose} style={{ flex: '1 1 160px' }}>Discard and leave</button>
+          </>
+        ) : (
+          <>
+            <button type="button" className="btn ghost" onClick={close}>Cancel</button>
+            <button type="button" className="btn" onClick={save} disabled={!pending && !invalid.length} style={{ flex: '1 1 160px' }}>
+              {invalid.length ? `Fix ${plural(invalid.length, 'day')} first` : pending ? `Save ${[nWeights && plural(nWeights, 'weight'), nDoses && plural(nDoses, 'dose')].filter(Boolean).join(' and ')}` : 'Nothing to save yet'}
+            </button>
+          </>
+        )}
       </div>
     </Sheet>
   );

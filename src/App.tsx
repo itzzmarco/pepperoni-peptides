@@ -60,7 +60,6 @@ export function App() {
   const [sheet, setSheet] = useState<SheetState>(null);
   // The bar shows the page's name once its h1 has scrolled under it (see the observer below).
   const [titled, setTitled] = useState(false);
-  const [noteOpen, setNoteOpen] = useState(false);
   const { regimens, doses } = useLedger();
   const { recovering, linkError } = useAccount();
   // A password-reset link, or an email link that failed, lands here: open the account sheet to finish.
@@ -184,9 +183,10 @@ export function App() {
     signIn: () => setSheet({ kind: 'account' }),
   };
   // The middle tab-bar button logs whatever is overdue or due first, else the next dose coming up.
+  // With nothing due the centre button adds a peptide instead, and its name says so.
+  const nextDue = upcoming(regimens, doses)[0]?.r;
   const logNext = () => {
-    const r = upcoming(regimens, doses)[0]?.r;
-    if (r) actions.logDose(r);
+    if (nextDue) actions.logDose(nextDue);
     else actions.addRegimen();
   };
 
@@ -230,14 +230,10 @@ export function App() {
       {/* Outside the sticky bar: it greets every route at the top, then scrolls away so only the brand row stays pinned. */}
       <div className="gutter" inert={bg}>
         <div className="wrap">
-          {/* One line, so the page's headline is the first thing read; a tap opens the whole warning. Its text stays in the
-              button either way, so screen readers hear all of it. */}
-          <div className="notice" role="note">
-            <button type="button" className="notice-toggle" aria-expanded={noteOpen} onClick={() => setNoteOpen(o => !o)}>
-              <b>Education only.</b>{' '}
-              <span>Not medical advice. Most peptides here aren't FDA-approved for what's promoted online. Emergency: 911.</span>
-            </button>
-          </div>
+          {/* The whole warning, wrapped, so the emergency number is never cut off on a phone. */}
+          <p className="notice" role="note">
+            <b>Education only.</b> Not medical advice. Most peptides here aren't FDA-approved for what's promoted online. Emergency: 911.
+          </p>
         </div>
       </div>
       <main ref={mainRef} className="gutter" inert={bg}>
@@ -250,7 +246,7 @@ export function App() {
         </div>
       </footer>
       <div className="app-end" />
-      <TabBar current={route.id ? 'learn' : tab} exact={!route.id && tab === route.tab} onLog={logNext} inert={bg} />
+      <TabBar current={route.id ? 'learn' : tab} exact={!route.id && tab === route.tab} onLog={logNext} logLabel={nextDue ? 'Log a dose' : 'Add a peptide'} inert={bg} />
       <SheetClosing.Provider value={closing}>
         {shown?.kind === 'regimen' && (shown.back
           ? <RegimenSheet initial={shown.r} isNew={false} onClose={() => setSheet({ kind: 'dose', r: shown.r })} onSaved={x => setSheet(x ? { kind: 'dose', r: x } : null)} />

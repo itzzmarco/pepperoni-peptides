@@ -22,7 +22,7 @@ const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
 const rise = (i: number) => ({ ['--i' as string]: i });
 
 /** Width (px) of one time label's box under the track, and of the pinned "12 AM" at the end. */
-const LABEL = 48, END_LABEL = 36;
+const LABEL = 54, END_LABEL = 40;
 
 /** Today's doses on a 6 AM to midnight track: filled dots are logged, rings are still due (at the usual time).
     Times sit in boxes kept inside the card, with a label-wide gap between them (placeLabels). */

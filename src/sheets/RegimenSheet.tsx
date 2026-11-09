@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import type { FamilyKey, Peptide, Regimen } from '../lib/types';
+import { useEffect, useRef, useState } from 'react';
+import type { Peptide, Regimen } from '../lib/types';
 import { samePeptide, store, useLedger } from '../lib/store';
 import { DAY_SHORT, FREQS, WEEK, freqText, weekdaysOf } from '../lib/schedule';
 import { configured, useAccount } from '../lib/account';
@@ -13,7 +13,10 @@ import { measuresFor } from '../data/measures';
 import { Sheet } from '../components/Sheet';
 import { UnitOptions, UsualUnits } from '../components/UnitPicker';
 import { useToast } from '../components/Toast';
+import { FamilyGlyph } from '../components/FamilyGlyph';
+import { TierChip } from '../components/Chips';
 import { regName } from '../views/PeptidesView';
+import { matches } from '../views/LibraryView';
 
 const OTHER = '__other';
 
@@ -27,6 +30,51 @@ function Caution({ p }: { p?: Peptide }) {
       <span>{TIERS[p.tier].long}. Logging it here doesn't make it safer. Share this log with a clinician who knows you're using it.</span>
       {p.avoid?.length ? <span><b>Avoid if:</b> {p.avoid.slice(0, 3).join('; ')}</span> : null}
       <a href={`#${p.id}`}>Read the full {p.name} entry</a>
+    </div>
+  );
+}
+
+/**
+ * The compound picker: a search box over the library, each row with its family glyph and evidence tier like the Learn
+ * cards. Once something is chosen it folds to that one row and a Change button. `field` carries the error wiring.
+ */
+function CompoundPicker({ pick, onPick, field }: { pick: string; onPick: (v: string) => void; field: object }) {
+  const [finding, setFinding] = useState(!pick);
+  const [q, setQ] = useState('');
+  const change = useRef<HTMLButtonElement>(null);
+  const moved = useRef(false);
+  useEffect(() => { if (!finding && moved.current) change.current?.focus(); }, [finding]);
+  const p = PEP[pick];
+  const found = PEPTIDES.filter(x => matches(x, { q, fam: 'all', tier: 'all', legal: 'all' }));
+  const take = (v: string) => { onPick(v); setQ(''); moved.current = true; setFinding(false); };
+  const row = (v: string, x?: Peptide) => (
+    <button key={v} type="button" className="find-row" aria-pressed={pick === v} onClick={() => take(v)}>
+      {x && <FamilyGlyph family={x.family} size={36} />}
+      <span className="nm">{x ? x.name : 'Something else (type the name)'}{x && <span className="meta"><TierChip t={x.tier} /><small>{FAMILIES[x.family]?.name}</small></span>}</span>
+    </button>
+  );
+  return (
+    <div className="field">
+      <span id="r-compound-l">Peptide or medication</span>
+      {!finding ? (
+        <div className="picked">
+          {p && <FamilyGlyph family={p.family} size={36} />}
+          <span className="nm"><b>{p ? p.name : 'Something else'}</b>{p && <TierChip t={p.tier} />}</span>
+          <button ref={change} type="button" className="btn quiet sm" onClick={() => setFinding(true)} aria-label="Change peptide">Change</button>
+        </div>
+      ) : (
+        <>
+          <div className="search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+            <input type="search" id="r-compound" {...field} aria-label="Search peptides" value={q} onChange={e => setQ(e.target.value)} placeholder="Search name, nickname or goal" autoComplete="off" />
+          </div>
+          <div className="find-list" role="group" aria-labelledby="r-compound-l">
+            {found.map(x => row(x.id, x))}
+            {!found.length && <p className="small muted find-none">No matches</p>}
+            {row(OTHER)}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -127,17 +175,7 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved, onLog, onSignIn
         {/* The form comes in labelled tiles, like the dose sheet: what it is, the prescribed dose, the schedule, where it comes from. */}
         <section className="tile" aria-labelledby="r-what-h">
           <h3 id="r-what-h" className="eyebrow">Peptide</h3>
-          <label className="field"><span>Peptide or medication</span>
-            <select id="r-compound" {...invalid('r-compound')} value={pick} onChange={e => choose(e.target.value)}>
-              <option value="">Choose…</option>
-              {(Object.keys(FAMILIES) as FamilyKey[]).map(k => (
-                <optgroup key={k} label={FAMILIES[k].name}>
-                  {PEPTIDES.filter(x => x.family === k).map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
-                </optgroup>
-              ))}
-              <option value={OTHER}>Something else (type the name)</option>
-            </select>
-          </label>
+          <CompoundPicker pick={pick} onPick={choose} field={invalid('r-compound')} />
           {errFor('r-compound')}
           {pick === OTHER && <label className="field"><span>Name</span><input type="text" id="r-name" {...invalid('r-name')} value={r.name} onChange={set('name')} maxLength={80} /></label>}
           {errFor('r-name')}

@@ -26,8 +26,8 @@ export function BodyMap({ selected, onSelect, last, plan, route, suggested }: {
           <path d="M62 56 Q100 48 138 56 L134 168 Q100 178 66 168 Z" />
           <rect x="69" y="166" width="29" height="128" rx="13" />
           <rect x="102" y="166" width="29" height="128" rx="13" />
-          <text x="22" y="292" style={{ fontSize: 10, fill: 'var(--ink-3)' }}>your right</text>
-          <text x="178" y="292" textAnchor="end" style={{ fontSize: 10, fill: 'var(--ink-3)' }}>your left</text>
+          <text x="22" y="292" style={{ fontSize: 'var(--fs-2xs)', fill: 'var(--ink-3)' }}>your right</text>
+          <text x="178" y="292" textAnchor="end" style={{ fontSize: 'var(--fs-2xs)', fill: 'var(--ink-3)' }}>your left</text>
         </svg>
         {shown.filter(s => 'x' in s).map(s => (
           <button

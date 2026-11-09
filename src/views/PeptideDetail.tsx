@@ -116,7 +116,7 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
         <section className="stack" aria-label="What's claimed vs what's shown">
           <h2 className="section-title">What's claimed vs what's shown</h2>
           <div className="facts-hype">
-            {p.claim && <div className="tile" style={{ background: 'var(--surface-2)', boxShadow: 'none' }}><span className="eyebrow">Online claim</span><p>{p.claim}</p></div>}
+            {p.claim && <div className="tile sunk"><span className="eyebrow">Online claim</span><p>{p.claim}</p></div>}
             {p.shows && <div className="tile mint"><span className="label">What the evidence shows</span><p>{p.shows}</p></div>}
           </div>
         </section>

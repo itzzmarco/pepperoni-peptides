@@ -78,9 +78,9 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
           <div className="skel-page empty" aria-hidden="true">
             <div className="skel" style={{ height: 150, justifySelf: 'stretch', borderRadius: 'var(--r-md)' }} />
             <span className="eyebrow">Partner</span>
-            <div className="skel" style={{ height: 30, width: '70%', borderRadius: 12 }} />
-            <div className="skel" style={{ height: 18, width: '90%', borderRadius: 8 }} />
-            <div className="skel" style={{ height: 48, width: 180, borderRadius: 24 }} />
+            <div className="skel" style={{ height: 30, width: '70%', borderRadius: 'var(--r-sm)' }} />
+            <div className="skel" style={{ height: 18, width: '90%', borderRadius: 'var(--r-sm)' }} />
+            <div className="skel" style={{ height: 48, width: 180, borderRadius: 999 }} />
           </div>
         ) : (
           <header className="empty rise">

@@ -54,6 +54,8 @@ const TITLES: Record<Route, string> = { today: 'Today', trends: 'Trends', learn:
 export function App() {
   const [route, setRoute] = useState(parseHash);
   const [sheet, setSheet] = useState<SheetState>(null);
+  // The bar shows the page's name once its h1 has scrolled under it (see the observer below).
+  const [titled, setTitled] = useState(false);
   const { regimens, doses } = useLedger();
   const { recovering, linkError } = useAccount();
   // A password-reset link, or an email link that failed, lands here: open the account sheet to finish.
@@ -68,9 +70,16 @@ export function App() {
     // A second tap while a fade is still running swaps at once instead of starting another one (see transitionGate).
     // The old page is snapshotted where the user was looking (the card they just tapped); the scroll to the top
     // happens inside the update, so only the new screen opens at the top.
+    // The bar goes back to the wordmark in the same update as the scroll, since every route opens at its top.
+    // Leaving a peptide profile is a step back up to Learn, so its fade travels the other way.
+    let at = parseHash();
     const swap = () => {
-      document.documentElement.dataset.routed = '';
-      setRoute(parseHash()); setSheet(null); window.scrollTo(0, 0);
+      const next = parseHash();
+      const root = document.documentElement;
+      root.dataset.routed = '';
+      root.dataset.dir = at.id && !next.id ? 'back' : 'forward';
+      at = next;
+      setRoute(next); setSheet(null); setTitled(false); window.scrollTo(0, 0);
     };
     const go = transitionGate(swap);
     const onHash = () => {
@@ -91,7 +100,6 @@ export function App() {
   // It takes the page's name exactly when the page's own headline (its h1) has slid fully under the bar, however tall
   // the notice, back row or headline are on this screen. A mutation observer follows the h1 when a route or state swaps it,
   // and the observer is rebuilt when the window resizes, since the bar's height sets where "under the bar" starts.
-  const [titled, setTitled] = useState(false);
   const barRef = useRef<HTMLElement>(null);
   const mainRef = useRef<HTMLElement>(null);
   useEffect(() => {

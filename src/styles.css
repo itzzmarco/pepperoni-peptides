@@ -39,6 +39,10 @@
   --glass: rgba(246,246,248,.74); --glass-edge: rgba(30,34,48,.08); --tab-pill: rgba(30,34,48,.09);
   /* Instrument card: highlights layered over --dark, plus a 1px top light. */
   --dark-glow: rgba(141,180,255,.26); --dark-glow-2: rgba(127,224,181,.12); --dark-hi: rgba(255,255,255,.14);
+  /* Raised and outlined surfaces on the instrument card: insets, pattern cells, picker chips, figure boxes. */
+  --dark-fill: rgba(255,255,255,.08); --dark-fill-2: rgba(255,255,255,.1); --dark-edge: rgba(255,255,255,.2);
+  /* Resting tiles: a light falling from the top left. Hover on a dark page: a lighter surface and a top edge, since a shadow barely shows there. */
+  --tile-sheen: rgba(255,255,255,.6); --lift-hi: rgba(255,255,255,0); --lift-edge: rgba(255,255,255,0);
   /* Belly-clock hours used recently, newest first, and the text on them. */
   --recent-1: #F9C9AE; --recent-2: #FBDCCB; --recent-3: #FDEBE1; --recent-ink: #7C2D12;
   /* Skeleton blocks and their shimmer; illustration ground shadow and outline. */
@@ -86,6 +90,8 @@
     --shadow-3: 0 3px 6px rgba(0,0,0,.4), 0 18px 40px rgba(0,0,0,.55);
     --glass: rgba(16,18,24,.74); --glass-edge: rgba(255,255,255,.08); --tab-pill: rgba(255,255,255,.15);
     --dark-glow: rgba(141,180,255,.18); --dark-glow-2: rgba(127,224,181,.10); --dark-hi: rgba(255,255,255,.16);
+    --dark-fill: rgba(255,255,255,.09); --dark-fill-2: rgba(255,255,255,.12); --dark-edge: rgba(255,255,255,.22);
+    --tile-sheen: rgba(255,255,255,.05); --lift-hi: rgba(255,255,255,.05); --lift-edge: rgba(255,255,255,.12);
     --recent-1: #7A3A1E; --recent-2: #5E2D18; --recent-3: #472316; --recent-ink: #FDE8DC;
     --skel: #222632; --skel-shine: rgba(255,255,255,.16);
     --illo-shade: rgba(0,0,0,.3); --illo-line: #C3C8D3;
@@ -117,6 +123,8 @@
   --shadow-3: 0 3px 6px rgba(0,0,0,.4), 0 18px 40px rgba(0,0,0,.55);
   --glass: rgba(16,18,24,.74); --glass-edge: rgba(255,255,255,.08); --tab-pill: rgba(255,255,255,.15);
   --dark-glow: rgba(141,180,255,.18); --dark-glow-2: rgba(127,224,181,.10); --dark-hi: rgba(255,255,255,.16);
+  --dark-fill: rgba(255,255,255,.09); --dark-fill-2: rgba(255,255,255,.12); --dark-edge: rgba(255,255,255,.22);
+  --tile-sheen: rgba(255,255,255,.05); --lift-hi: rgba(255,255,255,.05); --lift-edge: rgba(255,255,255,.12);
   --recent-1: #7A3A1E; --recent-2: #5E2D18; --recent-3: #472316; --recent-ink: #FDE8DC;
   --skel: #222632; --skel-shine: rgba(255,255,255,.16);
   --illo-shade: rgba(0,0,0,.3); --illo-line: #C3C8D3;
@@ -216,14 +224,16 @@ main { padding-block: 8px 40px; }
 .section-title { padding: 0 4px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 
 /* Tiles */
-.tile { border-radius: var(--r-lg); padding: 18px; display: grid; gap: 12px; align-content: start; min-width: 0; background: var(--surface); box-shadow: var(--ring); color: var(--ink); text-decoration: none; }
+.tile { border-radius: var(--r-lg); padding: 18px; display: grid; gap: 12px; align-content: start; min-width: 0; background: var(--surface); box-shadow: var(--ring), var(--shadow-1); color: var(--ink); text-decoration: none; }
 a.tile { color: var(--ink); }
-.tile.mint { background: var(--mint); box-shadow: none; } .tile.mint .label { color: var(--mint-ink); }
-.tile.lilac { background: var(--lilac); box-shadow: none; } .tile.lilac .label { color: var(--lilac-ink); }
-.tile.peach { background: var(--peach); box-shadow: none; } .tile.peach .label { color: var(--peach-ink); }
-.tile.sky { background: var(--sky); box-shadow: none; } .tile.sky .label { color: var(--sky-ink); }
-.tile.lemon { background: var(--lemon); box-shadow: none; } .tile.lemon .label { color: var(--lemon-ink); }
-.tile.teal { background: var(--teal); box-shadow: none; } .tile.teal .label { color: var(--teal-ink); }
+/* Tinted tiles rest on the same elevation as white ones, with a soft light from the top left over the tint. */
+.tile:is(.mint, .lilac, .peach, .sky, .lemon, .teal) { background: radial-gradient(130% 100% at 0% 0%, var(--tile-sheen), transparent 58%), var(--tint); box-shadow: var(--shadow-1); }
+.tile.mint { --tint: var(--mint); } .tile.mint .label { color: var(--mint-ink); }
+.tile.lilac { --tint: var(--lilac); } .tile.lilac .label { color: var(--lilac-ink); }
+.tile.peach { --tint: var(--peach); } .tile.peach .label { color: var(--peach-ink); }
+.tile.sky { --tint: var(--sky); } .tile.sky .label { color: var(--sky-ink); }
+.tile.lemon { --tint: var(--lemon); } .tile.lemon .label { color: var(--lemon-ink); }
+.tile.teal { --tint: var(--teal); } .tile.teal .label { color: var(--teal-ink); }
 .tile.dark {
   background:
     radial-gradient(120% 90% at 100% 0%, var(--dark-glow), transparent 62%),
@@ -253,7 +263,7 @@ a.tile { color: var(--ink); }
 @media (max-width: 359px) { .bento .big { font-size: var(--fs-stat); } .bento .stat { font-size: var(--fs-2xl); } }
 .miniclock .pop { transform-box: fill-box; transform-origin: center; }
 .inset { background: color-mix(in srgb, var(--surface) 65%, transparent); border-radius: 16px; padding: 10px 12px; }
-.tile.dark .inset { background: rgba(255,255,255,.08); }
+.tile.dark .inset { background: var(--dark-fill); }
 .white-inset { background: var(--surface); color: var(--ink); border-radius: 20px; padding: 16px; }
 .arrow { width: 48px; height: 48px; border-radius: 24px; background: var(--btn); color: var(--btn-ink); display: grid; place-items: center; flex: none; }
 
@@ -279,6 +289,12 @@ a.tile { color: var(--ink); }
 .tile.dark .btn.glass { background: var(--dark-line); color: var(--on-dark); }
 .icon-btn { appearance: none; width: 44px; height: 44px; border-radius: 22px; border: 0; background: var(--surface); box-shadow: var(--ring); color: var(--ink); display: inline-grid; place-items: center; cursor: pointer; flex: none; text-decoration: none; }
 .icon-btn:hover { background: var(--surface-2); }
+/* Theme: a sun, a moon or a half disc for Auto, with the word beside it wherever the bar has room. */
+.icon-btn.theme { width: auto; min-width: 44px; padding: 0 12px 0 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: var(--fs-sm); font-weight: 500; }
+/* Below 600px the bar's row is already full with the brand and the account pill, so the picture stands alone there. */
+.theme-word { display: none; }
+@media (max-width: 599px) { .icon-btn.theme { padding: 0; } }
+@media (min-width: 600px) { .theme-word { display: inline; } }
 
 /* Segmented control: dark pill marks the choice */
 .seg { --n: 2; --k: 0; position: relative; isolation: isolate; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); background: var(--surface-2); border-radius: 24px; padding: 4px; gap: 2px; }
@@ -424,6 +440,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 
 /* Trends */
 .cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px 4px; justify-items: center; }
+.cal-month { font-size: var(--fs-sm); font-weight: 600; color: var(--mint-2); padding-left: 2px; }
 .cal .wd { font-size: var(--fs-xs); font-weight: 600; color: var(--mint-2); }
 .cal .d { width: 36px; height: 36px; border-radius: 18px; display: grid; place-items: center; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--mint-2); }
 .cal .d.on { background: var(--mint-ink); color: var(--mint); }
@@ -436,16 +453,16 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .pattern { display: grid; gap: 6px; }
 .pattern .wk { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
 .pattern .wk.head span { font-size: var(--fs-xs); color: var(--on-dark-3); text-align: center; }
-.pattern .c { height: 24px; border-radius: 7px; background: rgba(255,255,255,.08); }
+.pattern .c { height: 24px; border-radius: 7px; background: var(--dark-fill); }
 .pattern .c.dose { background: var(--dose-cell); }
 .pattern .c.effect { background: var(--effect-cell); }
 .pattern .c.dose.effect { background: linear-gradient(135deg, var(--dose-cell) 50%, var(--effect-cell) 50%); }
-.pattern .c.future { background: transparent; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.2); }
+.pattern .c.future { background: transparent; box-shadow: inset 0 0 0 1.5px var(--dark-edge); }
 .pattern .c.today { outline: 2px solid var(--on-dark); outline-offset: 2px; }
 .tile.dark .legend { color: var(--on-dark-2); }
 .pick { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -20px; padding: 0 20px 2px; }
 .pick::-webkit-scrollbar { display: none; }
-.tile.dark .pick .fchip { background: rgba(255,255,255,.1); color: var(--on-dark-2); box-shadow: none; }
+.tile.dark .pick .fchip { background: var(--dark-fill-2); color: var(--on-dark-2); box-shadow: none; }
 .tile.dark .pick .fchip[aria-pressed="true"] { background: var(--on-dark); color: var(--dark); }
 .bars { display: grid; gap: 12px; }
 .bars > div { display: grid; gap: 6px; }
@@ -512,7 +529,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .strip i { aspect-ratio: 1; max-width: 100%; border-radius: 3px; background: var(--surface-2); display: block; }
 .strip i.on { background: var(--mint-ink); }
 .strip i.today { box-shadow: inset 0 0 0 1.5px var(--ink-3); }
-.tile.dark .strip i { background: rgba(255,255,255,.1); }
+.tile.dark .strip i { background: var(--dark-fill-2); }
 .tile.dark .strip i.on { background: var(--go); }
 .strip-legend { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-3); }
 .tile.dark .strip-legend { color: var(--on-dark-3); }
@@ -534,9 +551,15 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 /* While more chips sit off screen the right edge fades out; scrolled to the end (or fitting), the row is at full strength. */
 .filter-row[data-more] { -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent); mask-image: linear-gradient(to right, black calc(100% - 28px), transparent); }
 .filter-row .label { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .08em; margin-right: 4px; flex: none; }
+/* The row's name stays pinned at its start while the chips scroll under it, and a round arrow at the end shows (and brings in)
+   chips that are still off screen. */
+.filter-wrap { position: relative; min-width: 0; }
+.filter-row .label { position: sticky; left: 0; z-index: 1; align-self: stretch; display: flex; align-items: center; padding-right: 6px; background: var(--bg); box-shadow: -16px 0 0 var(--bg); }
+.filter-more { appearance: none; position: absolute; right: -8px; top: 0; width: 44px; height: 44px; border: 0; border-radius: 22px; background: var(--surface); color: var(--ink); box-shadow: var(--ring), var(--shadow-1); display: grid; place-items: center; cursor: pointer; }
+.filter-more:hover { background: var(--surface-2); }
 /* One column on phones, so chips like "Compoundable with Rx" stay on one line; more columns as the page widens. */
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 12px; }
-.card { position: relative; display: grid; gap: 8px; align-content: start; grid-template-rows: auto auto 1fr auto; text-align: left; background: var(--surface); box-shadow: var(--ring); border-radius: var(--r-md); padding: 16px; color: var(--ink); text-decoration: none; min-width: 0; }
+.card { position: relative; display: grid; gap: 8px; align-content: start; grid-template-rows: auto auto 1fr auto; text-align: left; background: var(--surface); box-shadow: var(--ring), var(--shadow-1); border-radius: var(--r-md); padding: 16px; color: var(--ink); text-decoration: none; min-width: 0; }
 .glyph { display: inline-grid; place-items: center; border-radius: 14px; flex: none; }
 .glyph.solid { background: color-mix(in srgb, var(--g-ink) var(--glyph-solid), var(--dark)); color: color-mix(in srgb, var(--g-tint) var(--glyph-solid-fg), var(--on-dark)); }
 .card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
@@ -587,7 +610,7 @@ details[open] > summary .chev { transform: rotate(90deg); }
 .result-big .n { font-weight: 600; font-size: var(--fs-hero); line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
 .result-big .u { font-size: var(--fs-lg); color: var(--on-dark-2); }
 .kv { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; }
-.kv > div { padding: 10px 12px; display: grid; gap: 2px; border-radius: 16px; background: rgba(255,255,255,.08); }
+.kv > div { padding: 10px 12px; display: grid; gap: 2px; border-radius: 16px; background: var(--dark-fill); }
 .kv dt { font-size: var(--fs-xs); color: var(--on-dark-3); }
 .kv dd { margin: 0; font-family: var(--f-mono); font-size: var(--fs-md); font-variant-numeric: tabular-nums; }
 .syringe-wrap { overflow-x: auto; }
@@ -730,8 +753,8 @@ input.code-input { font-family: var(--f-mono); font-size: 1.375rem; letter-spaci
 
 /* Tab bar */
 .tabbar { position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: min(440px, calc(100% - 32px)); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; padding: 6px; border-radius: var(--r-xl); background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); box-shadow: var(--shadow-3), inset 0 0 0 1px var(--glass-edge); view-transition-name: tabbar; isolation: isolate; overflow: hidden; }
-/* One pill behind the current tab: one fifth of the bar. It slides between the two tabs on the same side of the log button;
-   crossing to the other side TabBar remounts it (keyed by side), so it fades in at its new tab and never travels under the button. */
+/* One pill behind the current tab: one fifth of the bar. It is one element that always slides, passing behind the opaque
+   log button when it crosses the middle, and only ever comes to rest under a tab. */
 /* Opaque fallback for both glass bars; it comes after both rules so it wins on equal specificity. */
 @supports not (backdrop-filter: blur(1px)) { .topbar, .tabbar { background: var(--bg); } }
 .tab-ind { position: absolute; z-index: -1; top: 6px; bottom: 6px; left: 6px; width: calc((100% - 12px) / 5); border-radius: 22px; background: var(--tab-pill); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); pointer-events: none; }
@@ -741,6 +764,15 @@ input.code-input { font-family: var(--f-mono); font-size: 1.375rem; letter-spaci
 .tabbar .log { justify-self: center; width: 56px; height: 56px; border-radius: 28px; border: 0; background: var(--btn); color: var(--btn-ink); display: grid; place-items: center; cursor: pointer; }
 .tabbar .log:hover { background: var(--btn-hover); }
 .app-end { height: calc(96px + env(safe-area-inset-bottom, 0px)); }
+/* Mouse and keyboard widths: the same five destinations dock as a rail at the left edge, and the page makes room for it.
+   The pill slides down the rail instead of along it. */
+@media (min-width: 900px) {
+  body { padding-left: 100px; }
+  .tabbar { left: max(16px, env(safe-area-inset-left, 0px)); top: 50%; bottom: auto; transform: translateY(-50%); width: 76px; grid-template-columns: minmax(0, 1fr); grid-auto-rows: 64px; }
+  .tab-ind { left: 6px; right: 6px; bottom: auto; width: auto; height: calc((100% - 12px) / 5); transform: translateY(calc(var(--k) * 100%)); }
+  .app-end { height: 32px; }
+  .toast { left: calc(50% + 50px); bottom: 32px; }
+}
 
 .toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 12px 18px; border-radius: 999px; font-size: var(--fs-sm); z-index: 60; box-shadow: var(--shadow-3); max-width: calc(100% - 32px); }
 /* Hover elevation where a pointer can hover: a --shadow-2 layer that fades in, so it moves with the lift.
@@ -748,7 +780,7 @@ input.code-input { font-family: var(--f-mono); font-size: 1.375rem; letter-spaci
 a.tile, button.tile { position: relative; }
 /* A tile that is a button looks and presses like a link tile, with no per-tile resets. */
 button.tile { appearance: none; border: 0; text-align: left; font: inherit; cursor: pointer; }
-.card::after, a.tile::after, button.tile::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: var(--shadow-2); opacity: 0; pointer-events: none; }
+.card::after, a.tile::after, button.tile::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--lift-hi); box-shadow: inset 0 1px 0 var(--lift-edge), var(--shadow-2); opacity: 0; pointer-events: none; }
 @media (hover: hover) { .card:hover::after, a.tile:hover::after, button.tile:hover::after { opacity: 1; } }
 
 /* Illustrations and skeletons */
@@ -793,7 +825,7 @@ footer.foot p { max-width: 90ch; }
   details > summary .chev, .btn > .chev { transition: transform var(--dur-med) var(--ease-out); }
 
   /* Tactile feedback: quick press, gentle lift */
-  .btn, .fchip, .icon-btn, .tabbar .log, .tabbar a, .seg button, .hour, .scale button { transition: transform var(--dur-fast) var(--ease-out), filter var(--dur-fast) var(--ease-out); }
+  .btn, .fchip, .icon-btn, .tabbar .log, .tabbar a, .hour, .scale button { transition: transform var(--dur-fast) var(--ease-out), filter var(--dur-fast) var(--ease-out); }
   .btn:active, .fchip:active, .icon-btn:active, .tabbar .log:active { transform: scale(.97); }
   .tabbar a:active, .seg button:active, .scale button:active { transform: scale(.94); }
   .card, a.tile, button.tile { transition: transform var(--dur-med) var(--ease-out); }
@@ -816,13 +848,12 @@ footer.foot p { max-width: 90ch; }
   .tab-ind { transition: transform var(--dur-med) var(--ease-spring), opacity var(--dur-fast) var(--ease-out); }
   /* The seg pill settles without overshoot, so it never pokes past the rounded track. */
   .seg::before { transition: transform var(--dur-med) var(--ease-out), opacity var(--dur-fast) var(--ease-out); }
-  /* A label's colour flips with aria-pressed at once, but the pill takes --dur-med to get there or away, so the label that
-     gains or loses the pill stays hidden while the pill is still on its way, then fades in on its settled ground.
-     The two names differ so each change of aria-pressed restarts the fade on both labels. */
-  .seg button { animation: seg-off var(--dur-med) var(--ease-out) backwards; }
-  .seg button[aria-pressed="true"] { animation-name: seg-on; }
-  @keyframes seg-on { 0%, 40% { opacity: 0; } }
-  @keyframes seg-off { 0%, 40% { opacity: 0; } }
+  /* Labels never hide. Each keeps its ink until the pill has crossed it: the label losing the pill switches as soon as
+     the pill starts to leave, the one gaining it waits until the pill is most of the way there (the ease-out pill covers
+     about 85% of its path in a third of --dur-med). The 0s duration makes the colour a single step, never a blend.
+     Nothing runs on mount, so a control opens already filled in. */
+  .seg button { transition: transform var(--dur-fast) var(--ease-out), color 0s var(--ease-out); }
+  .seg button[aria-pressed="true"] { transition: transform var(--dur-fast) var(--ease-out), color 0s var(--ease-out) calc(var(--dur-med) / 3); }
   .tab-ind { animation: fade-in var(--dur-med) var(--ease-out) backwards; }
 
   /* Sheets: scrim fades; phones slide up from the bottom, wider screens fade and scale from .96. Exit reverses. */
@@ -830,6 +861,8 @@ footer.foot p { max-width: 90ch; }
   .scrim[data-closing] { animation: fade-out var(--dur-med) var(--ease-in) forwards; }
   .sheet { animation: sheet-up var(--dur-med) var(--ease-out) backwards; transition: transform var(--dur-med) var(--ease-spring); }
   .sheet[data-dragging] { transition: none; }
+  /* Sheet.tsx cancels the entrance when the grabber is taken, so the finger owns transform from the first frame; the exit
+     (a new animation name) then slides on from wherever the finger left the sheet. */
   .scrim[data-closing] .sheet { animation: sheet-down var(--dur-med) var(--ease-in) forwards; }
   @keyframes sheet-up { from { transform: translateY(100%); } }
   @keyframes sheet-down { to { transform: translateY(100%); } }
@@ -857,15 +890,23 @@ footer.foot p { max-width: 90ch; }
   ::view-transition-new(root) { animation: vt-in var(--dur-med) var(--ease-out) both; }
   @keyframes vt-out { to { opacity: 0; transform: translateY(-4px); } }
   @keyframes vt-in { from { opacity: 0; transform: translateY(8px); } }
+  /* Going back up a level (a profile back to Learn) travels the other way, so Back never looks like a new page opening. */
+  :root[data-dir="back"]::view-transition-old(root) { animation-name: vt-out-back; }
+  :root[data-dir="back"]::view-transition-new(root) { animation-name: vt-in-back; }
+  @keyframes vt-out-back { to { opacity: 0; transform: translateY(4px); } }
+  @keyframes vt-in-back { from { opacity: 0; transform: translateY(-8px); } }
   /* The bars and the notice are the same on every route, so they hold still: no snapshot of the old bar is shown,
      only the live new one, so the tab pill visibly slides while the page body fades. */
   .notice { view-transition-name: notice; }
   ::view-transition-group(topbar), ::view-transition-group(tabbar), ::view-transition-group(notice) { animation-duration: 0s; }
   ::view-transition-old(topbar), ::view-transition-old(tabbar), ::view-transition-old(notice) { display: none; }
   ::view-transition-new(topbar), ::view-transition-new(tabbar), ::view-transition-new(notice) { animation: none; }
-  /* After a route change the root fade is the only page motion: blocks don't rise, and dots, bars, rings and
-     sparklines open drawn, so a returning user never reads in-between numbers (useCountUp follows the same rule). */
-  :root[data-routed] :is(.rise, .pop, .grow, .draw) { animation: none; }
+  /* After a route change blocks still arrive in order, but shorter and closer (a 6px settle on a tighter stagger),
+     while dots, bars, rings and sparklines open drawn, so a returning user never reads in-between numbers
+     (useCountUp follows the same rule). */
+  :root[data-routed] .rise { animation: rise-soft var(--dur-med) var(--ease-out) both; animation-delay: calc(min(var(--i, 0), 8) * 24ms); }
+  @keyframes rise-soft { from { opacity: 0; transform: translateY(6px); } }
+  :root[data-routed] :is(.pop, .grow, .draw) { animation: none; }
   :root[data-routed] .draw { stroke-dasharray: none; stroke-dashoffset: 0; }
   /* A sheet closed by a route change leaves on its own: only its live exit shows, never a frozen copy in the crossfade. */
   .scrim { view-transition-name: sheet; }

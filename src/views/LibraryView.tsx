@@ -94,7 +94,7 @@ function TierOverview() {
   );
 }
 
-/** A sideways-scrolling chip row. Its right edge fades only while more chips sit off screen. */
+/** A sideways-scrolling chip row. Its name stays pinned at the start; its right edge fades and shows an arrow only while more chips sit off screen. */
 function FilterRow({ label, children }: { label: string; children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const [more, setMore] = useState(false);
@@ -107,9 +107,18 @@ function FilterRow({ label, children }: { label: string; children: ReactNode }) 
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
   }, [check]);
+  // While chips sit off screen a round arrow at the end says so, and a tap brings the next ones in.
+  const next = () => ref.current?.scrollBy({ left: ref.current.clientWidth * 0.7, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
   return (
-    <div className="filter-row" ref={ref} onScroll={check} data-more={more || undefined}>
-      <span className="label muted">{label}</span>{children}
+    <div className="filter-wrap">
+      <div className="filter-row" ref={ref} onScroll={check} data-more={more || undefined}>
+        <span className="label muted">{label}</span>{children}
+      </div>
+      {more && (
+        <button type="button" className="filter-more" onClick={next} aria-label={`More ${label} filters`} tabIndex={-1}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+        </button>
+      )}
     </div>
   );
 }

@@ -14,6 +14,7 @@ import { useCountUp } from '../components/Motion';
 import { useToast } from '../components/Toast';
 import { IlloTrends } from '../components/Illustration';
 import { regName } from './PeptidesView';
+import { weighIns } from '../lib/partner';
 
 const RANGES = [[7, 'Week'], [30, 'Month'], [90, '3 months']] as const;
 const rise = (i: number) => ({ ['--i' as string]: i });
@@ -203,7 +204,10 @@ function MonthCalendar({ doses, now }: { doses: DoseEntry[]; now: Date }) {
   const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const lead = (first.getDay() + 6) % 7;
   const logged = Array.from({ length: now.getDate() }, (_, i) => on.has(dayKey(new Date(now.getFullYear(), now.getMonth(), i + 1)))).filter(Boolean).length;
+  // The calendar is always this month, whatever range the card's percentage covers, so it names its month.
   return (
+    <div className="stack" style={{ gap: 8 }}>
+    <span className="cal-month" aria-hidden="true">{first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</span>
     <div className="cal" role="img" aria-label={`${first.toLocaleDateString(undefined, { month: 'long' })}: doses logged on ${logged} of ${now.getDate()} days so far`}>
       {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <span key={i} className="wd">{d}</span>)}
       {Array.from({ length: lead }, (_, i) => <span key={`x${i}`} />)}
@@ -212,6 +216,7 @@ function MonthCalendar({ doses, now }: { doses: DoseEntry[]; now: Date }) {
         const cls = [on.has(dayKey(d)) && 'on', d.getDate() === now.getDate() && 'today', d > now && 'future'].filter(Boolean).join(' ');
         return <span key={i} className={`d pop ${cls}`} style={rise(i * 0.6)}>{i + 1}</span>;
       })}
+    </div>
     </div>
   );
 }
@@ -281,8 +286,9 @@ export function TrendsView({ onBackfill, onAdd }: { onBackfill: () => void; onAd
   const pct = useCountUp(adh.pct == null ? 0 : Math.round(adh.pct * 100));
 
   const inRange = checkins.filter(c => new Date(c.at).getTime() >= since);
-  const weights = inRange.filter(c => c.weight).map(c => ({ x: new Date(c.at), y: c.weight!, tip: `${fmtDay(new Date(c.at))}: ${fmtNum(c.weight!, 1)} ${c.weightUnit ?? ''}` }));
-  const wUnit = checkins.find(c => c.weight)?.weightUnit ?? '';
+  // Every weigh-in is shown in the latest one's unit, so switching between lb and kg never reads as a jump in weight.
+  const wUnit = checkins.find(c => c.weight)?.weightUnit ?? 'lb';
+  const weights = weighIns(checkins, wUnit, since).map(({ at, w }) => ({ x: at, y: w, tip: `${fmtDay(at)}: ${fmtNum(w, 1)} ${wUnit}` }));
   const wSorted = weights.slice().sort((a, b) => a.x.getTime() - b.x.getTime());
   const wFirst = wSorted[0], wLast = wSorted[wSorted.length - 1];
   const change = wSorted.length > 1 ? wLast.y - wFirst.y : null;

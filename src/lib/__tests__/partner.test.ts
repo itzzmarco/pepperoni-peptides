@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cleanCode, convertWeight, firstName, partnerError, rowsToLedger, showCode, weightChange } from '../partner';
+import { cleanCode, convertWeight, firstName, partnerError, rowsToLedger, showCode, weighIns, weightChange } from '../partner';
 import { check, dose, reg } from './helpers';
 
 describe('rowsToLedger', () => {
@@ -59,6 +59,14 @@ describe('weightChange', () => {
     expect(w.first.w).toBe(213);
     expect(w.change).toBe(-11);
     expect(weightChange(cs, 'lb', Date.parse('2026-09-15T00:00:00Z'))!.first.w).toBeCloseTo(convertWeight(93, 'kg', 'lb'));
+  });
+
+  it('puts mixed lb and kg weigh-ins on one scale, oldest first, for the Trends and Today charts', () => {
+    const w = weighIns(cs, 'kg');
+    expect(w.map(x => x.at.toISOString().slice(0, 10))).toEqual(['2026-09-07', '2026-10-01', '2026-10-31']);
+    expect(w[0].w).toBeCloseTo(213 / 2.20462);
+    expect(w[1].w).toBe(93);
+    expect(w[2].w).toBeCloseTo(202 / 2.20462);
   });
 
   it('is null with no weigh-ins', () => {

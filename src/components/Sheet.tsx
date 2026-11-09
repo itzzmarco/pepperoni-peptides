@@ -53,6 +53,9 @@ export function Sheet({ onClose, children, label }: { onClose: () => void; child
   const onDown = (e: PointerEvent<HTMLDivElement>) => {
     if (closing) return;
     e.currentTarget.setPointerCapture(e.pointerId);
+    // The entrance animation owns transform while it runs; end it so the finger moves the sheet from the first frame.
+    // A cancelled CSS animation stays off until the name changes, which the exit (sheet-down) does.
+    ref.current?.getAnimations?.().forEach(a => a.cancel());
     drag.current = { y0: e.clientY, y: e.clientY, t: e.timeStamp, v: 0 };
     ref.current?.setAttribute('data-dragging', '');
   };

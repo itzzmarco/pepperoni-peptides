@@ -11,7 +11,7 @@ import { placeLabels } from '../lib/trackLabels';
 import { PEP } from '../data/peptides';
 import { TIERS } from '../data/reference';
 import { configured, useAccount } from '../lib/account';
-import { firstName, usePartners, weightChange } from '../lib/partner';
+import { firstName, usePartners, weighIns, weightChange } from '../lib/partner';
 import { DeviceLogPrompt } from '../sheets/AccountSheet';
 import { SiteFigure, doseText, whenNext } from '../components/NextShot';
 import { useCountUp } from '../components/Motion';
@@ -136,12 +136,14 @@ export function TodayView(actions: Actions) {
     return { d, on: doses.some(x => dayKey(new Date(x.at)) === dayKey(d)), today: i === 6 };
   });
 
-  const weights = checkins.filter(c => c.weight && new Date(c.at).getTime() >= now.getTime() - 90 * DAY).slice().reverse();
+  // Every weigh-in in the latest one's unit, so a switch between lb and kg never shows up as a jump.
+  const wUnit = checkins.find(c => c.weight)?.weightUnit ?? 'lb';
+  const weights = weighIns(checkins, wUnit, now.getTime() - 90 * DAY);
   const wNow = weights[weights.length - 1], wFirst = weights[0];
-  const wShown = useCountUp(wNow?.weight ?? 0, wFirst?.weight ?? 0, 1100);
-  const wChange = wNow && wFirst && wNow !== wFirst ? wNow.weight! - wFirst.weight! : null;
-  const wMin = Math.min(...weights.map(w => w.weight!)), wMax = Math.max(...weights.map(w => w.weight!));
-  const spark = weights.slice(-12).map((w, i, a) => `${(i / Math.max(1, a.length - 1)) * 120},${4 + (1 - (w.weight! - wMin) / Math.max(0.1, wMax - wMin)) * 20}`).join(' ');
+  const wShown = useCountUp(wNow?.w ?? 0, wFirst?.w ?? 0, 1100);
+  const wChange = wNow && wFirst && wNow !== wFirst ? wNow.w - wFirst.w : null;
+  const wMin = Math.min(...weights.map(w => w.w)), wMax = Math.max(...weights.map(w => w.w));
+  const spark = weights.slice(-12).map((w, i, a) => `${(i / Math.max(1, a.length - 1)) * 120},${4 + (1 - (w.w - wMin) / Math.max(0.1, wMax - wMin)) * 20}`).join(' ');
 
   const effects = topEffects(checkins, startOfDay(now).getTime() - 6 * DAY);
   const checkedIn = checkins.find(c => dayKey(new Date(c.at)) === today);
@@ -156,7 +158,7 @@ export function TodayView(actions: Actions) {
   const { partners, logs } = usePartners();
   const partner = partners[0];
   const pLog = partner ? logs[partner.id] : undefined;
-  const pUnit = wNow?.weightUnit ?? pLog?.checkins.find(c => c.weightUnit)?.weightUnit ?? 'lb';
+  const pUnit = wNow ? wUnit : pLog?.checkins.find(c => c.weightUnit)?.weightUnit ?? 'lb';
   const pW = pLog ? weightChange(pLog.checkins, pUnit, now.getTime() - 90 * DAY) : null;
   const pNext = pLog ? upcoming(pLog.regimens, pLog.doses, now)[0] : undefined;
 
@@ -239,9 +241,9 @@ export function TodayView(actions: Actions) {
             <span className="label">Weight</span>
             {wNow ? (
               <>
-                <span className="stat">{wShown.toFixed(1)}<small> {wNow.weightUnit}</small></span>
+                <span className="stat">{wShown.toFixed(1)}<small> {wUnit}</small></span>
                 {weights.length > 1 && <svg className="spark" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true"><polyline className="draw" pathLength={1} points={spark} /></svg>}
-                <span className="sub">{wChange != null ? `${wChange > 0 ? '+' : '−'}${Math.abs(wChange).toFixed(1)} since ${fmtShort(new Date(wFirst.at))}` : 'Add more check-ins for a trend.'}</span>
+                <span className="sub">{wChange != null ? `${wChange > 0 ? '+' : '−'}${Math.abs(wChange).toFixed(1)} since ${fmtShort(wFirst.at)}` : 'Add more check-ins for a trend.'}</span>
               </>
             ) : <span className="sub">Add your weight in a daily check-in.</span>}
           </a>
@@ -283,8 +285,8 @@ export function TodayView(actions: Actions) {
             </button>
           ))}
 
-          <button type="button" className={`tile rise${comingUp?.st.due ? '' : ' wide-sm'}`} style={{ ...rise(7), gap: 6 }} onClick={actions.checkin}>
-            <span className="label" style={{ color: 'var(--mint-ink)' }}>Check-in</span>
+          <button type="button" className={`tile mint rise${comingUp?.st.due ? '' : ' wide-sm'}`} style={{ ...rise(7), gap: 6 }} onClick={actions.checkin}>
+            <span className="label">Check-in</span>
             {checkedIn ? (
               <>
                 <span className="tile-title">Done today</span>
@@ -299,16 +301,16 @@ export function TodayView(actions: Actions) {
           </button>
 
           {comingUp?.st.due && (
-            <a href="#peptides" className="tile rise" style={{ ...rise(8), gap: 6 }}>
-              <span className="label" style={{ color: 'var(--sky-ink)' }}>Coming up</span>
+            <a href="#peptides" className="tile sky rise" style={{ ...rise(8), gap: 6 }}>
+              <span className="label">Coming up</span>
               <span className="tile-title">{regName(comingUp.r)}</span>
               <span className="sub">{fmtDay(comingUp.st.due)} · {fmtNum(Number(comingUp.r.dose), 3)} {comingUp.r.unit}</span>
             </a>
           )}
 
-          <a href={learnP ? `#${learnP.id}` : '#calculator'} className={`tile rise ${comingUp?.st.due ? 'span-2' : 'wide-sm'}`} style={{ ...rise(9), display: 'flex', alignItems: 'center', gap: 14 }}>
+          <a href={learnP ? `#${learnP.id}` : '#calculator'} className={`tile lemon rise ${comingUp?.st.due ? 'span-2' : 'wide-sm'}`} style={{ ...rise(9), display: 'flex', alignItems: 'center', gap: 14 }}>
             <span className="stack" style={{ gap: 6, flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
-              <span className="label" style={{ color: 'var(--lemon-ink)' }}>{learnP ? `Evidence · Tier ${learnP.tier} ${TIERS[learnP.tier].label}` : 'Guide'}</span>
+              <span className="label">{learnP ? `Evidence · Tier ${learnP.tier} ${TIERS[learnP.tier].label}` : 'Guide'}</span>
               <span className="tile-title">{learnP ? `What the research says about ${learnP.name}` : 'Dose math, step by step'}</span>
             </span>
             <span className="arrow" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>

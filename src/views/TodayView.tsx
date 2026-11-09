@@ -202,6 +202,8 @@ export function TodayView(actions: Actions) {
   if (!regimens.length && offerSignIn && seenHere) { line1 = "You're signed out."; line2 = 'Sign in to see your log.'; }
   // No regimens: the start card below is the call to action; a first visit also gets one line on what the app is.
   else if (!regimens.length) { line1 = hasLog ? 'Nothing to take yet.' : 'Welcome.'; line2 = hasLog ? '' : 'Your private shot and peptide log.'; }
+  // Every regimen paused: nothing is scheduled, but this is an established log, not a first visit.
+  else if (!list.length) { line1 = 'Everything is paused.'; line2 = 'Nothing scheduled.'; }
   else if (late) { line1 = `${plural(late, 'dose')} overdue.`; line2 = 'Log it when you take it.'; }
   else if (left) { line1 = adh.pct == null || adh.pct >= 0.8 ? "You're on track." : "Here's today."; line2 = `${plural(left, 'dose')} left today.`; }
   else { line1 = "You're all set today."; line2 = next?.st.due ? `Next: ${regName(next.r)}, ${fmtShort(next.st.due)}.` : 'Nothing scheduled.'; }
@@ -210,6 +212,8 @@ export function TodayView(actions: Actions) {
   // On the four-column board the two-wide partner and shot tiles fill half rows; when an even number of them leaves
   // Check-in and the guide a row of their own (nothing coming up), each takes half of it instead of a quarter.
   const pairWide = ((partner ? 1 : 0) + shots.length) % 2 ? '' : ' wide-lg';
+  // The chevron every Today tile that opens something ends with, the same one the Learn cards use (styles.css .tile-go).
+  const go = <svg className="tile-go" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>;
   const partnerTile = partner && (
     <a href="#partner" className="tile span-2 partner-tile rise" style={rise(6)}>
       <span className="avatar" aria-hidden="true">{firstName(partner.name)[0]}</span>
@@ -220,6 +224,7 @@ export function TodayView(actions: Actions) {
         </span>
         {pNext && <span className="sub">{regName(pNext.r)} · {pNext.st.text}</span>}
       </span>
+      {go}
     </a>
   );
   return (
@@ -254,6 +259,17 @@ export function TodayView(actions: Actions) {
             <button className="btn glass" onClick={actions.addRegimen}>Add a peptide anyway</button>
           </div>
         </section>
+      ) : regimens.length ? (
+        // Regimens exist but all are paused (upcoming() skips paused ones): point to where they resume, not to a new one.
+        <section className="tile dark empty rise" style={rise(2)}>
+          <IlloStart />
+          <span className="eyebrow">All paused</span>
+          <h2>Your {regimens.length === 1 ? 'regimen is' : `${regimens.length} regimens are`} paused.</h2>
+          <span className="sub">Your history is kept. Resume one in Peptides when you start again.</span>
+          <div className="row-wrap">
+            <a className="btn" href="#peptides">Manage peptides</a>
+          </div>
+        </section>
       ) : (
         <section className="tile dark empty rise" style={rise(2)}>
           <IlloStart />
@@ -284,6 +300,7 @@ export function TodayView(actions: Actions) {
             <span className="dots7" role="img" aria-label={`Last 7 days: dose logged on ${week.filter(w => w.on).length}`}>
               {week.map((w, i) => <i key={i} className={`pop${w.on ? ' on' : ''}${w.today && !w.on ? ' today' : ''}`} style={rise(i)} />)}
             </span>
+            {go}
           </a>
 
           <a href="#trends" className="tile rise gap-2" style={rise(4)}>
@@ -295,6 +312,7 @@ export function TodayView(actions: Actions) {
                 <span className="sub">{wChange != null ? `${Math.abs(wChange) < 0.05 ? '' : wChange > 0 ? '+' : '−'}${Math.abs(wChange).toFixed(1)} since ${fmtShort(wFirst.at)}` : 'Add more check-ins for a trend.'}</span>
               </>
             ) : <span className="sub">Add your weight in a daily check-in.</span>}
+            {go}
           </a>
 
           <a href="#trends" className="tile rise gap-2 wide-lg" style={rise(5)}>
@@ -305,6 +323,7 @@ export function TodayView(actions: Actions) {
                 <span className="sub">{plural(effects[0][1], 'day')} this week{effects.length > 1 ? `, plus ${effects.length - 1} more` : ''}</span>
               </>
             ) : <span className="sub">None logged this week.</span>}
+            {go}
           </a>
 
           {partnerTile}
@@ -319,6 +338,7 @@ export function TodayView(actions: Actions) {
                 <span className="sub em">{whenNext(r, doses, now)} · {doseText(r)}</span>
                 <span className="sub">{sug.why}</span>
               </span>
+              {go}
             </button>
           ))}
 
@@ -335,6 +355,7 @@ export function TodayView(actions: Actions) {
                 <span className="sub">Takes 30 seconds</span>
               </>
             )}
+            {go}
           </button>
 
           {comingUp?.st.due && (
@@ -342,6 +363,7 @@ export function TodayView(actions: Actions) {
               <span className="label">Coming up</span>
               <span className="tile-title">{regName(comingUp.r)}</span>
               <span className="sub">{fmtDay(comingUp.st.due)} · {fmtNum(Number(comingUp.r.dose), 3)} {comingUp.r.unit}</span>
+              {go}
             </a>
           )}
 
@@ -350,6 +372,7 @@ export function TodayView(actions: Actions) {
               <span className="label">{learnP ? `Evidence · Tier ${learnP.tier} ${TIERS[learnP.tier].label}` : 'Guide'}</span>
               <span className="tile-title">{learnP ? `What the research says about ${learnP.name}` : 'Dose math, step by step'}</span>
             </span>
+            {go}
           </a>
         </div>
       )}

@@ -130,7 +130,7 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
       </header>
 
       {partners.length > 1 && (
-        <div className="pick rise" role="group" aria-label="Partner" style={{ margin: 0, padding: 0 }}>
+        <div className="pick flush rise" role="group" aria-label="Partner">
           {partners.map(x => <button key={x.id} type="button" className="fchip" aria-pressed={x.id === p.id} onClick={() => setPick(x.id)}>{firstName(x.name)}</button>)}
         </div>
       )}
@@ -145,7 +145,7 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
         <div className="together">
           <div className="inset">
             <div className="xsmall muted">{name}</div>
-            <b className="num" style={{ color: 'var(--peach-ink)' }}>{theirs && theirs.count > 1 ? signed(theirs.change, unit) : '–'}</b>
+            <b className="num tone-peach">{theirs && theirs.count > 1 ? signed(theirs.change, unit) : '–'}</b>
             <div className="xsmall muted">{theirs ? `${fmtNum(theirs.last.w, 1)} ${unit} now` : 'No weigh-ins'}</div>
           </div>
           <div className="inset">
@@ -194,11 +194,11 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
 
       <Recent log={log} name={name} />
 
-      <div className="spread" style={{ alignItems: 'center', padding: '0 4px' }}>
+      <div className="spread mid px-1">
         <span className="xsmall muted">{loading ? 'Updating…' : fetchedAt ? `Updated ${fmtTime(new Date(fetchedAt))}` : ''}{error ? ` · ${error}` : ''}</span>
         <button className="btn quiet sm" onClick={() => void refreshPartners(true)} disabled={loading}>Refresh</button>
       </div>
-      <p className="xsmall muted" style={{ padding: '0 4px' }}>You can see {name}'s log but can't change it. To stop sharing, unlink in your account.</p>
+      <p className="xsmall muted px-1">You can see {name}'s log but can't change it. To stop sharing, unlink in your account.</p>
     </section>
   );
 }

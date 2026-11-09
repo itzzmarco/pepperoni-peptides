@@ -236,6 +236,13 @@ export function LibraryView() {
   const usedLegal = (Object.keys(LEGAL) as LegalKey[]).filter(k => PEPTIDES.some(p => p.legal === k));
   const trialBacked = PEPTIDES.filter(p => p.tier <= 2).length;
   const moreOn = (f.fam !== 'all' ? 1 : 0) + (f.legal !== 'all' ? 1 : 0);
+  // Every filter in force, named, for the chip beside search: it stays pinned with search, so the evidence row tucking
+  // away or More filters being folded never hides why the list is shorter. A tap clears them and keeps the search words.
+  const active = [f.tier !== 'all' && `T${f.tier}`, f.fam !== 'all' && FAMILIES[f.fam]?.name, f.legal !== 'all' && LEGAL[f.legal]?.label].filter(Boolean).join(' · ');
+  const clearFilters = () => {
+    setF({ ...f, fam: 'all', tier: 'all', legal: 'all' });
+    document.getElementById('lib-q')?.focus({ preventScroll: true });
+  };
   // Opens by itself only when the page loads with one of its filters already set; after that it is the user's.
   const [moreAtStart] = useState(moreOn > 0);
   const count = list.length === PEPTIDES.length ? `All ${list.length}` : `${list.length} of ${PEPTIDES.length}`;
@@ -280,6 +287,12 @@ export function LibraryView() {
         <label className="sr-only" htmlFor="lib-q">Search peptides</label>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
         <input type="search" id="lib-q" value={f.q} onChange={e => setF({ ...f, q: e.target.value })} placeholder="Search name, nickname or goal" autoComplete="off" />
+        {active && (
+          <button type="button" className="fchip find-active" aria-label={`Clear filters: ${active}`} title="Clear filters" onClick={clearFilters}>
+            <span>{active}</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        )}
       </div>
       <FilterRow label="Evidence">{chip('tier', 'all', 'All')}{TIER_LIST.map(t => chip('tier', `${t}` as const, `T${t} ${TIERS[t].label}`, `var(--t${t})`))}</FilterRow>
       </div>
@@ -303,15 +316,16 @@ export function LibraryView() {
       <p className="sr-only" aria-live="polite">{count}</p>
       <div className="cards" ref={grid}>
         {list.length ? list.map((p, i) => (
-          // The name leads; the family and the tier ladder with its tier number and label share one quiet line under it,
+          // The name leads, at display size on a header washed with the tier's tint (data-t), so a long grid scans by
+          // evidence before the body copy; the family and the tier ladder with its tier number and label share one quiet line under it,
           // and legal status is the only chip.
           // The tapped card marks its glyph, which travels into the profile header as the page opens (styles.css).
           // On the page's first paint the first few cards rise in on the same capped stagger as the other tabs' blocks;
           // cards a filter brings in later are left to the filter's own transition.
-          <a className={`card${fresh.current && i < 6 ? ' rise' : ''}`} href={`#${p.id}`} key={p.id} style={{ ['--vt' as string]: `c-${p.id}`, ['--i' as string]: i + 1 }} onClick={open}>
+          <a className={`card${fresh.current && i < 6 ? ' rise' : ''}`} href={`#${p.id}`} key={p.id} data-t={p.tier} style={{ ['--vt' as string]: `c-${p.id}`, ['--i' as string]: i + 1 }} onClick={open}>
             <div className="card-top">
               <div><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 2).join(' · ')}</div> : null}</div>
-              <FamilyGlyph family={p.family} />
+              <FamilyGlyph family={p.family} ground="surface" />
             </div>
             <div className="card-meta"><span>{FAMILIES[p.family]?.name}</span><Ladder t={p.tier} labelled /></div>
             <p className="sum">{p.summary}</p>

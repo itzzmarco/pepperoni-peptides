@@ -198,17 +198,21 @@ h1[tabindex="-1"]:focus { outline: none; }
 .brand-wrap { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; margin-right: auto; min-width: 0; }
 .brand-wrap > * { grid-area: 1 / 1; }
 .brand { justify-self: start; }
-/* The back and back-to-top controls are a chip of their own, like the sync chip at the other end, set 16px clear of the
-   vial; while either shows, only the vial's own 44px target is the home link, so the gap between them is dead space, never a home tap. */
-.topbar :is(.bar-back, .bar-title) { justify-self: start; max-width: calc(100% - 42px); margin-left: 42px; min-height: 44px; padding: 0 14px 0 10px; border-radius: 999px; background: var(--surface); box-shadow: var(--ring); min-width: 0; }
+/* One title slot beside the vial: the back and back-to-top controls take the wordmark's own place, 8px from the vial, and
+   the wordmark slides out as they slide in, so the bar reads as the vial plus one changing title, not two floating chips.
+   Their chevron or up arrow marks them as controls. While either shows, only the vial's own 44px target is the home link. */
+.topbar :is(.bar-back, .bar-title) { justify-self: start; max-width: calc(100% - 34px); margin-left: 34px; min-height: 44px; padding: 0 8px 0 0; border-radius: 999px; background: none; min-width: 0; }
+@media (hover: hover) { .topbar :is(.bar-back, .bar-title):hover > span { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; } }
 .topbar:is([data-sub], [data-titled]) .brand { pointer-events: none; }
-/* The vial keeps a full 44px home target of its own, centred on it and ending short of the chip at 42px. */
+/* The vial keeps a full 44px home target of its own, around it and ending where the title slot starts at 34px. */
 .brand { position: relative; }
-.topbar:is([data-sub], [data-titled]) .brand::before { content: ""; position: absolute; left: -9px; top: 50%; width: 44px; height: 44px; margin-top: -22px; pointer-events: auto; }
+.topbar:is([data-sub], [data-titled]) .brand::before { content: ""; position: absolute; left: -10px; top: 50%; width: 44px; height: 44px; margin-top: -22px; pointer-events: auto; }
 .bar-back { display: flex; align-items: center; gap: 2px; min-height: 44px; text-decoration: none; color: var(--ink); font-weight: 600; font-size: var(--fs-md); opacity: 0; visibility: hidden; pointer-events: none; }
 .bar-back > svg { flex: none; color: var(--ink-3); }
 .bar-back > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
-.topbar[data-sub] .bar-back { opacity: 1; visibility: visible; pointer-events: auto; }
+.topbar[data-sub] .bar-back { opacity: 1; visibility: visible; pointer-events: auto; transform: none; }
+.bar-back { transform: translateY(6px); }
+.topbar[data-sub] .wordmark { transform: translateY(-6px); }
 .topbar:is([data-sub], [data-titled]) .wordmark { opacity: 0; visibility: hidden; }
 .wordmark, .bar-title > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 /* Its up arrow says what a tap does: back to the top. */
@@ -409,7 +413,13 @@ input[type="text"], input[type="email"], input[type="password"], input[type="num
 input[type="search"] { border-radius: 24px; padding-left: 44px; }
 textarea { min-height: 80px; resize: vertical; }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
-.search { position: relative; }
+.search { position: relative; display: flex; align-items: center; gap: var(--sp-2); }
+.search > input { flex: 1 1 auto; min-width: 0; }
+/* The filters in force, as one pressed chip beside the search field, pinned with it; a tap clears them. */
+.fchip.find-active { flex: 0 1 auto; min-width: 0; max-width: 48%; padding: 0 12px 0 14px; background: var(--btn); color: var(--btn-ink); box-shadow: none; }
+@media (hover: hover) { .fchip.find-active:hover { background: var(--btn-hover); color: var(--btn-ink); } }
+.find-active > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.find-active > svg { flex: none; }
 /* Learn's finder: the search field pins under the top bar (its measured --bar-h) and the evidence row pins under it,
    each on an opaque band of the page colour, so the cards never show through the finder. While the
    list scrolls down the evidence row tucks up behind the search band, leaving only search pinned; it comes back on any
@@ -424,7 +434,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .lib-pin > :is(.search, .filter-wrap)::before { content: ""; position: absolute; z-index: -1; inset: -6px -16px -10px; background: var(--bg); pointer-events: none; }
 .lib-pin > .filter-wrap::before { top: 0; }
 .lib-pin[data-tuck] > .filter-wrap:not(:focus-within) { transform: translateY(-100%); opacity: 0; pointer-events: none; }
-.search svg { position: absolute; left: 16px; top: 15px; color: var(--ink-3); pointer-events: none; }
+.search > svg { position: absolute; left: 16px; top: 15px; color: var(--ink-3); pointer-events: none; }
 .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
 .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; }
 .scale { display: flex; gap: 6px; }
@@ -593,6 +603,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .pick { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -20px; padding: 0 20px 2px; }
 .pick::-webkit-scrollbar { display: none; }
 .sheet .pick.in-sheet { margin: 0 -16px; padding: 0 16px 2px; }
+/* A short row that never overflows (Partner's picker) sits on the page's own edges. */
+.pick.flush { margin: 0; padding: 0; }
 .tile.dark .pick .fchip { background: var(--dark-fill-2); color: var(--on-dark-2); box-shadow: none; }
 .tile.dark .pick .fchip[aria-pressed="true"] { background: var(--on-dark); color: var(--dark); }
 .bars { display: grid; gap: 12px; }
@@ -675,10 +687,11 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .illo-ground > .illo { width: clamp(96px, 30%, 136px); }
 /* On a short screen, and in an empty state inside a list (Trends' History), it drops to 88px; the shapes are bold enough to read there. */
 @media (max-height: 700px) { .illo-ground > .illo { width: 88px; } }
-/* A whole-page empty (its own h1) and Today's first-run scene are the welcome, so their art is the main image of the screen. */
-.empty:has(> h1) .illo-ground > .illo { width: clamp(144px, 44%, 192px); }
+/* A whole-page empty (its own h1: Peptides, Trends, Partner) and Today's first-run scene are the welcome, so their art is the
+   main image of the screen, drawn at the first-run scene's own scale (about 180 to 216px square). */
+.empty:has(> h1) .illo-ground > .illo { width: clamp(176px, 52%, 216px); }
 .illo-ground > .illo.scene { width: clamp(200px, 64%, 280px); }
-@media (max-height: 700px) { .empty:has(> h1) .illo-ground > .illo { width: 120px; } .illo-ground > .illo.scene { width: 176px; } }
+@media (max-height: 700px) { .empty:has(> h1) .illo-ground > .illo { width: 144px; } .illo-ground > .illo.scene { width: 176px; } }
 .empty.compact .illo-ground > .illo { width: 88px; }
 /* One empty-state layout everywhere, by job. An empty state that is the whole page (Peptides, Trends, Partner) opens on the
    page's eyebrow and h1 at display size, then the art, the copy and the main action. One that sits under the page's own
@@ -709,16 +722,18 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 @media (hover: hover) { .filter-more:hover { background: var(--surface-2); } }
 /* One column on phones, so chips like "Compoundable with Rx" stay on one line; more columns as the page widens. */
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 12px; }
-/* A plain white card: the family glyph is its one colour block, and the tier shows only in the small ladder. */
-.card { position: relative; display: grid; gap: 8px; align-content: start; grid-template-rows: auto auto 1fr auto; text-align: left;
+/* A white card whose header carries the evidence tier's wash (the profile band's tint, data-t below), so a long grid scans
+   by evidence at a glance, with the family glyph as the second colour and the name at display size over it. */
+.card { --tc: var(--t1); --tb: var(--t1-bg); position: relative; display: grid; gap: 8px; align-content: start; grid-template-rows: auto auto 1fr auto; text-align: left;
   background: var(--surface); box-shadow: var(--ring), var(--shadow-1); border-radius: var(--r-md); padding: 16px; color: var(--ink); text-decoration: none; min-width: 0; }
 .glyph { display: inline-grid; place-items: center; border-radius: 14px; flex: none; }
-.card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin: -16px -16px 0; padding: 16px 16px 14px; border-radius: var(--r-md) var(--r-md) 0 0;
+  background: radial-gradient(120% 140% at 100% 0%, color-mix(in srgb, var(--tc) 14%, transparent), transparent 60%), linear-gradient(180deg, var(--tb), color-mix(in srgb, var(--tb) 30%, var(--surface))); }
 /* Family and tier on one quiet line under the name: the family in grey words, then the ladder with its tier number and label. */
 .card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: var(--fs-xs); font-weight: 500; color: var(--ink-3); }
 .ladder-l { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
 .ladder-l > span { color: var(--ink-2); font-weight: 600; }
-.card h3 { font-size: var(--fs-lg); overflow-wrap: anywhere; }
+.card h3 { font-size: var(--fs-xl); letter-spacing: -.01em; line-height: 1.1; overflow-wrap: anywhere; }
 .card .aka { font-size: var(--fs-xs); color: var(--ink-3); margin-top: 2px; }
 .card .sum { font-size: var(--fs-sm); line-height: 1.4; color: var(--ink-3); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .card .row-wrap { gap: 6px; padding-right: 20px; }
@@ -744,13 +759,14 @@ details[open] > summary .chev { transform: rotate(90deg); }
 /* Peptide profile: a header band washed with the evidence tier's tint */
 .band { --tc: var(--t1); --tb: var(--t1-bg); padding: 20px; border-radius: var(--r-xl); box-shadow: var(--shadow-1);
   background: radial-gradient(120% 100% at 100% 0%, color-mix(in srgb, var(--tc) 16%, transparent), transparent 60%), linear-gradient(180deg, var(--tb), color-mix(in srgb, var(--tb) 45%, var(--surface))); }
-.band[data-t="2"] { --tc: var(--t2); --tb: var(--t2-bg); } .band[data-t="3"] { --tc: var(--t3); --tb: var(--t3-bg); }
-.band[data-t="4"] { --tc: var(--t4); --tb: var(--t4-bg); } .band[data-t="5"] { --tc: var(--t5); --tb: var(--t5-bg); }
+:is(.band, .card)[data-t="2"] { --tc: var(--t2); --tb: var(--t2-bg); } :is(.band, .card)[data-t="3"] { --tc: var(--t3); --tb: var(--t3-bg); }
+:is(.band, .card)[data-t="4"] { --tc: var(--t4); --tb: var(--t4-bg); } :is(.band, .card)[data-t="5"] { --tc: var(--t5); --tb: var(--t5-bg); }
 .band { position: relative; overflow: hidden; isolation: isolate; }
-.band-art { position: absolute; z-index: -1; top: 14px; right: 16px; pointer-events: none; }
-/* On phones the drawing keeps the top-right corner, so the family and tier row stops short of it. */
-@media (max-width: 480px) { .band-art { width: 112px; height: 43px; right: 12px; } .band .band-top { padding-right: 124px; } }
-.band .band-top { display: flex; align-items: center; gap: 10px; }
+.band-art { position: absolute; z-index: -1; top: 12px; right: 12px; pointer-events: none; }
+.band .band-top { display: flex; align-items: center; gap: 10px; padding-right: 196px; }
+/* On phones the drawing keeps the top-right corner at nearly the same size: the glyph sits beside it and the eyebrow
+   drops under the glyph, below the drawing, so neither runs behind it. */
+@media (max-width: 480px) { .band-art { width: 140px; height: 54px; } .band .band-top { flex-direction: column; align-items: flex-start; gap: 8px; padding-right: 0; } }
 .band .tier { background: var(--surface); }
 
 .facts-hype { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
@@ -832,8 +848,11 @@ tr:last-child td { border-bottom: 0; }
 .sheet:focus { outline: none; }
 .scrim[data-closing] { pointer-events: none; }
 /* Phone grabber: drag it down to close. Only it starts a drag, so the form still scrolls normally; it stays pinned at the top while the form scrolls. */
-.grabber { position: sticky; top: 0; z-index: 2; display: grid; place-items: center; height: 44px; margin: 0 0 -8px; background: var(--sheet-bg); box-shadow: inset 0 1px 0 var(--sheet-hi); border-radius: var(--r-xl) var(--r-xl) 0 0; cursor: grab; touch-action: none; }
+.grabber { position: sticky; top: 0; z-index: 2; display: grid; place-items: center; height: 24px; margin: 0 0 -4px; background: var(--sheet-bg); box-shadow: inset 0 1px 0 var(--sheet-hi); border-radius: var(--r-xl) var(--r-xl) 0 0; cursor: grab; touch-action: none; }
 .grabber i { width: 40px; height: 5px; border-radius: 3px; background: var(--grabber); }
+/* The drawn row is short, so the title sits close under the bar; the target is still 44px tall, reaching 20px down over
+   the middle of the head (clear of the title's start and the close button), where a drag can start. */
+.grabber::after { content: ""; position: absolute; top: 0; left: 30%; right: 30%; height: 44px; }
 /* On phones the grabber is the sheet's top edge, so the sheet has no top padding for content to show through above it. */
 @media (max-width: 699px) { .sheet { padding-top: 0; } }
 @media (min-width: 700px) { .grabber { display: none; } }
@@ -938,11 +957,11 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 .strip28 i.on { background: var(--mint-ink); }
 .strip28 i.today { box-shadow: inset 0 0 0 1.5px var(--mint-ink); }
 .partner-tile { display: flex; align-items: center; gap: 14px; }
-/* Every Today tile that opens something carries the same quiet chevron, so a touch user can tell which cards open.
-   Stat tiles show it beside their label; the wide row tiles show it at the middle of their right edge. */
-.bento.quad > :is(a, button).tile::before { content: ""; position: absolute; top: 25px; right: 20px; width: 8px; height: 8px; border: solid var(--ink-3); border-width: 2px 2px 0 0; transform: rotate(45deg); pointer-events: none; }
+/* Every Today tile that opens something carries the same quiet chevron, the 16px stroked one the Learn cards end with,
+   so a touch user can tell which cards open. Stat tiles show it beside their label; the wide row tiles show it at the middle of their right edge. */
+.tile-go { position: absolute; top: 21px; right: 16px; color: var(--ink-3); pointer-events: none; }
 .bento.quad > :is(a, button).tile > .label:first-child { padding-right: 16px; }
-.bento.quad > :is(.row-tile, .partner-tile)::before { top: 50%; margin-top: -5px; }
+.bento.quad > :is(.row-tile, .partner-tile) > .tile-go { top: 50%; margin-top: -8px; }
 .bento.quad > :is(.row-tile, .partner-tile) { padding-right: 40px; }
 
 /* Tab bar */
@@ -951,9 +970,8 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 @supports not (backdrop-filter: blur(1px)) { .topbar, .tabbar, .lib-pin > *::before { background: var(--bg); } }
 /* People who ask the OS for less transparency get the same opaque bars, with no blur behind them. */
 @media (prefers-reduced-transparency: reduce) { .topbar, .tabbar, .lib-pin > *::before { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; } }
-/* One pill behind the current tab: one fifth of the track. It only ever travels across the four tabs: it slides within
-   a side of the phone bar, and when the tab changes sides it appears on its new tab instead of passing through the log
-   button (the motion section). It is a pale accent chip, so every label keeps readable ink; the current tab says so in
+/* One pill behind the current tab: one fifth of the track. It rests only on the four tabs and slides on every change;
+   crossing sides of the phone bar it passes under the log button, whose opaque disc sits above it. It is a pale accent chip, so every label keeps readable ink; the current tab says so in
    accent ink with a bolder icon. */
 .tab-track { position: absolute; z-index: -1; inset: 6px; pointer-events: none; }
 .tab-ind { position: absolute; top: 0; bottom: 0; left: 0; width: 20%; border-radius: 22px; background: var(--tab-pill); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); }
@@ -975,12 +993,13 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 /* --r-md is half a one-line toast's height, so one line is a full pill and a message that wraps keeps rounded-box corners. */
 .toast { position: fixed; left: 50%; width: max-content; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 12px 18px; border-radius: var(--r-md); font-size: var(--fs-sm); z-index: 60; box-shadow: var(--shadow-3); max-width: calc(100% - 32px); }
 /* Mouse and keyboard widths: the same five destinations become a full-height rail along the left edge, from the
-   top of the window down, with a hairline where the page starts; the page makes room for it, so nothing ever scrolls
-   under the rail and it is opaque, with no blur to pay for. The tabs stack from the top
+   top of the window down; the page makes room for it, so nothing ever scrolls under the rail. It keeps the phone bar's
+   glass material, a shade lighter than the page with its edge line and the bar's lowest shadow, so it reads as the same
+   raised chrome rather than part of the page. The tabs stack from the top
    and the pill slides down them instead of along, with no mask, since the log button sits above the track. */
 @media (min-width: 900px) {
   body { padding-left: 100px; }
-  .tabbar { left: 0; top: 0; bottom: 0; transform: none; width: calc(88px + env(safe-area-inset-left, 0px)); padding: 12px 6px 12px calc(6px + env(safe-area-inset-left, 0px)); border-radius: 0; align-content: start; background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: inset -1px 0 0 var(--line); grid-template-columns: minmax(0, 1fr); grid-template-rows: 88px; grid-auto-rows: 64px; }
+  .tabbar { left: 0; top: 0; bottom: 0; transform: none; width: calc(88px + env(safe-area-inset-left, 0px)); padding: 12px 6px 12px calc(6px + env(safe-area-inset-left, 0px)); border-radius: 0; align-content: start; background: color-mix(in srgb, var(--surface) 55%, var(--glass)); box-shadow: inset -1px 0 0 var(--glass-edge), var(--shadow-1); grid-template-columns: minmax(0, 1fr); grid-template-rows: 88px; grid-auto-rows: 64px; }
   /* The primary action sits apart at the top of the rail, over a hairline, with the four tabs below it. */
   .tabbar .log.log-rail { display: flex; }
   .tabbar .log.log-bar { display: none; }
@@ -1058,6 +1077,7 @@ footer.foot p { max-width: 90ch; }
 /* Spacing utilities on the --sp-* scale. They come after the components they adjust, so they win on equal specificity. */
 .gap-1 { gap: var(--sp-1); } .gap-2 { gap: var(--sp-2); } .gap-3 { gap: var(--sp-3); } .gap-4 { gap: var(--sp-4); }
 .mt-1 { margin-top: var(--sp-1); } .mt-2 { margin-top: var(--sp-2); } .mt-3 { margin-top: var(--sp-3); }
+.px-1 { padding-inline: var(--sp-1); }
 .mid { align-items: center; } .nowrap { flex-wrap: nowrap; } .self-start { justify-self: start; } .flex-1 { flex: 1 1 0; } .tap { min-height: 44px; }
 
 /* Motion: staggered first-paint reveal, lines that draw in, syringe that fills, sheets, toasts, route fades.
@@ -1072,10 +1092,11 @@ footer.foot p { max-width: 90ch; }
   @keyframes draw { to { stroke-dashoffset: 0; } }
   /* A line chart's wash and points come in with its stroke, on the same delay and length, so a first open never shows loose dots over a fill. */
   .chart :is(.area, .pt) { animation: fade-in var(--dur-slow) var(--dur-fast) var(--ease-out) backwards; }
-  /* Single marks (the day ring, the Now pin) settle on the same damped spring as the tab pill and sheets, with no bounce.
+  /* Single marks (the day ring, belly-clock hours, the next-site dot) fade in and rise a few pixels on the page's own ease,
+     like a .rise block, never growing from nothing, so a sheet full of hours settles quietly with the sheet.
      backwards, like .rise: once landed they let go of transform, so a belly-clock hour still shrinks under a finger. */
   .pop { animation: pop var(--dur-med) var(--ease-out) backwards; animation-delay: calc(min(var(--i, 0), 6) * 20ms + 80ms); }
-  @keyframes pop { from { transform: scale(0); } }
+  @keyframes pop { from { opacity: 0; transform: translateY(4px); } }
   /* Dense grids (calendar days, week dots, the pattern, 28-day strips) fade in as one piece instead of cell by cell. */
   :is(.cal, .pattern, .dots7, .strip, .strip28, .daybar) .pop { animation-name: fade-in; animation-delay: 80ms; }
   /* Bars stagger like the rise blocks: capped, so a ten-bar chart settles in one clean beat (under 0.8s) rather than bar by bar. */
@@ -1112,8 +1133,8 @@ footer.foot p { max-width: 90ch; }
 
   :is(.wordmark, .bar-title) { transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-med) var(--ease-out), visibility 0s var(--ease-out) var(--dur-fast); }
   .topbar:not([data-sub], [data-titled]) .wordmark { transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-med) var(--ease-out), visibility 0s; }
-  .topbar .bar-back { transition: opacity var(--dur-med) var(--ease-out), visibility 0s var(--ease-out) var(--dur-med); }
-  .topbar[data-sub] .bar-back { transition: opacity var(--dur-med) var(--ease-out), visibility 0s; }
+  .topbar .bar-back { transition: opacity var(--dur-med) var(--ease-out), transform var(--dur-med) var(--ease-out), visibility 0s var(--ease-out) var(--dur-med); }
+  .topbar[data-sub] .bar-back { transition: opacity var(--dur-med) var(--ease-out), transform var(--dur-med) var(--ease-out), visibility 0s; }
 
   /* Learn search and filters: cards that stay slide to their new place, cards that leave or arrive fade, the rest holds still. */
   /* Only cards in or near the viewport are named (LibraryView marks them), so a filter never snapshots the whole library. */
@@ -1123,15 +1144,9 @@ footer.foot p { max-width: 90ch; }
   :root[data-filtering]::view-transition-new(root) { animation: none; }
 
   /* Sliding selection: tab pill and segmented control */
+  /* One motion for every tab change: the pill slides to its new tab, on the phone bar passing under the opaque Log disc
+     when it crosses sides, so Today to Learn moves exactly like Today to Trends. */
   .tab-ind { transition: transform var(--dur-med) var(--ease-spring), opacity var(--dur-fast) var(--ease-out); }
-  /* Phone bar: a change of side swaps the animation's name, so the pill grows in on its new tab, covering the slide that
-     would otherwise carry it through the log button; a move within a side keeps the name and simply slides. */
-  @media (max-width: 899px) {
-    .tab-ind[data-side="a"] { animation: tab-in-a var(--dur-med) var(--ease-out); }
-    .tab-ind[data-side="b"] { animation: tab-in-b var(--dur-med) var(--ease-out); }
-  }
-  @keyframes tab-in-a { from { opacity: 0; transform: translateX(calc(var(--k) * 100%)) scale(.85); } to { opacity: 1; transform: translateX(calc(var(--k) * 100%)); } }
-  @keyframes tab-in-b { from { opacity: 0; transform: translateX(calc(var(--k) * 100%)) scale(.85); } to { opacity: 1; transform: translateX(calc(var(--k) * 100%)); } }
   .lib-pin > .filter-wrap { transition: transform var(--dur-med) var(--ease-out), opacity var(--dur-fast) var(--ease-out); }
   /* The seg pill settles without overshoot, so it never pokes past the rounded track. */
   .seg::before { transition: transform var(--dur-med) var(--ease-out), opacity var(--dur-fast) var(--ease-out); }

@@ -183,22 +183,23 @@ export function IlloPartner({ size = 120 }: Props) {
   );
 }
 
-/** Profile band backdrop: a hairline peptide chain of small linked residues in the band's empty top right corner, beside
- *  the family glyph and eyebrow and above the name, so the title stays the clear start of the page. It takes the band's
- *  tier tint (`--tc`) and draws only thin outlines, so nothing on the band loses contrast. */
-const CHAIN: [number, number, number][] = [[6, 52, 3], [28, 44, 4], [50, 49, 3.5], [70, 34, 5], [94, 38, 4], [112, 22, 5.5], [133, 18, 4], [148, 5, 5]];
-/** `seed` (the peptide's id) gives each profile its own chain: it starts one to three residues in, and each residue's
- *  size shifts a little, so no two neighbouring profiles share one drawing. */
+/** Profile band art: a peptide chain of linked residues in the band's top right corner, beside the family glyph and
+ *  eyebrow and above the name, so the title stays the clear start of the page. It takes the band's tier tint (`--tc`) in
+ *  solid strokes over pale-filled residues, heavy enough to read as a drawing at a glance, and never sits behind text. */
+const CHAIN: [number, number, number][] = [[7, 51, 4], [28, 44, 5], [50, 49, 4.5], [70, 34, 6], [93, 38, 5], [112, 22, 6.5], [132, 19, 5], [147, 7, 5.5]];
+/** `seed` (the peptide's id) gives each profile its own chain: it starts one to three residues in, each residue's size
+ *  shifts a little, and a different residue carries the solid tint, so no two neighbouring profiles share one drawing. */
 export function BandArt({ seed = '' }: { seed?: string }) {
   const k = [...seed].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 997, 7);
   const chain = CHAIN.slice(k % 3).map(([x, y, r], i) => [x, y, r + (((k >> i) % 3) - 1) * 0.8] as const);
   const bonds = chain.slice(1).map(([x, y], i) => `M${chain[i][0]} ${chain[i][1]}L${x} ${y}`).join('');
+  const lit = 1 + (k % (chain.length - 2));
   return (
-    <svg className="band-art" width="156" height="60" viewBox="0 0 156 60" aria-hidden="true" focusable="false">
-      <g fill="none" stroke="var(--tc)" strokeWidth="1.25" strokeLinecap="round">
-        <path d={bonds} opacity=".4" />
-        <path d="M70 34l-3 12M112 22l5 11" strokeDasharray="1.5 3" opacity=".4" />
-        {chain.map(([x, y, r], i) => <circle key={i} cx={x} cy={y} r={r} opacity=".55" />)}
+    <svg className="band-art" width="180" height="69" viewBox="0 0 156 60" aria-hidden="true" focusable="false">
+      <g fill="none" stroke="var(--tc)" strokeWidth="2.25" strokeLinecap="round">
+        <path d={bonds} opacity=".6" />
+        <path d="M70 34l-3 13M112 22l5 12" strokeDasharray="2 4" opacity=".5" />
+        {chain.map(([x, y, r], i) => <circle key={i} cx={x} cy={y} r={r} fill={i === lit ? 'var(--tc)' : 'var(--surface)'} fillOpacity={i === lit ? 0.55 : 0.8} strokeOpacity=".85" />)}
       </g>
     </svg>
   );

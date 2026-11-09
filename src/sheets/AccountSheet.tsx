@@ -365,7 +365,7 @@ function SignedIn({ acct, onClose }: { acct: AccountState; onClose: () => void }
           </div>
         </div>
       ) : (
-        <div className="spread" style={{ alignItems: 'center', flexWrap: 'nowrap', padding: '0 4px' }}>
+        <div className="spread mid nowrap px-1">
           <span className="xsmall muted">Signing out removes your log from this device. It stays safe in your account.</span>
           <button className="btn ghost" disabled={busy} onClick={() => out()}>{busy ? 'Signing out…' : 'Sign out'}</button>
         </div>

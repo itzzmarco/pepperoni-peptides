@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Peptide, Regimen } from '../lib/types';
 import { samePeptide, store, useLedger } from '../lib/store';
 import { DAY_SHORT, FREQS, WEEK, freqText, weekdaysOf } from '../lib/schedule';
@@ -18,6 +18,7 @@ import { TierChip } from '../components/Chips';
 import { regName } from '../views/PeptidesView';
 import { matches } from '../views/LibraryView';
 import { useFieldError } from '../components/FieldError';
+import { LeaveFoot, useLeaveGuard } from '../components/LeaveGuard';
 
 const OTHER = '__other';
 
@@ -119,22 +120,9 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved, onLog, onSignIn
   // Adding something already in the list is usually someone looking for where to log today's dose.
   const already = isNew && pick ? regimens.find(x => !x.paused && samePeptide(x, { compoundId: p ? pick : '', name: pick === OTHER ? r.name : '' })) : undefined;
 
-  // Dismissing a changed form (Escape, a scrim tap, a drag, the close button, Cancel) first asks in the footer, as Fill
-  // in past days does: Keep editing, or Discard and leave. A second dismiss leaves; any new edit takes the question away.
-  // `close` keeps one identity for the sheet's life, since Sheet re-focuses itself whenever onClose changes.
-  const dirty = pick !== startPick || ack || relabel || JSON.stringify(r) !== JSON.stringify(initial);
-  const dirtyRef = useRef(false);
-  dirtyRef.current = dirty;
-  const [leaving, setLeaving] = useState(false);
-  const leavingRef = useRef(false);
-  leavingRef.current = leaving;
-  const keep = useRef<HTMLButtonElement>(null);
-  const close = useCallback(() => {
-    if (dirtyRef.current && !leavingRef.current) { setLeaving(true); return; }
-    onClose();
-  }, [onClose]);
-  useEffect(() => { setLeaving(false); }, [r, pick, ack, relabel]);
-  useEffect(() => { if (leaving) keep.current?.focus(); }, [leaving]);
+  // A changed form asks before it is dismissed (LeaveGuard), as Fill in past days does.
+  const guard = useLeaveGuard(JSON.stringify([pick, ack, relabel, r]), onClose);
+  const { close } = guard;
 
   // Choosing set weekdays starts with today's day ticked, so there's always at least one.
   const setFreq = (freq: string) => setR(cur => ({ ...cur, freq, weekdays: freq === 'days' && !weekdaysOf(cur).length ? [new Date().getDay()] : cur.weekdays }));
@@ -282,15 +270,7 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved, onLog, onSignIn
           <div className="checks block"><label><input type="checkbox" id="r-ack" {...invalid('r-ack')} checked={ack} onChange={e => setAck(e.target.checked)} /> I understand this log isn't medical advice and won't tell me what dose to take.</label></div>
         )}
         {errFor('r-ack')}
-        <div className="sheet-foot">
-          <p className="sr-only" role="status">{leaving ? 'Leave without saving? Your changes to this form will be lost.' : ''}</p>
-          {leaving ? (
-            <>
-              <p className="small ask" aria-hidden="true"><b>Leave without saving?</b> Your changes to this form will be lost.</p>
-              <button ref={keep} type="button" className="btn ghost" onClick={() => setLeaving(false)}>Keep editing</button>
-              <button type="button" className="btn danger" onClick={onClose}>Discard and leave</button>
-            </>
-          ) : <>
+        <LeaveFoot guard={guard}>
           {!isNew && (
             <button type="button" className={`btn ${armed ? 'danger' : 'quiet'}`}
               onClick={() => { if (armed) { store.deleteRegimen(r.id); toast('Removed. Logged doses stay in your history.'); onSaved(); } else setArmed(true); }}>
@@ -299,8 +279,7 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved, onLog, onSignIn
           )}
           <button type="button" className="btn ghost" onClick={close}>Cancel</button>
           <button type="submit" className="btn">{isNew ? 'Start tracking' : 'Save'}</button>
-          </>}
-        </div>
+        </LeaveFoot>
       </form>
     </Sheet>
   );

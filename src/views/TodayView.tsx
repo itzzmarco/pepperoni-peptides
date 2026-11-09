@@ -7,7 +7,7 @@ import { checkRegimen } from '../lib/vial';
 import { DAY, dayKey, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
 import { adherence, topEffects, usualMinutes } from '../lib/insights';
 import { nextSite, siteLabel, type NextSite } from '../lib/sites';
-import { placeLabels } from '../lib/trackLabels';
+import { placeLabels, trackStart } from '../lib/trackLabels';
 import { PEP } from '../data/peptides';
 import { TIERS } from '../data/reference';
 import { configured, useAccount } from '../lib/account';
@@ -47,7 +47,7 @@ function Spark({ ys }: { ys: number[] }) {
 /** Width (px) of one time label's box under the track, and of the pinned "12 AM" at the end. */
 const LABEL = 54, END_LABEL = 40;
 
-/** Today's doses on a 6 AM to midnight track: filled dots are logged, rings are still due (at the usual time).
+/** Today's doses on a track from 6 AM (or the hour of anything earlier: a dose or now) to midnight: filled dots are logged, rings are still due (at the usual time).
     Times sit in boxes kept inside the card, with a label-wide gap between them (placeLabels). */
 function DayBar({ done, todo, now }: { done: Date[]; todo: Date[]; now: Date }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -61,7 +61,7 @@ function DayBar({ done, todo, now }: { done: Date[]; todo: Date[]; now: Date }) 
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const A = 6 * 60, B = 24 * 60;
+  const A = trackStart([now, ...done, ...todo]), B = 24 * 60;
   const pos = (d: Date) => Math.min(100, Math.max(0, ((d.getHours() * 60 + d.getMinutes() - A) / (B - A)) * 100));
   const nowPct = pos(now);
   const marks = [...done.map(d => ({ d, done: true })), ...todo.map(d => ({ d, done: false }))].sort((a, b) => a.d.getTime() - b.d.getTime());
@@ -71,7 +71,7 @@ function DayBar({ done, todo, now }: { done: Date[]; todo: Date[]; now: Date }) 
     <div ref={ref} className="daybar" role="img" aria-label={`Today: ${desc}. It's ${fmtTime(now)}.`}>
       <div className="track" />
       <div className="fill grow" style={{ width: `${nowPct}%` }} />
-      {nowPct > 0 && nowPct < 100 && <div className="now pop" style={{ left: `${nowPct}%`, ...rise(8) }}><span>Now</span></div>}
+      {nowPct < 100 && <div className="now pop" style={{ left: `${nowPct}%`, ...rise(8) }}><span>Now</span></div>}
       {marks.map((m, i) => (
         <span key={i}>
           <span className={`mark pop ${m.done ? 'done' : 'todo'}`} style={{ left: `${pos(m.d)}%`, ...rise(4 + i) }}>
@@ -267,7 +267,7 @@ export function TodayView(actions: Actions) {
               <>
                 <span className="stat">{wShown.toFixed(1)}<small> {wUnit}</small></span>
                 {weights.length > 1 && <Spark ys={spark} />}
-                <span className="sub">{wChange != null ? `${wChange > 0 ? '+' : '−'}${Math.abs(wChange).toFixed(1)} since ${fmtShort(wFirst.at)}` : 'Add more check-ins for a trend.'}</span>
+                <span className="sub">{wChange != null ? `${Math.abs(wChange) < 0.05 ? '' : wChange > 0 ? '+' : '−'}${Math.abs(wChange).toFixed(1)} since ${fmtShort(wFirst.at)}` : 'Add more check-ins for a trend.'}</span>
               </>
             ) : <span className="sub">Add your weight in a daily check-in.</span>}
           </a>

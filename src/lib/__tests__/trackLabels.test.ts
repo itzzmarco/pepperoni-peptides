@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { placeLabels } from '../trackLabels';
+import { placeLabels, trackStart } from '../trackLabels';
 
 describe('placeLabels', () => {
   it('centres a label on its mark', () => {
@@ -25,5 +25,19 @@ describe('placeLabels', () => {
 
   it('shows only the end label with no marks', () => {
     expect(placeLabels([], 248, 48, 36)).toEqual({ lefts: [], showEnd: true });
+  });
+});
+
+describe('trackStart', () => {
+  const at = (h: number, m = 0) => new Date(2026, 10, 9, h, m);
+
+  it('starts at 6 AM when nothing is earlier', () => {
+    expect(trackStart([at(8), at(21, 30)])).toBe(360);
+    expect(trackStart([])).toBe(360);
+  });
+
+  it('starts at the hour of the earliest overnight dose or of now', () => {
+    expect(trackStart([at(9), at(2, 40), at(4, 10)])).toBe(120);
+    expect(trackStart([at(0, 15)])).toBe(0);
   });
 });

@@ -16,3 +16,12 @@ export function placeLabels(xs: number[], width: number, slot: number, endSlot: 
   const showEnd = last + slot * 2 <= width - endSlot;
   return { lefts, showEnd };
 }
+
+/**
+ * Where the day track starts, in minutes after midnight: 6 AM, or the start of the hour of anything earlier (a dose or
+ * now), so overnight doses get their own spots and the Now pin shows. The track always ends at midnight.
+ */
+export function trackStart(times: Date[]) {
+  const mins = times.map(d => d.getHours() * 60 + d.getMinutes());
+  return Math.floor(Math.min(6 * 60, ...mins) / 60) * 60;
+}

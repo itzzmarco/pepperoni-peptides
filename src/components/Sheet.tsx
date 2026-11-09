@@ -10,7 +10,7 @@ let pageOpener: HTMLElement | null = null;
 
 /**
  * Bottom sheet on phones, centered dialog on wider screens. Escape or a scrim tap closes it.
- * On phones, dragging the grabber or the header row down far or fast enough closes it too.
+ * On phones, dragging the grabber down far or fast enough closes it too.
  */
 export function Sheet({ onClose, children, label }: { onClose: () => void; children: ReactNode; label: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -48,13 +48,13 @@ export function Sheet({ onClose, children, label }: { onClose: () => void; child
     };
   }, [onClose, closing, opener]);
 
-  // Grabber or header drag: the sheet follows the finger; letting go either closes it or springs it back.
-  // Only those two start a drag (and only on phones, where the grabber shows), so the form scrolls and its
-  // fields and the header's buttons still take taps.
+  // Grabber drag: the sheet follows the finger; letting go either closes it or springs it back.
+  // Only the grabber starts a drag (and only on phones, where it shows), so a scroll that begins anywhere else,
+  // the title included, scrolls the form, and the header's buttons and the fields still take taps.
   const drag = useRef<{ y0: number; y: number; t: number; v: number } | null>(null);
   const onDown = (e: PointerEvent<HTMLDivElement>) => {
     const t = e.target as Element;
-    if (closing || !t.closest('.grabber, .sheet-head') || t.closest('button, a, input, select, textarea, label')) return;
+    if (closing || !t.closest('.grabber')) return;
     if (!ref.current?.querySelector('.grabber')?.getClientRects().length) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     // The entrance animation owns transform while it runs; end it so the finger moves the sheet from the first frame.

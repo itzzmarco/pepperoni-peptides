@@ -230,7 +230,7 @@ export function App() {
               </a>
             )}
             {/* The link is the vial and wordmark. Once the headline scrolls away, the page name takes the wordmark's
-                place as plain text that lets taps through, so the whole row stays the home link (styles.css). */}
+                place as a separate plain label that covers it, so only the vial is still the home link (styles.css). */}
             <div className="brand-wrap">
             <a className="brand" href="#today" aria-label="Peptide Ledger, today">
               {/* The installed icon's vial, drawn the same way: a pink cap on a dark rounded tile. */}

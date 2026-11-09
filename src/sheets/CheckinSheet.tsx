@@ -6,6 +6,7 @@ import { EFFECTS, RED_FLAGS, SCALES } from '../data/options';
 import { Sheet } from '../components/Sheet';
 import { useToast } from '../components/Toast';
 import { useFieldError } from '../components/FieldError';
+import { LeaveFoot, useLeaveGuard } from '../components/LeaveGuard';
 
 const toggle = (list: string[], v: string) => (list.includes(v) ? list.filter(x => x !== v) : [...list, v]);
 
@@ -20,6 +21,9 @@ export function CheckinSheet({ onClose, onBackfill }: { onClose: () => void; onB
   const [wUnit, setWUnit] = useState(() => checkins.find(c => c.weightUnit)?.weightUnit ?? 'lb');
   const [notes, setNotes] = useState('');
   const [when, setWhen] = useState(() => toLocalInput(new Date()));
+  // Entered values are not thrown away by a stray dismiss: a changed check-in asks first (LeaveGuard).
+  const guard = useLeaveGuard(JSON.stringify([vals, effects, flags, weight, wUnit, notes, when]), onClose);
+  const { close } = guard;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +38,7 @@ export function CheckinSheet({ onClose, onBackfill }: { onClose: () => void; onB
   };
 
   return (
-    <Sheet onClose={onClose} label="Daily check-in">
+    <Sheet onClose={close} label="Daily check-in">
       <form className="stack gap-4" onSubmit={submit} noValidate>
         <div className="sheet-head">
           <div>
@@ -42,7 +46,7 @@ export function CheckinSheet({ onClose, onBackfill }: { onClose: () => void; onB
             <p className="small muted mt-1">1 is poor, 5 is great. Skip anything you like.</p>
             {onBackfill && <p className="small mt-2">Catching up from paper? <button type="button" className="linkish" onClick={onBackfill}>Fill in past days</button></p>}
           </div>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
+          <button type="button" className="icon-btn" onClick={close} aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
         </div>
         {SCALES.map(([k, l]) => (
           <div className="field" key={k}>
@@ -79,10 +83,10 @@ export function CheckinSheet({ onClose, onBackfill }: { onClose: () => void; onB
           </div>
         )}
         <label className="field"><span>Notes <small>(optional)</small></span><textarea id="c-notes" maxLength={500} value={notes} onChange={e => setNotes(e.target.value)} /></label>
-        <div className="sheet-foot">
-          <button type="button" className="btn ghost" onClick={onClose}>Cancel</button>
+        <LeaveFoot guard={guard}>
+          <button type="button" className="btn ghost" onClick={close}>Cancel</button>
           <button type="submit" className="btn">Save check-in</button>
-        </div>
+        </LeaveFoot>
       </form>
     </Sheet>
   );

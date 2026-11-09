@@ -50,7 +50,7 @@
   --skel: #E8E9EE; --skel-shine: rgba(255,255,255,.7);
   --illo-shade: rgba(30,34,48,.07); --illo-shade-on-dark: rgba(0,0,0,.28); --illo-line: #6E7484;
   /* Brand pink: the vial cap in the mark, and the Log button at the centre of the tab bar, so the app's one main action wears it. */
-  --brand: #E05A9E; --brand-ink: #FFFFFF;
+  --brand: #C93D87; --brand-ink: #FFFFFF;
   /* Sheets: their own surface, a 1px top light, and the scrim that dims the page behind. Primary-button hover. */
   --sheet-bg: #F6F6F8; --sheet-hi: rgba(255,255,255,.8); --scrim: rgba(16,18,24,.5);
   --btn-hover: #353B4D;
@@ -144,7 +144,6 @@ body {
   font-family: var(--f-body); font-size: var(--fs-md); line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
-body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
 h1, h2, h3, h4 { line-height: 1.15; margin: 0; text-wrap: balance; font-weight: 600; }
 h1 { font-size: var(--fs-2xl); letter-spacing: -.01em; line-height: 1.1; }
 h2 { font-size: var(--fs-xl); letter-spacing: -.01em; }
@@ -186,9 +185,11 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .brand-wrap { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; margin-right: auto; min-width: 0; }
 .brand-wrap > * { grid-area: 1 / 1; }
 .wordmark, .bar-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.bar-title { padding-left: 34px; font-weight: 600; font-size: var(--fs-md); color: var(--ink); min-width: 0; opacity: 0; transform: translateY(6px); pointer-events: none; }
+.bar-title { margin-left: 34px; font-weight: 600; font-size: var(--fs-md); color: var(--ink); min-width: 0; opacity: 0; transform: translateY(6px); pointer-events: none; }
 .topbar[data-titled] .wordmark { opacity: 0; transform: translateY(-6px); }
-.topbar[data-titled] .bar-title { opacity: 1; transform: none; }
+/* Shown, the page name is its own label beside the vial: it sits over the hidden wordmark and takes the taps there, so
+   only the vial stays the home link and tapping the title does nothing. */
+.topbar[data-titled] .bar-title { opacity: 1; transform: none; pointer-events: auto; cursor: default; }
 /* The whole brand row stays the home link at 44px in both states: the page name lets taps through to the link under it. */
 .brand { min-height: 44px; }
 .sync { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--ink-2); background: var(--surface); box-shadow: var(--ring); border-radius: 999px; padding: 6px 12px 6px 10px; white-space: nowrap; min-height: 44px; }
@@ -595,6 +596,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .empty > .illo-ground { justify-self: stretch; }
 /* The art grows with the card, up to a size that still reads as a spot drawing. */
 .illo-ground > .illo { width: clamp(200px, 62%, 300px); }
+/* On a short screen the drawing shrinks to about 96px tall, so the title and the main action still show in the first view. */
+@media (max-height: 700px) { .illo-ground > .illo { width: 128px; } }
 /* One empty-state layout everywhere: art, centred title, a line of copy, the main action. Today's dark card has its own drawing. */
 .empty :is(h2, h3) { font-size: var(--fs-xl); }
 .empty h1 .soft { color: var(--ink-4); }
@@ -740,8 +743,6 @@ tr:last-child td { border-bottom: 0; }
 .sheet-head > :first-child { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
 /* A sheet's display title (a peptide name) steps down on narrow phones so long names keep whole words. */
 .sheet-title { font-size: clamp(var(--fs-xl), 7vw, var(--fs-2xl)); }
-/* On phones the header drags the sheet like the grabber does; its buttons still tap. */
-@media (max-width: 699px) { .sheet-head { touch-action: none; cursor: grab; } .sheet-head :is(button, a, input, select) { cursor: pointer; } }
 /* The sticky action row carries the home-indicator inset itself, so when pinned it sits flush on the sheet's bottom edge and
    nothing scrolls through below it; the sheet then keeps only its fixed 16px of bottom padding. */
 .sheet:has(.sheet-foot) { padding-bottom: 16px; }
@@ -950,6 +951,8 @@ footer.foot p { max-width: 90ch; }
   @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
   .draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw calc(var(--dur-slow) * 2) var(--dur-med) var(--ease-out) forwards; }
   @keyframes draw { to { stroke-dashoffset: 0; } }
+  /* A line chart's wash and points come in with its stroke, on the same delay and length, so a first open never shows loose dots over a fill. */
+  .chart :is(.area, .pt) { animation: fade-in calc(var(--dur-slow) * 2) var(--dur-med) var(--ease-out) backwards; }
   /* Single marks (the day ring, the Now pin) settle on the same damped spring as the tab pill and sheets, with no bounce.
      backwards, like .rise: once landed they let go of transform, so a belly-clock hour still shrinks under a finger. */
   .pop { animation: pop var(--dur-med) var(--ease-spring) backwards; animation-delay: calc(min(var(--i, 0), 6) * 20ms + 80ms); }
@@ -959,6 +962,8 @@ footer.foot p { max-width: 90ch; }
   .grow { animation: grow var(--dur-slow) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 60ms + 250ms); transform-origin: left; }
   @keyframes grow { from { transform: scaleX(0); } }
   .grow.up { animation-name: grow-up; transform-origin: bottom; }
+  /* The Trends header chart settles in one short entrance: a tight stagger, like the rise blocks, not 60ms a bar. */
+  .hero-bars .grow { animation-delay: calc(var(--i, 0) * 16ms + 120ms); }
   @keyframes grow-up { from { transform: scaleY(0); } }
   .syringe .moves { transition: transform var(--dur-slow) var(--ease-out); }
   details > summary .chev, .btn > .chev { transition: transform var(--dur-med) var(--ease-out); }
@@ -1019,10 +1024,12 @@ footer.foot p { max-width: 90ch; }
     @keyframes sheet-in { from { opacity: 0; transform: scale(.96); } }
     @keyframes sheet-out { to { opacity: 0; transform: scale(.96); } }
   }
-  /* Switching theme: surfaces, text and outlines fade into their new colours instead of snapping (ThemeToggle sets the
-     flag for one --dur-med). It comes after the press and selection transitions, so it wins for that moment. */
-  :root[data-theming] body, :root[data-theming] body::before, :root[data-theming] body *, :root[data-theming] body *::before, :root[data-theming] body *::after {
-    transition: background-color var(--dur-med) var(--ease-out), color var(--dur-med) var(--ease-out), border-color var(--dur-med) var(--ease-out), box-shadow var(--dur-med) var(--ease-out), fill var(--dur-med) var(--ease-out), stroke var(--dur-med) var(--ease-out);
+  /* Switching theme: the page and the surfaces that carry colour (bars, tiles, cards, sheets) fade into their new colours
+     instead of snapping (ThemeToggle sets the flag for one --dur-med); text inside them inherits the fading colour. Only
+     those few surfaces, and no shadows, so a long screen like Learn is not repainting everything at once. It comes after
+     the press and selection transitions, so it wins for that moment. */
+  :root[data-theming] :is(body, .topbar, .tabbar, .tile, .card, .sheet) {
+    transition: background-color var(--dur-med) var(--ease-out), color var(--dur-med) var(--ease-out), border-color var(--dur-med) var(--ease-out);
   }
   @keyframes fade-in { from { opacity: 0; } }
   @keyframes fade-out { to { opacity: 0; } }
@@ -1056,6 +1063,14 @@ footer.foot p { max-width: 90ch; }
   :root[data-dir="prev"]::view-transition-new(root) { animation-name: vt-in-prev; }
   @keyframes vt-out-prev { to { opacity: 0; transform: translateX(4px); } }
   @keyframes vt-in-prev { from { opacity: 0; transform: translateX(-8px); } }
+  /* At 900px and wider the tab bar is a vertical rail, so a tab further down brings the page up from below, and one
+     further up brings it down from above, matching the way the pill travelled. */
+  @media (min-width: 900px) {
+    :root[data-dir="next"]::view-transition-old(root) { animation-name: vt-out; }
+    :root[data-dir="next"]::view-transition-new(root) { animation-name: vt-in; }
+    :root[data-dir="prev"]::view-transition-old(root) { animation-name: vt-out-back; }
+    :root[data-dir="prev"]::view-transition-new(root) { animation-name: vt-in-back; }
+  }
   /* The bars and the notice are the same on every route, so they hold still: no snapshot of the old bar is shown,
      only the live new one, so the tab pill visibly slides while the page body fades. */
   .notice { view-transition-name: notice; }
@@ -1070,11 +1085,11 @@ footer.foot p { max-width: 90ch; }
   @keyframes rise-soft { from { opacity: 0; transform: translateY(6px); } }
   :root[data-routed] :is(.pop, .grow) { animation-duration: var(--dur-med); animation-delay: calc(min(var(--i, 0), 12) * 12ms + 60ms); }
   :root[data-routed] :is(.cal, .pattern, .dots7, .strip, .strip28, .daybar) .pop { animation-delay: 60ms; }
-  :root[data-routed] .draw { animation-duration: var(--dur-slow); animation-delay: var(--dur-fast); }
+  :root[data-routed] :is(.draw, .chart .area, .chart .pt) { animation-duration: var(--dur-slow); animation-delay: var(--dur-fast); }
   /* A route that arrives through the page fade has no entrances of its own: the fade is its entrance. Otherwise the new
      page would be captured mid-entrance (headlines at opacity 0, marks at scale 0) and the fade would show a blank page.
      The flag stays until the next route change, so nothing replays once the fade ends. */
-  :root[data-routed="fade"] :is(.rise, .pop, .grow, .draw) { animation: none; }
+  :root[data-routed="fade"] :is(.rise, .pop, .grow, .draw, .chart .area, .chart .pt) { animation: none; }
   :root[data-routed="fade"] .draw { stroke-dashoffset: 0; }
   /* A sheet closed by a route change leaves on its own: only its live exit shows, never a frozen copy in the crossfade. */
   .scrim { view-transition-name: sheet; }

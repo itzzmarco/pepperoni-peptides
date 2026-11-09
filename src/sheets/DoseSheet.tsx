@@ -15,6 +15,7 @@ import { Syringe } from '../components/Syringe';
 import { UnitOptions } from '../components/UnitPicker';
 import { useToast } from '../components/Toast';
 import { useFieldError } from '../components/FieldError';
+import { LeaveFoot, useLeaveGuard } from '../components/LeaveGuard';
 import { regName } from '../views/PeptidesView';
 
 const blank = (r: Regimen, site = '') => ({ amount: r.dose, unit: r.unit, at: toLocalInput(new Date()), route: r.route, site, notes: '' });
@@ -40,6 +41,9 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
   const recent = bellyDoses.map(x => bellyHour(x.site)!);
   const [view, setView] = useState<'clock' | 'body'>(first?.hour ? 'clock' : 'body');
   const next = nextBellyHour(recent[0] ?? null, last);
+  // A changed dose form asks before a stray dismiss throws it away (LeaveGuard).
+  const guard = useLeaveGuard(JSON.stringify([r.id, d]), onClose);
+  const { close } = guard;
 
   const set = (k: keyof typeof d) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setD({ ...d, [k]: e.target.value });
   /** Picks the suggested spot for `x` given this way, and the view it's shown in. */
@@ -102,14 +106,14 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
   }
 
   return (
-    <Sheet onClose={onClose} label={`Log ${regName(r)}`}>
+    <Sheet onClose={close} label={`Log ${regName(r)}`}>
       <form className="stack gap-4" onSubmit={submit} noValidate>
         <div className="sheet-head">
           <div className="stack gap-1">
             <span className="eyebrow">Log a dose</span>
             <h2 className="sheet-title">{regName(r)}</h2>
           </div>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
+          <button type="button" className="icon-btn" onClick={close} aria-label="Close">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
           </button>
         </div>
@@ -200,10 +204,10 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
         )}
 
         <label className="field tile gap-2"><span>Notes <small>(optional)</small></span><input type="text" id="d-notes" maxLength={200} placeholder="e.g. new vial, mild sting" value={d.notes} onChange={set('notes')} /></label>
-        <div className="sheet-foot">
-          <button type="button" className="btn ghost" onClick={onClose}>Cancel</button>
+        <LeaveFoot guard={guard}>
+          <button type="button" className="btn ghost" onClick={close}>Cancel</button>
           <button type="submit" className="btn">Save dose</button>
-        </div>
+        </LeaveFoot>
       </form>
     </Sheet>
   );

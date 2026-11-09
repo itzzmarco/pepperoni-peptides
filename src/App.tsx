@@ -62,9 +62,12 @@ export function App() {
   useEffect(() => {
     const swap = () => { setRoute(parseHash()); setSheet(null); window.scrollTo(0, 0); };
     // Fade the new route in while the top bar and tab bar stay put; reduced motion keeps the instant swap.
+    // The new page is snapshotted as it will look, so first-paint reveals (.rise and friends) stay off once routing starts.
     const onHash = () => {
-      if ('startViewTransition' in document && !prefersReducedMotion()) (document as WithTransitions).startViewTransition(() => flushSync(swap));
-      else swap();
+      if ('startViewTransition' in document && !prefersReducedMotion()) {
+        document.documentElement.dataset.routed = '';
+        (document as WithTransitions).startViewTransition(() => flushSync(swap));
+      } else swap();
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -138,12 +141,17 @@ export function App() {
             <AccountButton onOpen={() => setSheet({ kind: 'account' })} />
             <ThemeToggle />
           </div>
+        </div>
+      </header>
+      {/* Outside the sticky bar: it greets every route at the top, then scrolls away so only the brand row stays pinned. */}
+      <div className="gutter" inert={bg}>
+        <div className="wrap">
           <p className="notice" role="note">
             <b>Education only.</b>
             <span>Not medical advice. Most peptides here aren't FDA-approved for what's promoted online. Emergency: 911.</span>
           </p>
         </div>
-      </header>
+      </div>
       <main className="gutter" inert={bg}>
         <div className="wrap">{view}</div>
       </main>

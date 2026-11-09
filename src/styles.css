@@ -112,7 +112,7 @@
 }
 
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 76px); }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
   font-family: var(--f-body); font-size: var(--fs-md); line-height: 1.5;
@@ -218,7 +218,7 @@ a.tile { color: var(--ink); }
 .btn.quiet { background: transparent; color: var(--ink-2); padding: 0 12px; }
 .btn.quiet:hover { color: var(--ink); background: var(--surface-2); filter: none; }
 .btn.soft { background: var(--surface-2); color: var(--ink); }
-.btn.danger { background: var(--danger); color: #fff; }
+.btn.danger { background: var(--danger); color: var(--danger-bg); }
 .btn.sm { min-height: 44px; padding: 0 16px; font-size: var(--fs-sm); }
 .btn.block { width: 100%; }
 .btn[disabled] { opacity: .5; cursor: not-allowed; }
@@ -453,9 +453,9 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .filter-row::-webkit-scrollbar { display: none; }
 .filter-row .label { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .08em; margin-right: 4px; flex: none; }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); gap: 12px; }
-.card { display: grid; gap: 8px; align-content: start; grid-template-rows: auto auto auto 1fr auto; text-align: left; background: var(--surface); box-shadow: var(--ring); border-radius: var(--r-md); padding: 16px; color: var(--ink); text-decoration: none; min-width: 0; }
+.card { position: relative; display: grid; gap: 8px; align-content: start; grid-template-rows: auto auto 1fr auto; text-align: left; background: var(--surface); box-shadow: var(--ring); border-radius: var(--r-md); padding: 16px; color: var(--ink); text-decoration: none; min-width: 0; }
 .glyph { display: inline-grid; place-items: center; border-radius: 14px; flex: none; }
-.card .glyph { margin-bottom: 2px; }
+.card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
 .card h3 { font-size: 1.0625rem; overflow-wrap: anywhere; }
 .card .aka { font-size: var(--fs-xs); color: var(--ink-3); margin-top: 2px; }
 .card .sum { font-size: .8125rem; line-height: 1.4; color: var(--ink-3); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
@@ -481,7 +481,7 @@ details[open] > summary .chev { transform: rotate(90deg); }
 .band[data-t="2"] { --tc: var(--t2); --tb: var(--t2-bg); } .band[data-t="3"] { --tc: var(--t3); --tb: var(--t3-bg); }
 .band[data-t="4"] { --tc: var(--t4); --tb: var(--t4-bg); } .band[data-t="5"] { --tc: var(--t5); --tb: var(--t5-bg); }
 .band .band-top { display: flex; align-items: center; gap: 10px; }
-.band .glyph { background: var(--surface) !important; }
+.band .glyph:not([data-solid]) { background: var(--surface) !important; }
 .band .tier { background: var(--surface); }
 .band .seq span { background: color-mix(in srgb, var(--surface) 70%, transparent); }
 
@@ -550,8 +550,8 @@ tr:last-child td { border-bottom: 0; }
 @media (min-width: 700px) { .sheet { border-radius: var(--r-xl); max-height: calc(100vh - 48px); } }
 .sheet:focus { outline: none; }
 .scrim[data-closing] { pointer-events: none; }
-/* Phone grabber: drag it down to close. Only it starts a drag, so the form still scrolls normally. */
-.grabber { display: grid; place-items: center; height: 24px; margin: -14px auto -10px; width: 88px; cursor: grab; touch-action: none; }
+/* Phone grabber: drag it down to close. Only it starts a drag, so the form still scrolls normally; it stays pinned at the top while the form scrolls. */
+.grabber { position: sticky; top: -20px; z-index: 2; display: grid; place-items: center; height: 44px; margin: -20px 0 -16px; background: var(--bg); border-radius: var(--r-xl) var(--r-xl) 0 0; cursor: grab; touch-action: none; }
 .grabber i { width: 40px; height: 5px; border-radius: 3px; background: var(--surface-3); }
 @media (min-width: 700px) { .grabber { display: none; } }
 .sheet-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 0 4px; }
@@ -565,7 +565,7 @@ tr:last-child td { border-bottom: 0; }
 .site { position: absolute; transform: translate(-50%, -50%); width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--sky-dot); background: var(--surface); color: var(--ink); font-size: 10px; font-weight: 600; cursor: pointer; display: grid; place-items: center; padding: 0; }
 .site[data-age="fresh"] { background: var(--peach); border-color: var(--peach); color: var(--peach-deep); }
 .site[data-next="true"] { border: 2px dashed var(--sky-ink); color: var(--sky-ink); }
-.site[aria-pressed="true"] { background: var(--sky-ink); border: 3px solid var(--surface); color: #fff; box-shadow: 0 0 0 2px var(--sky-ink), 0 4px 10px rgba(29,79,184,.35); }
+.site[aria-pressed="true"] { background: var(--sky-ink); border: 3px solid var(--surface); color: var(--bg); box-shadow: 0 0 0 2px var(--sky-ink), 0 4px 10px rgba(29,79,184,.35); }
 .site-legend { display: flex; gap: 6px 14px; justify-content: center; flex-wrap: wrap; font-size: var(--fs-xs); color: var(--ink-2); }
 .site-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: -2px; }
 
@@ -584,7 +584,7 @@ tr:last-child td { border-bottom: 0; }
 .hour[data-recent="2"] { background: var(--recent-2); border-color: var(--recent-2); color: var(--recent-ink); }
 .hour[data-recent="3"] { background: var(--recent-3); border-color: var(--recent-3); color: var(--recent-ink); }
 .hour[data-next="true"] { border: 2px dashed var(--sky-ink); color: var(--sky-ink); background: var(--surface); }
-.hour[aria-pressed="true"] { background: var(--sky-ink); color: #fff; border: 3px solid var(--surface); box-shadow: 0 0 0 2px var(--sky-ink), 0 4px 10px rgba(29,79,184,.35); }
+.hour[aria-pressed="true"] { background: var(--sky-ink); color: var(--bg); border: 3px solid var(--surface); box-shadow: 0 0 0 2px var(--sky-ink), 0 4px 10px rgba(29,79,184,.35); }
 .recent { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .recent span { padding: 4px 10px; border-radius: 999px; font-size: var(--fs-xs); font-weight: 600; background: var(--recent-2); color: var(--recent-ink); }
 
@@ -648,16 +648,16 @@ input.code-input { font-family: var(--f-mono); font-size: 1.375rem; letter-spaci
 .app-end { height: calc(96px + env(safe-area-inset-bottom, 0px)); }
 
 .toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 12px 18px; border-radius: 999px; font-size: var(--fs-sm); z-index: 60; box-shadow: var(--shadow-float); max-width: calc(100% - 32px); }
-/* Press feedback everywhere; hover lift only where a pointer can hover. */
-.btn:active, .fchip:active, .card:active, a.tile:active, .icon-btn:active, .tabbar .log:active { transform: scale(.97); }
-@media (hover: hover) {
-  .card:hover, a.tile:hover { box-shadow: var(--ring), var(--shadow-2); }
-  .card:active, a.tile:active { box-shadow: var(--ring), var(--shadow-1); }
-}
+/* Hover elevation where a pointer can hover: a --shadow-2 layer that fades in, so it moves with the lift.
+   Press scale and the lift itself live in the motion section below. */
+a.tile, button.tile { position: relative; }
+.card::after, a.tile::after, button.tile::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: var(--shadow-2); opacity: 0; pointer-events: none; }
+@media (hover: hover) { .card:hover::after, a.tile:hover::after, button.tile:hover::after { opacity: 1; } }
 
 /* Illustrations and skeletons */
 .illo { display: block; max-width: 100%; height: auto; }
-.empty .illo { justify-self: center; }
+/* On the instrument card, draw with on-dark colours so the picture holds up on --dark in both themes. */
+.tile.dark .illo { --illo-line: var(--on-dark-3); --illo-shade: var(--dark-line); --surface: var(--on-dark); --sky: var(--dark-line); --mint-ink: var(--dark); }
 .skel-page { display: grid; gap: 12px; }
 .skel { position: relative; overflow: hidden; border-radius: var(--r-lg); background: var(--skel); }
 
@@ -681,9 +681,11 @@ footer.foot p { max-width: 90ch; }
 
   /* Tactile feedback: quick press, gentle lift */
   .btn, .fchip, .icon-btn, .tabbar .log, .hour { transition: transform var(--dur-fast) var(--ease-out), filter var(--dur-fast) var(--ease-out); }
-  .card, a.tile { transition: transform var(--dur-med) var(--ease-out); }
-  @media (hover: hover) { .card:hover, a.tile:hover { transform: translateY(-2px); } }
-  .card:active, a.tile:active { transform: scale(.98); }
+  .btn:active, .fchip:active, .icon-btn:active, .tabbar .log:active { transform: scale(.97); }
+  .card, a.tile, button.tile { transition: transform var(--dur-med) var(--ease-out); }
+  .card::after, a.tile::after, button.tile::after { transition: opacity var(--dur-med) var(--ease-out); }
+  @media (hover: hover) { .card:hover, a.tile:hover, button.tile:hover { transform: translateY(-2px); } }
+  .card:active, a.tile:active, button.tile:active { transform: scale(.98); }
   .site { transition: transform var(--dur-fast) var(--ease-out); }
   .hour:active, .site:active { transform: scale(.96); }
   .site:active { transform: translate(-50%, -50%) scale(.94); }
@@ -694,7 +696,7 @@ footer.foot p { max-width: 90ch; }
   /* Sheets: scrim fades; phones slide up from the bottom, wider screens fade and scale from .96. Exit reverses. */
   .scrim { animation: fade-in var(--dur-med) var(--ease-out) backwards; }
   .scrim[data-closing] { animation: fade-out var(--dur-med) var(--ease-in) forwards; }
-  .sheet { animation: sheet-up var(--dur-med) var(--ease-out) backwards; transition: transform var(--dur-med) var(--ease-spring); }
+  .sheet { animation: sheet-up var(--dur-med) var(--ease-out) backwards; transition: transform var(--dur-med) var(--ease-out); }
   .sheet[data-dragging] { transition: none; }
   .scrim[data-closing] .sheet { animation: sheet-down var(--dur-med) var(--ease-in) forwards; }
   @keyframes sheet-up { from { transform: translateY(100%); } }
@@ -724,6 +726,14 @@ footer.foot p { max-width: 90ch; }
   @keyframes vt-out { to { opacity: 0; transform: translateY(-4px); } }
   @keyframes vt-in { from { opacity: 0; transform: translateY(8px); } }
   ::view-transition-group(topbar), ::view-transition-group(tabbar) { animation-duration: 0s; }
+  /* Once routes change, pages appear as they are, so the crossfade is the one motion (no empty frame, no late stagger). */
+  :root[data-routed] .rise, :root[data-routed] .pop, :root[data-routed] .grow, :root[data-routed] .draw { animation: none; }
+  :root[data-routed] .draw { stroke-dashoffset: 0; }
+  /* A sheet closed by a route change leaves on its own: only its live exit shows, never a frozen copy in the crossfade. */
+  .scrim { view-transition-name: sheet; }
+  ::view-transition-group(sheet) { animation-duration: 0s; }
+  ::view-transition-old(sheet) { display: none; }
+  ::view-transition-new(sheet) { animation: none; }
 }
 .weekdays { gap: 6px; }
 .weekdays .fchip { min-width: 44px; padding: 0 10px; justify-content: center; }

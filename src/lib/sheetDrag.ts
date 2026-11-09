@@ -13,3 +13,9 @@ export function shouldDismiss(dy: number, velocity: number) {
   if (dy > DISMISS_DISTANCE) return true;
   return dy >= MIN_FLICK && velocity > DISMISS_VELOCITY;
 }
+
+/** A finger that stops before letting go isn't flicking: older than this (ms), the last move's speed no longer counts. */
+export const FLICK_STALE_MS = 80;
+
+/** The flick speed at release: the last measured velocity, or 0 if the finger has been still since then. */
+export const releaseVelocity = (velocity: number, msSinceLastMove: number) => (msSinceLastMove > FLICK_STALE_MS ? 0 : velocity);

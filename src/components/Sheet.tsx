@@ -1,8 +1,11 @@
-import { createContext, useContext, useEffect, useRef, type PointerEvent, type ReactNode } from 'react';
-import { dragOffset, shouldDismiss } from '../lib/sheetDrag';
+import { createContext, useContext, useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
+import { dragOffset, releaseVelocity, shouldDismiss } from '../lib/sheetDrag';
 
 /** True while App keeps a closed sheet mounted so its exit animation can play. */
 export const SheetClosing = createContext(false);
+
+/** The page control that opened the current chain of sheets, so focus goes back there, not to a removed sheet. */
+let pageOpener: HTMLElement | null = null;
 
 /**
  * Bottom sheet on phones, centered dialog on wider screens. Escape or a scrim tap closes it.
@@ -12,11 +15,17 @@ export function Sheet({ onClose, children, label }: { onClose: () => void; child
   const ref = useRef<HTMLDivElement>(null);
   const closing = useContext(SheetClosing);
   // Whatever had focus when the sheet opened, captured once so re-runs of the effect below don't lose it.
-  const opener = useRef(typeof document === 'undefined' ? null : document.activeElement as HTMLElement | null);
+  // Opened from inside another sheet (one sheet swapping to the next), keep that sheet's page opener instead.
+  const [opener] = useState(() => {
+    if (typeof document === 'undefined') return null;
+    const a = document.activeElement as HTMLElement | null;
+    pageOpener = a?.closest('.scrim') ? pageOpener : a;
+    return pageOpener;
+  });
   useEffect(() => {
     // Once the exit starts, hand focus and scrolling back to the page right away.
     if (closing) return;
-    const prev = opener.current;
+    const prev = opener;
     // Focus the dialog itself rather than a field, so phones don't pop the keyboard over the form.
     ref.current?.focus();
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
@@ -28,7 +37,7 @@ export function Sheet({ onClose, children, label }: { onClose: () => void; child
       document.body.style.overflow = overflow;
       prev?.focus?.();
     };
-  }, [onClose, closing]);
+  }, [onClose, closing, opener]);
 
   // Grabber drag: the sheet follows the finger; letting go either closes it or springs it back.
   const drag = useRef<{ y0: number; y: number; t: number; v: number } | null>(null);
@@ -46,13 +55,13 @@ export function Sheet({ onClose, children, label }: { onClose: () => void; child
     d.y = e.clientY; d.t = e.timeStamp;
     ref.current.style.transform = `translateY(${dragOffset(d.y0, d.y)}px)`;
   };
-  const onUp = () => {
+  const onUp = (e: PointerEvent<HTMLDivElement>) => {
     const d = drag.current, el = ref.current;
     drag.current = null;
     if (!d || !el) return;
     el.removeAttribute('data-dragging');
     // Closing keeps the dragged offset, so the exit slides on from where the finger let go.
-    if (shouldDismiss(dragOffset(d.y0, d.y), d.v)) onClose();
+    if (shouldDismiss(dragOffset(d.y0, d.y), releaseVelocity(d.v, e.timeStamp - d.t))) onClose();
     else el.style.transform = '';
   };
 

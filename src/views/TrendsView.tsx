@@ -254,6 +254,13 @@ export function TrendsView({ onBackfill }: { onBackfill: () => void }) {
         <span className="eyebrow">Trends · {RANGES.find(r => r[0] === days)![1]}</span>
         <h1>{line1}{line2 && <><br /><span className="soft">{line2[0].toUpperCase() + line2.slice(1)}.</span></>}</h1>
       </header>
+      {/* Nothing logged yet: the history card explains what will show up and offers the first step, instead of a dashboard of dashes. */}
+      {empty ? (
+        <>
+          <History doses={doses} checkins={checkins} onBackfill={onBackfill} />
+          <ExportPanel ledger={ledger} />
+        </>
+      ) : <>
       <div className="seg rise" role="group" aria-label="Time range" style={rise(1)}>
         {RANGES.map(([d, l]) => <button key={d} type="button" aria-pressed={days === d} onClick={() => setDays(d)}>{l}</button>)}
       </div>
@@ -339,6 +346,7 @@ export function TrendsView({ onBackfill }: { onBackfill: () => void }) {
 
       <ExportPanel ledger={ledger} />
       <History doses={doses} checkins={checkins} onBackfill={onBackfill} />
+      </>}
     </section>
   );
 }

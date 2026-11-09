@@ -199,10 +199,12 @@ h1[tabindex="-1"]:focus { outline: none; }
 .brand-wrap > * { grid-area: 1 / 1; }
 .brand { justify-self: start; }
 /* The back and back-to-top controls are a chip of their own, like the sync chip at the other end, set 16px clear of the
-   vial; while either shows, only the vial itself is the home link, so the gap between them is dead space, never a home tap. */
+   vial; while either shows, only the vial's own 44px target is the home link, so the gap between them is dead space, never a home tap. */
 .topbar :is(.bar-back, .bar-title) { justify-self: start; max-width: calc(100% - 42px); margin-left: 42px; min-height: 44px; padding: 0 14px 0 10px; border-radius: 999px; background: var(--surface); box-shadow: var(--ring); min-width: 0; }
 .topbar:is([data-sub], [data-titled]) .brand { pointer-events: none; }
-.topbar:is([data-sub], [data-titled]) .brand > svg { pointer-events: auto; }
+/* The vial keeps a full 44px home target of its own, centred on it and ending short of the chip at 42px. */
+.brand { position: relative; }
+.topbar:is([data-sub], [data-titled]) .brand::before { content: ""; position: absolute; left: -9px; top: 50%; width: 44px; height: 44px; margin-top: -22px; pointer-events: auto; }
 .bar-back { display: flex; align-items: center; gap: 2px; min-height: 44px; text-decoration: none; color: var(--ink); font-weight: 600; font-size: var(--fs-md); opacity: 0; visibility: hidden; pointer-events: none; }
 .bar-back > svg { flex: none; color: var(--ink-3); }
 .bar-back > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
@@ -330,7 +332,8 @@ a.tile { color: var(--ink); }
 .inset { background: var(--surface-2); border-radius: var(--r-sm); padding: 10px 12px; }
 .tile.dark .inset { background: var(--dark-fill); }
 .white-inset { background: var(--surface); color: var(--ink); border-radius: var(--r-md); padding: 16px; }
-.arrow { width: 48px; height: 48px; border-radius: 24px; background: var(--btn); color: var(--btn-ink); display: grid; place-items: center; flex: none; }
+/* The open/close mark on a disclosure row: a bare chevron like the back control, so the row never reads as a second main action. */
+.arrow { width: 24px; height: 24px; color: inherit; display: grid; place-items: center; flex: none; }
 
 /* Buttons */
 .btn { appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; background: var(--btn); color: var(--btn-ink); min-height: 48px; padding: 0 22px; border-radius: 999px; font-weight: 600; font-size: var(--fs-label); cursor: pointer; text-decoration: none; white-space: nowrap; }
@@ -374,6 +377,9 @@ a.tile { color: var(--ink); }
 .seg button small { display: block; font-size: var(--fs-2xs); font-weight: 500; opacity: .85; line-height: 1.2; color: inherit; }
 .seg button[aria-pressed="true"] small { opacity: 1; }
 .seg button:has(small) { padding: 4px 6px; line-height: 1.2; min-height: 44px; }
+/* On the narrowest phones a three-way control gives each option about 90px: labels take tighter padding and may wrap
+   onto two lines (Partner's "Since start") rather than run out of their pill. */
+@media (max-width: 359px) { .seg button { white-space: normal; padding-inline: 6px; line-height: 1.2; } }
 /* One pill slides under whichever button has aria-pressed="true"; the buttons are equal grid columns. */
 .seg::before { content: ""; position: absolute; z-index: -1; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px - (var(--n) - 1) * 2px) / var(--n)); border-radius: 20px; background: var(--btn); transform: translateX(calc(var(--k) * (100% + 2px))); }
 .seg:not(:has(> button[aria-pressed="true"]))::before { opacity: 0; }
@@ -396,10 +402,18 @@ input[type="search"] { border-radius: 24px; padding-left: 44px; }
 textarea { min-height: 80px; resize: vertical; }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
 .search { position: relative; }
-/* Learn's finder: search and the evidence row pin flush under the top bar (its measured --bar-h) on an opaque
-   page-coloured band, so the cards scroll under it; they let go after the last card, before the tier explainer. */
+/* Learn's finder: the search field pins under the top bar (its measured --bar-h) and the evidence row pins under it,
+   each on a band of the bar's own frosted glass, so the bar and the finder read as one surface over the cards. While the
+   list scrolls down the evidence row tucks up behind the search band, leaving only search pinned; it comes back on any
+   scroll up, at the top, or when a chip in it takes focus. Both let go after the last card, before the tier explainer. */
 .lib-find { display: grid; gap: 16px; }
-.lib-pin { position: sticky; top: var(--bar-h, calc(env(safe-area-inset-top, 0px) + 68px)); z-index: 20; display: grid; gap: 10px; padding: 6px 0 10px; margin: -6px 0 -10px; background: var(--bg); box-shadow: -16px 0 0 var(--bg), 16px 0 0 var(--bg); }
+.lib-pin { display: contents; }
+.lib-pin > :is(.search, .filter-wrap) { position: sticky; z-index: 21; isolation: isolate; }
+.lib-pin > .search { top: calc(var(--bar-h, calc(env(safe-area-inset-top, 0px) + 68px)) + 6px); }
+.lib-pin > .filter-wrap { z-index: 20; top: calc(var(--bar-h, calc(env(safe-area-inset-top, 0px) + 68px)) + 64px); margin-top: -6px; }
+.lib-pin > :is(.search, .filter-wrap)::before { content: ""; position: absolute; z-index: -1; inset: -6px -16px -10px; background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); pointer-events: none; }
+.lib-pin > .filter-wrap::before { top: 0; }
+.lib-pin[data-tuck] > .filter-wrap:not(:focus-within) { transform: translateY(-100%); opacity: 0; pointer-events: none; }
 .search svg { position: absolute; left: 16px; top: 15px; color: var(--ink-3); pointer-events: none; }
 .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
 .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; }
@@ -695,7 +709,9 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .card h3 { font-size: var(--fs-lg); overflow-wrap: anywhere; }
 .card .aka { font-size: var(--fs-xs); color: var(--ink-3); margin-top: 2px; }
 .card .sum { font-size: var(--fs-sm); line-height: 1.4; color: var(--ink-3); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.card .row-wrap { gap: 6px; }
+.card .row-wrap { gap: 6px; padding-right: 20px; }
+/* The same quiet chevron Today's opening tiles carry, at the end of the card's last line, so touch users can tell cards open. */
+.card::before { content: ""; position: absolute; right: 20px; bottom: 24px; width: 8px; height: 8px; border: solid var(--ink-3); border-width: 2px 2px 0 0; transform: rotate(45deg); pointer-events: none; }
 :is(.card, .band) .chip { white-space: normal; }
 .count { font-size: var(--fs-sm); color: var(--ink-3); }
 .tiers { display: grid; }
@@ -911,13 +927,13 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 /* Tab bar */
 .tabbar { position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: min(440px, calc(100% - 32px)); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; padding: 6px; border-radius: var(--r-xl); background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); box-shadow: var(--shadow-3), inset 0 0 0 1px var(--glass-edge); view-transition-name: tabbar; isolation: isolate; overflow: hidden; }
 /* Opaque fallback for both glass bars; it comes after both rules so it wins on equal specificity. */
-@supports not (backdrop-filter: blur(1px)) { .topbar, .tabbar { background: var(--bg); } }
+@supports not (backdrop-filter: blur(1px)) { .topbar, .tabbar, .lib-pin > *::before { background: var(--bg); } }
 /* People who ask the OS for less transparency get the same opaque bars, with no blur behind them. */
-@media (prefers-reduced-transparency: reduce) { .topbar, .tabbar { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; } }
-/* One pill behind the current tab: one fifth of the track. It slides to every tab and stays in sight the whole way,
-   passing under the log button's disc when it crosses sides; it only ever comes to rest on a tab. It is a pale accent
-   chip, not a dark fill, so every label it passes (and the log word) keeps readable ink and nothing drops out mid-move;
-   the current tab says so in accent ink with a bolder icon. */
+@media (prefers-reduced-transparency: reduce) { .topbar, .tabbar, .lib-pin > *::before { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; } }
+/* One pill behind the current tab: one fifth of the track. It only ever travels across the four tabs: it slides within
+   a side of the phone bar, and when the tab changes sides it appears on its new tab instead of passing through the log
+   button (the motion section). It is a pale accent chip, so every label keeps readable ink; the current tab says so in
+   accent ink with a bolder icon. */
 .tab-track { position: absolute; z-index: -1; inset: 6px; pointer-events: none; }
 .tab-ind { position: absolute; top: 0; bottom: 0; left: 0; width: 20%; border-radius: 22px; background: var(--tab-pill); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); }
 /* The log button is in the markup twice, once where each layout shows it: the middle of the phone bar, the top of the rail. */
@@ -935,7 +951,7 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 /* On the narrowest phones the bar spans all but 8px a side, so a five-column cell (about 59px) fits "Peptides" with room each side. */
 @media (max-width: 359px) { .tabbar { width: calc(100% - 16px); } }
 .app-end { height: calc(96px + env(safe-area-inset-bottom, 0px)); }
-.toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 12px 18px; border-radius: 999px; font-size: var(--fs-sm); z-index: 60; box-shadow: var(--shadow-3); max-width: calc(100% - 32px); }
+.toast { position: fixed; left: 50%; width: max-content; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 12px 18px; border-radius: 999px; font-size: var(--fs-sm); z-index: 60; box-shadow: var(--shadow-3); max-width: calc(100% - 32px); }
 /* Mouse and keyboard widths: the same five destinations become a full-height rail along the left edge, from the
    top of the window down, with a hairline where the page starts; the page makes room for it, so nothing ever scrolls
    under the rail and it is opaque, with no blur to pay for. The tabs stack from the top
@@ -951,7 +967,7 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
   .tab-track { inset: 100px 6px auto calc(6px + env(safe-area-inset-left, 0px)); height: calc(4 * 64px); }
   .tab-ind { right: 0; bottom: auto; width: auto; height: 25%; transform: translateY(calc(var(--r) * 100%)); }
   .app-end { height: 32px; }
-  .toast { left: calc(50% + 50px); bottom: 32px; }
+  .toast { left: calc(50% + 50px); bottom: 32px; max-width: calc(100% - 132px); }
   .scrim { padding-left: 124px; }
 }
 
@@ -1086,6 +1102,15 @@ footer.foot p { max-width: 90ch; }
 
   /* Sliding selection: tab pill and segmented control */
   .tab-ind { transition: transform var(--dur-med) var(--ease-spring), opacity var(--dur-fast) var(--ease-out); }
+  /* Phone bar: a change of side swaps the animation's name, so the pill grows in on its new tab, covering the slide that
+     would otherwise carry it through the log button; a move within a side keeps the name and simply slides. */
+  @media (max-width: 899px) {
+    .tab-ind[data-side="a"] { animation: tab-in-a var(--dur-med) var(--ease-out); }
+    .tab-ind[data-side="b"] { animation: tab-in-b var(--dur-med) var(--ease-out); }
+  }
+  @keyframes tab-in-a { from { opacity: 0; transform: translateX(calc(var(--k) * 100%)) scale(.85); } to { opacity: 1; transform: translateX(calc(var(--k) * 100%)); } }
+  @keyframes tab-in-b { from { opacity: 0; transform: translateX(calc(var(--k) * 100%)) scale(.85); } to { opacity: 1; transform: translateX(calc(var(--k) * 100%)); } }
+  .lib-pin > .filter-wrap { transition: transform var(--dur-med) var(--ease-out), opacity var(--dur-fast) var(--ease-out); }
   /* The seg pill settles without overshoot, so it never pokes past the rounded track. */
   .seg::before { transition: transform var(--dur-med) var(--ease-out), opacity var(--dur-fast) var(--ease-out); }
   /* Labels never hide. Each keeps its ink until the pill has crossed it: the label losing the pill keeps its pill ink until

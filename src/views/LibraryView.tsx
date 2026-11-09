@@ -200,6 +200,23 @@ export function LibraryView() {
     back.link = href;
     back.nth = Array.from(e.currentTarget.querySelectorAll(`a[href="${href}"]`)).indexOf(a);
   };
+  // Scrolling down the list tucks the evidence row behind the pinned search band, so only search stays pinned; any
+  // scroll up, or getting back to where the finder sits in the page, brings the row back (styles.css).
+  const pin = useRef<HTMLDivElement>(null);
+  const [tuck, setTuck] = useState(false);
+  useEffect(() => {
+    let last = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY, d = y - last;
+      if (Math.abs(d) < 8) return;
+      last = y;
+      const s = pin.current?.querySelector<HTMLElement>('.search');
+      const stuck = !!s && s.getBoundingClientRect().top <= parseFloat(getComputedStyle(s).top) + 1;
+      setTuck(d > 0 && stuck);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
   const fresh = useRef(true);
   useEffect(() => { fresh.current = false; }, []);
   const list = useMemo(
@@ -249,9 +266,10 @@ export function LibraryView() {
       </header>
       {/* Finding a peptide is the main job here, so search, one filter row and the results sit together right under the
           title, and the first cards show on a phone's first screen. The other filters fold away under More filters.
-          Search and the evidence row stay pinned under the top bar while the cards scroll, and let go after the last card. */}
+          Search stays pinned under the top bar while the cards scroll, with the evidence row under it until the list
+          scrolls down; both let go after the last card. */}
       <div className="lib-find">
-      <div className="lib-pin">
+      <div className="lib-pin" ref={pin} data-tuck={tuck || undefined}>
       <div className="search">
         <label className="sr-only" htmlFor="lib-q">Search peptides</label>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
@@ -287,7 +305,7 @@ export function LibraryView() {
           <a className={`card${fresh.current && i < 6 ? ' rise' : ''}`} href={`#${p.id}`} key={p.id} style={{ ['--vt' as string]: `c-${p.id}`, ['--i' as string]: i + 1 }} onClick={open}>
             <div className="card-top">
               <div><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 2).join(' · ')}</div> : null}</div>
-              <FamilyGlyph family={p.family} ground="surface" />
+              <FamilyGlyph family={p.family} />
             </div>
             <div className="card-meta"><span>{FAMILIES[p.family]?.name}</span><Ladder t={p.tier} /></div>
             <p className="sum">{p.summary}</p>

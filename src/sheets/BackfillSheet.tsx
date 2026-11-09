@@ -139,11 +139,12 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
     toast(`Filled in ${plural(values.length, 'day')}${bad.length ? `, skipped ${plural(bad.length, 'line')}` : ''}. Check them, then save.`);
   };
 
-  // A dismiss with unsaved entries (Escape, scrim, close button, Cancel, a drag, or browser Back) first asks in the footer,
+  // A dismiss with anything unsaved (Escape, scrim, close button, Cancel, a drag, or browser Back) first asks in the footer,
   // through the same LeaveGuard as the other forms; any new edit takes the question away. `close` keeps one identity,
-  // since Sheet re-focuses itself whenever onClose changes. The snapshot is empty while nothing is pending, so a form
-  // whose entries were all cleared again counts as unchanged.
-  const guard = useLeaveGuard(pending ? JSON.stringify([weights, ticks, unit]) : '', onClose, '');
+  // since Sheet re-focuses itself whenever onClose changes. Unsaved means pending entries, a weight that doesn't read as
+  // one yet, or text in the paste box; the snapshot is empty otherwise, so a form cleared again counts as unchanged.
+  const dirty = pending > 0 || invalid.length > 0 || paste.trim() !== '';
+  const guard = useLeaveGuard(dirty ? JSON.stringify([weights, ticks, unit, paste]) : '', onClose, '');
   const { close, leaving, keep } = guard;
 
   const save = () => {
@@ -195,7 +196,7 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
         </p>
 
         <div className="bf-grid">
-          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => <span key={i} className="bf-wd" aria-hidden="true">{d}</span>)}
+          {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <span key={i} className="bf-wd" aria-hidden="true">{d}</span>)}
           {cells.map((c, i) => {
             if (!c) return <span key={`x${i}`} />;
             const n = c.date.getDate();

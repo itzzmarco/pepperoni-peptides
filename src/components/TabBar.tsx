@@ -26,8 +26,9 @@ function Tab({ k, label, current, exact }: { k: keyof typeof ICON; label: string
  *  `exact` is false on a screen that belongs to the tab's section without being the tab's own page. */
 export function TabBar({ current, exact, onLog, logLabel, logWord, inert }: { current: Route; exact: boolean; onLog: () => void; logLabel: string; logWord: string; inert?: boolean }) {
   const col = COL[current as keyof typeof COL];
-  // One pill for every move: it slides from tab to tab, in sight the whole way. On the phone bar, crossing sides it passes
-  // under the log button's disc and never rests there (styles.css).
+  // One pill marks the current tab. It slides between the tabs on one side of the phone bar; crossing to the other side
+  // it never travels through the log button, but appears on its new tab (keyed by side in styles.css). On the rail,
+  // where the log button sits apart above the four tabs, it always slides.
   // Its visible word is "Log" (or "Add" with nothing set up); aria-label and the tooltip, which start with that word,
   // name the peptide when exactly one is due, else how many doses are due.
   // It is rendered where each layout shows it, top of the rail and middle of the phone bar, with the other copy hidden
@@ -40,7 +41,7 @@ export function TabBar({ current, exact, onLog, logLabel, logWord, inert }: { cu
   );
   return (
     <nav className="tabbar" aria-label="Main" inert={inert}>
-      {col != null && <span className="tab-track"><span className="tab-ind" aria-hidden="true" style={{ ['--k' as string]: col, ['--r' as string]: ROW[current as keyof typeof ROW] }} /></span>}
+      {col != null && <span className="tab-track"><span className="tab-ind" aria-hidden="true" data-side={col < 2 ? 'a' : 'b'} style={{ ['--k' as string]: col, ['--r' as string]: ROW[current as keyof typeof ROW] }} /></span>}
       {log('log-rail')}
       <Tab k="today" label="Today" current={current} exact={exact} />
       <Tab k="trends" label="Trends" current={current} exact={exact} />

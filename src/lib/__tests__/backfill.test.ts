@@ -8,11 +8,14 @@ const NOW = new Date(2026, 10, 1, 15, 0); // Sun Nov 1 2026, 3 pm local
 const local = (m: number, d: number, h = 12) => new Date(2026, m, d, h).toISOString();
 
 describe('monthGrid', () => {
-  it('lays a month out Sunday first, like a paper calendar', () => {
+  it('lays a month out Monday first, like the Trends calendar', () => {
     const sep = monthGrid(2026, 8, NOW);
-    // Sept 1 2026 is a Tuesday: two blanks, then day 1.
-    expect(sep.slice(0, 2)).toEqual([null, null]);
-    expect(sep[2]!.key).toBe('2026-09-01');
+    // Sept 1 2026 is a Tuesday: one blank, then day 1.
+    expect(sep.slice(0, 1)).toEqual([null]);
+    expect(sep[1]!.key).toBe('2026-09-01');
+    // Nov 1 2026 is a Sunday: six blanks, so it sits in the last column.
+    expect(monthGrid(2026, 10, NOW).slice(0, 6)).toEqual(Array(6).fill(null));
+    expect(monthGrid(2026, 10, NOW)[6]!.key).toBe('2026-11-01');
     expect(sep.filter(Boolean)).toHaveLength(30);
   });
 

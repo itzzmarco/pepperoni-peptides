@@ -92,7 +92,7 @@ export function IlloShelf({ size = 120 }: Props) {
         <Fade id={`${u}sh-liq`} a="var(--mint)" b="var(--mint-ink)" />
       </defs>
       <ellipse cx="48" cy="88" rx="24" ry="4" fill="var(--illo-shade)" />
-      <rect x="32" y="8" width="32" height="14" rx="5" fill="var(--sky-ink)" />
+      <rect x="32" y="8" width="32" height="14" rx="5" fill="var(--brand)" />
       <rect x="36" y="22" width="24" height="7" rx="2" fill="var(--ink-4)" />
       <path d="M26 40q0-11 11-11h22q11 0 11 11v35q0 11-11 11H37q-11 0-11-11z" fill={`url(#${u}sh-glass)`} stroke="var(--illo-line)" strokeWidth="1.5" />
       <path d="M28 58h40v17q0 9-9 9H37q-9 0-9-9z" fill={`url(#${u}sh-liq)`} />

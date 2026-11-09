@@ -16,12 +16,12 @@ export interface DayCell {
   today: boolean;
 }
 
-/** One month as a Sunday-first grid, the way US paper calendars are laid out. Null cells are blanks before day 1. */
+/** One month as a Monday-first grid, the same week order as the Trends calendar. Null cells are blanks before day 1. */
 export function monthGrid(year: number, month: number, now = new Date()): (DayCell | null)[] {
   const first = new Date(year, month, 1);
   const days = new Date(year, month + 1, 0).getDate();
   const today = startOfDay(now);
-  const cells: (DayCell | null)[] = Array.from({ length: first.getDay() }, () => null);
+  const cells: (DayCell | null)[] = Array.from({ length: (first.getDay() + 6) % 7 }, () => null);
   for (let i = 1; i <= days; i++) {
     const date = new Date(year, month, i);
     cells.push({ date, key: dayKey(date), future: date > today, today: date.getTime() === today.getTime() });

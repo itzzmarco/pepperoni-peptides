@@ -51,7 +51,7 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
         <h1>{p.name}</h1>
         {p.aka?.length ? <p className="small">Also called {p.aka.join(', ')}</p> : null}
         <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /><WadaChip w={p.wada} /></div>
-        <p style={{ color: 'var(--ink)', fontSize: 'var(--fs-lg)', lineHeight: 1.45 }}>{p.summary}</p>
+        <p className="lede">{p.summary}</p>
         <SeqStrip p={p} />
         {p.seqNote && <p className="xsmall">{p.seqNote}</p>}
       </header>
@@ -75,9 +75,9 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
       {mine.map((r, i) => {
         const st = regimenStatus(r, doses);
         return (
-          <section key={r.id} className={`tile${i ? '' : ' dark'} rise`} aria-label={`${p.name} in your log`} style={rise(4)}>
+          <section key={r.id} className={`tile${i ? '' : ' dark'} rise`} aria-label={`${p.name} in your log`} style={rise(4 + i)}>
             <div className="spread"><span className="eyebrow">In your log</span><span className="sub">{st.text}</span></div>
-            <div className="stack" style={{ gap: 4 }}>
+            <div className="stack gap-1">
               <span className="stat">{fmtNum(Number(r.dose), 3)}<small> {r.unit} · {freqText(r)}</small></span>
               <span className="sub">{[r.route, r.prescriber && `prescribed by ${r.prescriber}`, r.paused && 'paused'].filter(Boolean).join(' · ')}</span>
             </div>
@@ -91,16 +91,16 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
       })}
 
       <div className="cols">
-      <section className="tile rise" aria-labelledby="ev-h" style={rise(5)}>
+      <section className="tile rise" aria-labelledby="ev-h" style={rise(4 + mine.length)}>
         <h2 id="ev-h" className="eyebrow">Evidence strength</h2>
-        <div className="stack" style={{ gap: 6 }}>
+        <div className="stack gap-2">
           <Ladder t={p.tier} wide />
           <div className="spread xsmall muted"><span>Weaker</span><span>Stronger</span></div>
         </div>
         <p><b>Tier {p.tier} · {TIERS[p.tier].label}.</b> <span className="muted">{TIERS[p.tier].long}.</span></p>
       </section>
 
-      <section className="tile rise" aria-labelledby="glance-h" style={rise(6)}>
+      <section className="tile rise" aria-labelledby="glance-h" style={rise(5 + mine.length)}>
         <h2 id="glance-h" className="eyebrow">At a glance</h2>
         <dl className="rows">
           <div><dt>US status ({AS_OF_SHORT})</dt><dd>{p.status ?? LEGAL[p.legal]?.long}</dd></div>

@@ -24,12 +24,11 @@ function Tab({ k, label, current, exact }: { k: keyof typeof ICON; label: string
  *  `exact` is false on a screen that belongs to the tab's section without being the tab's own page. */
 export function TabBar({ current, exact, onLog, inert }: { current: Route; exact: boolean; onLog: () => void; inert?: boolean }) {
   const col = COL[current as keyof typeof COL];
-  // The pill slides only between the two tabs on one side of the log button. Crossing it, the pill is remounted
-  // (a new key per side) and fades in at the new tab, so it never travels through the log button.
-  const side = col == null ? null : col < 2 ? 'l' : 'r';
+  // One pill stays mounted and slides to every tab. Crossing sides it passes under the opaque log button, which is
+  // painted above it, so the move stays continuous and the pill never comes to rest there.
   return (
     <nav className="tabbar" aria-label="Main" inert={inert}>
-      {side != null && <span key={side} className="tab-ind" aria-hidden="true" style={{ ['--k' as string]: col }} />}
+      {col != null && <span className="tab-ind" aria-hidden="true" style={{ ['--k' as string]: col }} />}
       <Tab k="today" label="Today" current={current} exact={exact} />
       <Tab k="trends" label="Trends" current={current} exact={exact} />
       <button className="log" type="button" onClick={onLog} aria-label="Log a dose">

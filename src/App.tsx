@@ -48,6 +48,10 @@ type SheetState =
   | { kind: 'account' }
   | null;
 
+/** Where each route sits along the tab bar (a profile and the Learn guides sit under Learn, Partner under Today). */
+const TAB_POS: Record<Route, number> = { today: 0, partner: 0, trends: 1, learn: 2, calculator: 2, safety: 2, peptides: 3 };
+const tabPos = (r: { tab: Route; id: string | null }) => (r.id ? TAB_POS.learn : TAB_POS[r.tab]);
+
 /** What the compact bar says once a page's own title has scrolled under it. */
 const TITLES: Record<Route, string> = { today: 'Today', trends: 'Trends', learn: 'Learn', peptides: 'Peptides', calculator: 'Dose math', safety: 'Safety & law', partner: 'Partner' };
 
@@ -71,13 +75,15 @@ export function App() {
     // The old page is snapshotted where the user was looking (the card they just tapped); the scroll to the top
     // happens inside the update, so only the new screen opens at the top.
     // The bar goes back to the wordmark in the same update as the scroll, since every route opens at its top.
-    // Leaving a peptide profile is a step back up to Learn, so its fade travels the other way.
+    // Leaving a peptide profile is a step back up to Learn, so its fade travels the other way. Moving between tabs,
+    // the page shifts the way the tab bar was travelled; within one tab's section it rises as before.
     let at = parseHash();
     const swap = () => {
       const next = parseHash();
       const root = document.documentElement;
       root.dataset.routed = '';
-      root.dataset.dir = at.id && !next.id ? 'back' : 'forward';
+      const step = tabPos(next) - tabPos(at);
+      root.dataset.dir = step > 0 ? 'next' : step < 0 ? 'prev' : at.id && !next.id ? 'back' : 'forward';
       at = next;
       arrived.current = true;
       setRoute(next); setSheet(null); setTitled(false); window.scrollTo(0, 0);

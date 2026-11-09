@@ -97,9 +97,9 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
 
   return (
     <Sheet onClose={onClose} label={`Log ${regName(r)}`}>
-      <form className="stack" style={{ gap: 14 }} onSubmit={submit} noValidate>
+      <form className="stack gap-4" onSubmit={submit} noValidate>
         <div className="sheet-head">
-          <div className="stack" style={{ gap: 4 }}>
+          <div className="stack gap-1">
             <span className="eyebrow">Log a dose</span>
             <h2 style={{ fontSize: 'var(--fs-2xl)' }}>{regName(r)}</h2>
           </div>
@@ -118,7 +118,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
           <div className="spread"><span className="eyebrow">Prescribed</span><span className="sub">{freqText(r)}</span></div>
           <span className="stat">{fmtNum(Number(r.dose), 3)}<small> {r.unit}</small></span>
           {math && injectable && (
-            <div className="white-inset stack" style={{ gap: 8 }}>
+            <div className="white-inset stack gap-2">
               {isVolumeUnit(d.unit)
                 ? <p className="small">That's <b className="mono" style={{ color: 'var(--lilac-ink)' }}>{drugAmount(math.doseMg, PEP[r.compoundId]?.defaultUnit)}</b> ({fmtNum(math.vol, 2)} mL) from a vial with {fmtNum(Number(r.vialMg))} mg in {fmtNum(Number(r.diluentMl))} mL.</p>
                 : <p className="small">Draw to <b className="mono" style={{ color: 'var(--lilac-ink)' }}>{fmtNum(math.units, 1)} units</b> ({fmtNum(math.vol, 2)} mL) on a U-100 syringe. {fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL water.</p>}
@@ -130,7 +130,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
             <div className="alert danger" role="alert">
               <b>These numbers don't add up, so there's no draw to show.</b>
               {checks.map(c => <span key={c.title}>{c.title} {c.body}</span>)}
-              {onFix && <div style={{ marginTop: 6 }}><button type="button" className="btn sm" onClick={() => onFix(r)}>Fix {regName(r)}'s details</button></div>}
+              {onFix && <div className="mt-2"><button type="button" className="btn sm" onClick={() => onFix(r)}>Fix {regName(r)}'s details</button></div>}
             </div>
           )}
         </section>
@@ -182,7 +182,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
                 suggested={nextSite({ ...r, route: d.route }, doses, 'map')?.site} />
             )}
             <div style={{ borderTop: '1px solid color-mix(in srgb, var(--sky-ink) 15%, transparent)', paddingTop: 12 }}>
-              <p className="spread" style={{ fontWeight: 600, fontSize: 'var(--fs-lg)', justifyContent: 'flex-start', gap: 8 }}>
+              <p className="spread gap-2" style={{ fontWeight: 600, fontSize: 'var(--fs-lg)', justifyContent: 'flex-start' }}>
                 {d.site && siteFits ? siteLabel(d.site, d.route) : clock ? `Suggested: ${BELLY.find(b => b.h === next)!.label}` : 'Tap where you injected'}
                 {auto && d.site && siteFits && <span className="chip" style={{ background: 'var(--surface)', color: 'var(--sky-ink)' }}>Next in rotation</span>}
               </p>
@@ -191,7 +191,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
           </section>
         )}
 
-        <label className="field tile" style={{ gap: 8 }}><span>Notes <small>(optional)</small></span><input type="text" id="d-notes" maxLength={200} placeholder="e.g. new vial, mild sting" value={d.notes} onChange={set('notes')} /></label>
+        <label className="field tile gap-2"><span>Notes <small>(optional)</small></span><input type="text" id="d-notes" maxLength={200} placeholder="e.g. new vial, mild sting" value={d.notes} onChange={set('notes')} /></label>
         <div className="sheet-foot">
           <button type="button" className="btn ghost" onClick={onClose}>Cancel</button>
           <button type="submit" className="btn">Save dose</button>

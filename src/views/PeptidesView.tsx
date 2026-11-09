@@ -31,7 +31,7 @@ export function Strip({ rid, doses }: { rid: string; doses: DoseEntry[] }) {
   const days = adherenceDays(rid, doses);
   const count = days.filter(d => d.on).length;
   return (
-    <div className="stack" style={{ gap: 6 }}>
+    <div className="stack gap-2">
       <div className="strip" role="img" aria-label={`Doses logged on ${count} of the last 28 days`}>
         {days.map((d, i) => (
           <i key={d.date.getTime()} className={`pop${d.on ? ' on' : ''}${d.today ? ' today' : ''}`} style={{ ['--i' as string]: i }} title={`${fmtDay(d.date)}${d.on ? ': dose logged' : ''}`} />
@@ -81,7 +81,7 @@ function Reminders({ r, doses }: { r: Regimen; doses: DoseEntry[] }) {
   };
   const label = (i: number) => (times.length > 1 ? (i === 0 ? 'First dose' : 'Second dose') : 'Remind me at');
   return (
-    <div className="inset stack reminders" style={{ gap: 10 }}>
+    <div className="inset stack reminders gap-3 reveal">
       <div className="row-wrap">
         {times.map((t, i) => (
           <label key={i} className="field" style={{ minWidth: 140 }}><span>{label(i)}</span>
@@ -122,7 +122,7 @@ function RegimenCard({ r, doses, actions, i = 0 }: { r: Regimen; doses: DoseEntr
   return (
     <article className={`tile regimen rise${r.paused ? ' paused' : ''}`} style={{ ['--i' as string]: i + 2 }}>
       <div className="top">
-        <div className="stack" style={{ gap: 4 }}>
+        <div className="stack gap-1">
           <h3>{regName(r)}</h3>
           <div className="dose">{fmtNum(Number(r.dose), 3)} {r.unit} · {freqText(r)} · {r.route}</div>
         </div>
@@ -136,7 +136,10 @@ function RegimenCard({ r, doses, actions, i = 0 }: { r: Regimen; doses: DoseEntr
         </div>
       )}
       {checks.length > 0 && (
-        <div className="alert danger"><b>The dose and vial numbers don't add up.</b><span>{checks[0].title} Tap Edit to check them.</span></div>
+        <div className="alert danger">
+          <b>The dose and vial numbers don't add up.</b><span>{checks[0].title} Tap Edit to check them.</span>
+          <div className="mt-1"><button type="button" className="btn sm" onClick={() => actions.editRegimen(r)}>Edit</button></div>
+        </div>
       )}
       <NextShot r={r} doses={doses} />
       {p && <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /></div>}
@@ -155,7 +158,7 @@ function RegimenCard({ r, doses, actions, i = 0 }: { r: Regimen; doses: DoseEntr
         </button>
       </div>
       {more && (
-        <div className="row-wrap" id={`more-${r.id}`}>
+        <div className="row-wrap reveal" id={`more-${r.id}`}>
           <button className="btn ghost sm" onClick={() => actions.editRegimen(r)}>Edit</button>
           {!r.paused && r.freq !== 'prn' && <button className="btn quiet sm" aria-expanded={remind} onClick={() => setRemind(!remind)}>Reminders</button>}
           {!r.paused && pause}
@@ -213,7 +216,7 @@ export function PeptidesView(actions: Actions) {
             <h3>Before you start</h3>
             {regimens.length > 0 && <button className="btn quiet sm" onClick={() => { lsSet('pl-intro-hidden', '1'); setIntroHidden(true); }}>Hide</button>}
           </div>
-          <ul className="small" style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 6 }}>
+          <ul className="small bullets">
             <li>This is a journal for doses and symptoms, built to share with your clinician. It never suggests a dose; enter the one you were prescribed.</li>
             <li>{signedIn
               ? 'Your log syncs to your account, so it follows you to any device you sign in on. Only you can see it. Use Export on Trends to keep a copy.'

@@ -33,12 +33,12 @@ export function CheckinSheet({ onClose, onBackfill }: { onClose: () => void; onB
 
   return (
     <Sheet onClose={onClose} label="Daily check-in">
-      <form className="stack" style={{ gap: 16 }} onSubmit={submit} noValidate>
+      <form className="stack gap-4" onSubmit={submit} noValidate>
         <div className="sheet-head">
           <div>
             <h2>Daily check-in</h2>
-            <p className="small muted" style={{ marginTop: 4 }}>1 is poor, 5 is great. Skip anything you like.</p>
-            {onBackfill && <p className="small" style={{ marginTop: 6 }}>Catching up from paper? <button type="button" className="linkish" onClick={onBackfill}>Fill in past days</button></p>}
+            <p className="small muted mt-1">1 is poor, 5 is great. Skip anything you like.</p>
+            {onBackfill && <p className="small mt-2">Catching up from paper? <button type="button" className="linkish" onClick={onBackfill}>Fill in past days</button></p>}
           </div>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
         </div>

@@ -56,9 +56,14 @@
   /* Motion */
   --ease-out: cubic-bezier(.22, 1, .36, 1);
   --ease-in: cubic-bezier(.4, 0, 1, 1);
-  --ease-spring: cubic-bezier(.34, 1.1, .64, 1);
+  /* A critically damped spring: quick to start, settles on its mark with no overshoot. */
+  --ease-spring: cubic-bezier(.25, 1, .5, 1);
+  /* Loops that should read as one steady sweep (the skeleton sheen). */
+  --ease-linear: linear;
   --ease-pop: cubic-bezier(.34, 1.56, .64, 1);
   --dur-fast: 140ms; --dur-med: 240ms; --dur-slow: 450ms;
+  /* Spacing steps for stacks, rows and small offsets, so every screen keeps the same rhythm. */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
   --f-body: "Outfit Variable", "Outfit", "Segoe UI", system-ui, -apple-system, sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   --r-sm: 14px; --r-md: 22px; --r-lg: 26px; --r-xl: 28px;
@@ -192,8 +197,9 @@ button.sync:hover { background: var(--surface-2); }
 .sync[data-s="error"] i, .sync-chip[data-s="error"] .dot { background: var(--danger); }
 .sync-chip .dot { background: var(--good); }
 .show-sm { display: none; }
-/* At the narrowest phones the signed-out pill drops its person icon and the row tightens, so the wordmark keeps its whole name. */
-@media (max-width: 359px) { .topbar .row { gap: 6px; } button.sync:not([data-s]) { padding-inline: 12px; } button.sync:not([data-s]) > svg { display: none; } }
+/* At the narrowest phones the signed-out pill drops its person icon, the status pills show only their dot (the word stays
+   in the accessible name and tooltip), and the row tightens, so the wordmark keeps its whole name. */
+@media (max-width: 359px) { .topbar .row { gap: 6px; } button.sync:not([data-s]) { padding-inline: 12px; } button.sync:not([data-s]) > svg { display: none; } span.sync, button.sync[data-s] { padding-inline: 12px; } :is(span.sync, button.sync[data-s]) > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
 @media (max-width: 420px) { .hide-sm { display: none; } .show-sm { display: inline; } button.sync[data-s] { min-width: 44px; justify-content: center; padding: 0 10px; } }
 .notice { margin-top: 10px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; background: var(--lemon); color: var(--ink); border-radius: 16px; padding: 8px 14px; font-size: var(--fs-xs); line-height: 1.45; }
 .notice b { color: var(--lemon-ink); }
@@ -443,7 +449,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px 4px; justify-items: center; }
 .cal-month { font-size: var(--fs-sm); font-weight: 600; color: var(--mint-2); padding-left: 2px; }
 .cal .wd { font-size: var(--fs-xs); font-weight: 600; color: var(--mint-2); }
-.cal .d { width: 36px; height: 36px; border-radius: 18px; display: grid; place-items: center; font-size: var(--fs-sm); font-weight: 600; font-variant-numeric: tabular-nums; color: var(--mint-2); }
+.cal .d { width: min(36px, 100%); aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; font-size: var(--fs-sm); font-weight: 600; font-variant-numeric: tabular-nums; color: var(--mint-2); }
 .cal .d.on { background: var(--mint-ink); color: var(--mint); }
 .cal .d.today { box-shadow: inset 0 0 0 2px var(--mint-ink); color: var(--mint-ink); background: var(--surface); }
 .cal .d.on.today { background: var(--mint-ink); color: var(--mint); box-shadow: inset 0 0 0 2px var(--mint-ink), 0 0 0 2px var(--mint), 0 0 0 4px var(--mint-ink); }
@@ -720,9 +726,9 @@ tr:last-child td { border-bottom: 0; }
 .linkish { appearance: none; border: 0; background: none; padding: 0; font: inherit; font-weight: 600; color: var(--accent); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 .bf-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
 .bf-wd { font-size: var(--fs-xs); font-weight: 600; text-align: center; color: var(--ink-3); padding-bottom: 2px; }
-.bf-cell { display: grid; grid-template-rows: auto 1fr; min-height: 56px; min-width: 0; border-radius: 12px; background: var(--surface); padding: 3px 2px 2px; cursor: text; }
+.bf-cell { container-type: inline-size; display: grid; grid-template-rows: auto 1fr; min-height: 56px; min-width: 0; border-radius: 12px; background: var(--surface); padding: 3px 2px 2px; cursor: text; }
 .bf-d { font-size: var(--fs-2xs); font-weight: 600; line-height: 1.2; color: var(--ink-3); padding-left: 4px; text-align: left; font-variant-numeric: tabular-nums; }
-.bf-cell input[type="text"] { width: 100%; min-width: 0; min-height: 34px; padding: 0 1px; border: 0; border-radius: 8px; background: transparent; box-shadow: none; text-align: center; font-size: var(--fs-md); font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.bf-cell input[type="text"] { width: 100%; min-width: 0; min-height: 34px; padding: 0 1px; border: 0; border-radius: 8px; background: transparent; box-shadow: none; text-align: center; font-size: var(--fs-sm); font-size: min(var(--fs-md), 32cqi); font-weight: 600; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .bf-cell input[type="text"]:focus { outline: 2px solid var(--accent); outline-offset: 0; }
 .bf-cell.saved input[type="text"] { color: var(--ink-3); font-weight: 500; }
 .bf-cell.changed { box-shadow: inset 0 0 0 2px var(--lilac-line); }
@@ -763,19 +769,19 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 
 /* Tab bar */
 .tabbar { position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: min(440px, calc(100% - 32px)); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; padding: 6px; border-radius: var(--r-xl); background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); box-shadow: var(--shadow-3), inset 0 0 0 1px var(--glass-edge); view-transition-name: tabbar; isolation: isolate; overflow: hidden; }
-/* One pill behind the current tab: one fifth of the bar. It slides between the tabs on one side of the log button; crossing
-   to the other side TabBar remounts it there with a fade, so it never travels through the log button. */
+/* One pill behind the current tab: one fifth of the bar. It slides from tab to tab and, crossing sides, passes under the
+   opaque log button (the pill sits at z-index -1), so it never rests there and the motion stays continuous. */
 /* Opaque fallback for both glass bars; it comes after both rules so it wins on equal specificity. */
 @supports not (backdrop-filter: blur(1px)) { .topbar, .tabbar { background: var(--bg); } }
 .tab-ind { position: absolute; z-index: -1; top: 6px; bottom: 6px; left: 6px; width: calc((100% - 12px) / 5); border-radius: 22px; background: var(--tab-pill); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); pointer-events: none; }
 .tabbar a { color: var(--ink-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; font-size: var(--fs-xs); font-weight: 500; text-decoration: none; border-radius: 22px; }
 .tabbar a:hover { color: var(--ink); }
-.tabbar a[aria-current] { color: var(--ink); font-weight: 700; }
+.tabbar a[aria-current] { color: var(--ink); }
 .tabbar .log { justify-self: center; width: 56px; height: 56px; border-radius: 28px; border: 0; background: var(--btn); color: var(--btn-ink); display: grid; place-items: center; cursor: pointer; }
 .tabbar .log:hover { background: var(--btn-hover); }
 .app-end { height: calc(96px + env(safe-area-inset-bottom, 0px)); }
 /* Mouse and keyboard widths: the same five destinations dock as a rail at the left edge, and the page makes room for it.
-   The pill slides down the rail instead of along it, and fades across the log button the same way. */
+   The pill slides down the rail instead of along it, under the log button the same way. */
 .toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 12px 18px; border-radius: 999px; font-size: var(--fs-sm); z-index: 60; box-shadow: var(--shadow-3); max-width: calc(100% - 32px); }
 @media (min-width: 900px) {
   body { padding-left: 100px; }
@@ -819,10 +825,27 @@ footer.foot { padding-block: 8px 0; font-size: var(--fs-xs); color: var(--ink-3)
 footer.foot .wrap { display: grid; gap: 6px; padding: 0 4px; }
 footer.foot p { max-width: 90ch; }
 
+/* A form error shown right under the field it names; the field itself takes the same red edge. */
+.field-err { color: var(--danger); font-weight: 500; }
+:is(input, select, textarea)[aria-invalid="true"] { box-shadow: inset 0 0 0 2px var(--danger); }
+.bullets { margin: 0; padding-left: 18px; display: grid; gap: var(--sp-2); }
+.greet { font-weight: 500; color: var(--ink-3); }
+.lede { color: var(--ink); font-size: var(--fs-lg); line-height: 1.45; }
+.badge-icon.lemon { width: 44px; height: 44px; background: var(--lemon); color: var(--lemon-ink); flex: none; }
+.cols-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-2); }
+/* A tile laid out as one row: art on one side, text beside it. */
+.row-tile { display: flex; align-items: center; }
+
+/* Spacing utilities on the --sp-* scale. They come after the components they adjust, so they win on equal specificity. */
+.gap-1 { gap: var(--sp-1); } .gap-2 { gap: var(--sp-2); } .gap-3 { gap: var(--sp-3); } .gap-4 { gap: var(--sp-4); }
+.mt-1 { margin-top: var(--sp-1); } .mt-2 { margin-top: var(--sp-2); } .mt-3 { margin-top: var(--sp-3); }
+.mid { align-items: center; } .nowrap { flex-wrap: nowrap; } .self-start { justify-self: start; }
+
 /* Motion: staggered first-paint reveal, lines that draw in, syringe that fills, sheets, toasts, route fades.
    Only transform, opacity and filter move, always on the --ease-* and --dur-* tokens. Off for reduced motion. */
 @media (prefers-reduced-motion: no-preference) {
-  .rise { animation: rise var(--dur-slow) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 50ms); }
+  /* backwards, not both: once a block has arrived it lets go of transform, so hover lift and press scale still apply. */
+  .rise { animation: rise var(--dur-slow) var(--ease-out) backwards; animation-delay: calc(var(--i, 0) * 50ms); }
   @keyframes rise { from { opacity: 0; transform: translateY(16px); } }
   .draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw calc(var(--dur-slow) * 2) var(--dur-med) var(--ease-out) forwards; }
   @keyframes draw { to { stroke-dashoffset: 0; } }
@@ -895,10 +918,11 @@ footer.foot p { max-width: 90ch; }
   @keyframes toast-out { to { opacity: 0; transform: translate(-50%, 6px); } }
 
   /* Skeleton shimmer: a light band sweeps across each block */
-  .skel::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, var(--skel-shine), transparent); animation: shimmer calc(var(--dur-slow) * 3) var(--ease-out) infinite; }
+  .skel::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, var(--skel-shine), transparent); animation: shimmer calc(var(--dur-slow) * 3) var(--ease-linear) infinite; }
   @keyframes shimmer { to { transform: translateX(100%); } }
 
-  /* Route change: the page fades and shifts 8px; top bar and tab bar have their own names so they hold still. */
+  /* Route change: the page fades and shifts 8px; top bar and tab bar have their own names so they hold still.
+     Moving between tabs it shifts the way the tab bar was travelled: a tab to the right comes in from the right. */
   ::view-transition-old(root) { animation: vt-out var(--dur-med) var(--ease-in) both; }
   ::view-transition-new(root) { animation: vt-in var(--dur-med) var(--ease-out) both; }
   @keyframes vt-out { to { opacity: 0; transform: translateY(-4px); } }
@@ -908,16 +932,25 @@ footer.foot p { max-width: 90ch; }
   :root[data-dir="back"]::view-transition-new(root) { animation-name: vt-in-back; }
   @keyframes vt-out-back { to { opacity: 0; transform: translateY(4px); } }
   @keyframes vt-in-back { from { opacity: 0; transform: translateY(-8px); } }
+  :root[data-dir="next"]::view-transition-old(root) { animation-name: vt-out-next; }
+  :root[data-dir="next"]::view-transition-new(root) { animation-name: vt-in-next; }
+  @keyframes vt-out-next { to { opacity: 0; transform: translateX(-4px); } }
+  @keyframes vt-in-next { from { opacity: 0; transform: translateX(8px); } }
+  :root[data-dir="prev"]::view-transition-old(root) { animation-name: vt-out-prev; }
+  :root[data-dir="prev"]::view-transition-new(root) { animation-name: vt-in-prev; }
+  @keyframes vt-out-prev { to { opacity: 0; transform: translateX(4px); } }
+  @keyframes vt-in-prev { from { opacity: 0; transform: translateX(-8px); } }
   /* The bars and the notice are the same on every route, so they hold still: no snapshot of the old bar is shown,
      only the live new one, so the tab pill visibly slides while the page body fades. */
   .notice { view-transition-name: notice; }
   ::view-transition-group(topbar), ::view-transition-group(tabbar), ::view-transition-group(notice) { animation-duration: 0s; }
   ::view-transition-old(topbar), ::view-transition-old(tabbar), ::view-transition-old(notice) { display: none; }
   ::view-transition-new(topbar), ::view-transition-new(tabbar), ::view-transition-new(notice) { animation: none; }
-  /* After a route change blocks still arrive in order, but shorter and closer (a 6px settle on a tighter stagger),
-     while dots, bars, rings and sparklines open drawn, so a returning user never reads in-between numbers
-     (useCountUp follows the same rule). */
-  :root[data-routed] .rise { animation: rise-soft var(--dur-med) var(--ease-out) both; animation-delay: calc(min(var(--i, 0), 8) * 24ms); }
+  /* After a route change the page fade is the only move: blocks arrive with it, no stagger of their own, and dots, bars,
+     rings and sparklines open drawn, so a returning user never reads in-between numbers (useCountUp follows the same rule). */
+  :root[data-routed] .rise { animation: none; }
+  /* Rows a disclosure reveals (a card's More row, its reminders) settle in with a short fade and rise. */
+  .reveal { animation: rise-soft var(--dur-med) var(--ease-out) backwards; }
   @keyframes rise-soft { from { opacity: 0; transform: translateY(6px); } }
   :root[data-routed] :is(.pop, .grow, .draw) { animation: none; }
   :root[data-routed] .draw { stroke-dasharray: none; stroke-dashoffset: 0; }

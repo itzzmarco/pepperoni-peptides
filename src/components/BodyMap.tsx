@@ -16,7 +16,7 @@ export function BodyMap({ selected, onSelect, last, plan, route, suggested }: {
   const pick = (k: string) => onSelect(selected === k ? '' : k);
   const next = suggested && plan.sites.includes(suggested) ? suggested : suggestSite(last, plan.sites);
   return (
-    <div className="stack" style={{ gap: 10 }}>
+    <div className="stack gap-3">
       <div className="bodymap">
         <svg viewBox="0 0 200 300" aria-hidden="true">
           <circle className="head" cx="100" cy="28" r="18" />

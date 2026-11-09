@@ -47,7 +47,7 @@ function TopChart() {
   const pct = (v: number) => (v / ticksMax) * 100;
   return (
     <section className="tile rise" style={{ ['--i' as string]: 2 }}>
-      <div className="stack" style={{ gap: 4 }}>
+      <div className="stack gap-1">
         <span className="eyebrow">Hype vs evidence</span>
         <h3>The most-discussed peptides mostly have the weakest evidence</h3>
         <p className="small muted">
@@ -248,7 +248,7 @@ export function LibraryView() {
 
       <details className="tile mint" id="tiers">
         <summary className="spread" style={{ alignItems: 'center', flexWrap: 'nowrap' }}>
-          <span className="stack" style={{ gap: 4 }}>
+          <span className="stack gap-1">
             <span className="label">How evidence tiers work</span>
             <span className="tile-title">Only {trialBacked} of {PEPTIDES.length} have randomized human trials</span>
           </span>

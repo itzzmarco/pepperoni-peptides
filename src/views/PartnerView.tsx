@@ -173,7 +173,7 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
           const adh = adherence([r], log.doses, now, 28);
           const strip = adherenceDays(r.id, log.doses, 28, now);
           return (
-            <div key={r.id} className="stack" style={{ gap: 8 }}>
+            <div key={r.id} className="stack gap-2">
               <div className="spread">
                 <b>{regName(r)} · {fmtNum(Number(r.dose), 3)} {r.unit}</b>
                 <span className="sub" style={{ color: 'var(--mint-2)' }}>{freqText(r)}</span>

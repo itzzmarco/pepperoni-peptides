@@ -38,7 +38,7 @@ export function CalculatorView() {
             <small>Bacteriostatic or sterile water. On a syringe, 100 units = 1 mL</small>
           </label>
         </div>
-        <h2 className="label" style={{ marginTop: 4 }}>Your prescribed dose</h2>
+        <h2 className="label mt-1">Your prescribed dose</h2>
         <div className="grid-2">
           <label className="field"><span>Dose</span><input type="number" id="c-dose" min="0" step="any" inputMode="decimal" value={c.dose} onChange={set('dose')} /></label>
           <div className="field"><span>Unit</span>

@@ -52,8 +52,8 @@ function ExportPanel({ ledger }: { ledger: Ledger }) {
   };
   return (
     <section className="tile" aria-labelledby="share-h">
-      <div className="row-wrap" style={{ flexWrap: 'nowrap', gap: 12 }}>
-        <span className="badge-icon" style={{ width: 44, height: 44, background: 'var(--lemon)', color: 'var(--lemon-ink)', flex: 'none' }} aria-hidden="true">
+      <div className="row-wrap nowrap gap-3">
+        <span className="badge-icon lemon" aria-hidden="true">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" /></svg>
         </span>
         <h3 id="share-h">Share with your clinician</h3>
@@ -156,7 +156,7 @@ function History({ doses, checkins, onBackfill, onAdd, art }: { doses: DoseEntry
   );
   return (
     <section className="tile" aria-labelledby="hist-h">
-      <div className="spread" style={{ alignItems: 'center' }}>
+      <div className="spread mid">
         <h3 id="hist-h">History</h3>
         <button type="button" className="btn soft sm" onClick={onBackfill}>Fill in past days</button>
       </div>
@@ -188,7 +188,7 @@ function History({ doses, checkins, onBackfill, onAdd, art }: { doses: DoseEntry
           );
         })}
         {items.length > RECENT && (
-          <button className="btn quiet sm" style={{ justifySelf: 'start', marginTop: 8 }} onClick={() => setShowAll(!showAll)}>
+          <button className="btn quiet sm self-start mt-2" onClick={() => setShowAll(!showAll)}>
             {showAll ? 'Show fewer' : `Show all ${items.length} entries`}
           </button>
         )}
@@ -206,7 +206,7 @@ function MonthCalendar({ doses, now }: { doses: DoseEntry[]; now: Date }) {
   const logged = Array.from({ length: now.getDate() }, (_, i) => on.has(dayKey(new Date(now.getFullYear(), now.getMonth(), i + 1)))).filter(Boolean).length;
   // The calendar is always this month, whatever range the card's percentage covers, so it names its month.
   return (
-    <div className="stack" style={{ gap: 8 }}>
+    <div className="stack gap-2">
     <span className="cal-month" aria-hidden="true">{first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</span>
     <div className="cal" role="img" aria-label={`${first.toLocaleDateString(undefined, { month: 'long' })}: doses logged on ${logged} of ${now.getDate()} days so far`}>
       {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <span key={i} className="wd">{d}</span>)}
@@ -267,7 +267,7 @@ function Pattern({ doses, checkins, now }: { doses: DoseEntry[]; checkins: Check
       </div>
       <p className="sub">A pattern in your own log, not proof of cause. Worth bringing to your prescriber.</p>
       {p && (
-        <a className="btn" href={`#${p.id}`} style={{ justifySelf: 'start' }}>
+        <a className="btn self-start" href={`#${p.id}`}>
           What the research says
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
         </a>
@@ -329,7 +329,7 @@ export function TrendsView({ onBackfill, onAdd }: { onBackfill: () => void; onAd
       <div className="cols">
       <section className="tile mint rise" aria-labelledby="adh-h" style={rise(2)}>
         <div className="spread" style={{ alignItems: 'flex-end' }}>
-          <div className="stack" style={{ gap: 2 }}>
+          <div className="stack gap-1">
             <h2 id="adh-h" className="label">Doses logged</h2>
             <span className="big">{adh.pct == null ? '–' : `${Math.round(pct)}%`}</span>
           </div>
@@ -344,7 +344,7 @@ export function TrendsView({ onBackfill, onAdd }: { onBackfill: () => void; onAd
 
       <section className="tile lilac rise" aria-labelledby="wt-h" style={rise(3)}>
         <div className="spread" style={{ alignItems: 'flex-end' }}>
-          <div className="stack" style={{ gap: 2 }}>
+          <div className="stack gap-1">
             <h2 id="wt-h" className="label">Weight</h2>
             {change != null
               ? <span className="big">{changeShown < 0 ? '−' : '+'}{Math.abs(changeShown).toFixed(1)}<small> {wUnit} {weeksSpan >= 1.5 ? `in ${Math.round(weeksSpan)} weeks` : ''}</small></span>
@@ -358,7 +358,7 @@ export function TrendsView({ onBackfill, onAdd }: { onBackfill: () => void; onAd
           return <LineChart points={weights} y0={lo} y1={hi} ticks={[lo, Math.round((lo + hi) / 2), hi]} x0={since} x1={now.getTime()} label="Weight trend" fmt={v => fmtNum(v, 1)} />;
         })()}
         {change != null && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
+          <div className="cols-3">
             <div className="inset"><div className="xsmall muted">Start</div><b className="num">{wFirst.y.toFixed(1)} {wUnit}</b></div>
             <div className="inset"><div className="xsmall muted">Now</div><b className="num">{wLast.y.toFixed(1)} {wUnit}</b></div>
             <div className="inset"><div className="xsmall muted">Per week</div><b className="num">{weeksSpan >= 1 ? `${change < 0 ? '−' : '+'}${Math.abs(change / weeksSpan).toFixed(1)}` : '–'}</b></div>

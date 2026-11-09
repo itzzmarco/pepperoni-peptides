@@ -143,7 +143,7 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
   return (
     <Sheet onClose={close} label="Fill in past days">
       <div className="sheet-head">
-        <div className="stack" style={{ gap: 4 }}>
+        <div className="stack gap-1">
           <span className="eyebrow">Back-track</span>
           <h2>Fill in past days</h2>
           <p className="small muted">Copy from a paper log one month at a time. Nothing saves until you tap Save.</p>
@@ -163,7 +163,7 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
       )}
 
       <section ref={tile} className={`tile ${tint} bf`} aria-label={r ? `${regName(r)} doses, ${title}` : `Weights, ${title}`}>
-        <div className="spread" style={{ alignItems: 'center' }}>
+        <div className="spread mid">
           <button type="button" className="icon-btn" onClick={() => step(-1)} aria-label="Previous month"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg></button>
           <h3 className="bf-title" aria-live="polite">{title}</h3>
           <button type="button" className="icon-btn" onClick={() => step(1)} disabled={isThisMonth} aria-label="Next month"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg></button>
@@ -215,13 +215,13 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
               {due.size > 0 && <span><i style={{ boxShadow: 'inset 0 -3px 0 var(--mint-ink)', background: 'var(--surface)' }} />Due by schedule</span>}
             </div>
             {dueOpen.length > 1 && (
-              <button type="button" className="btn soft sm" style={{ justifySelf: 'start' }} onClick={() => setTicks({ ...ticks, [r.id]: [...ticked, ...dueOpen] })}>
+              <button type="button" className="btn soft sm self-start" onClick={() => setTicks({ ...ticks, [r.id]: [...ticked, ...dueOpen] })}>
                 Tick all {dueOpen.length} due days in {new Date(ym.y, ym.m, 1).toLocaleDateString(undefined, { month: 'long' })}
               </button>
             )}
           </>
         ) : (
-          <div className="spread" style={{ alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+          <div className="spread mid gap-2">
             <div className="legend" style={{ color: 'var(--ink-2)' }}>
               <span><i className="bf-key saved" />Saved</span>
               <span><i className="bf-key changed" />New or changed</span>
@@ -237,7 +237,7 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
         <p className="small muted">One day per line: a date, then the weight. Dates are month/day, like <span className="mono">9/7 213</span>, <span className="mono">Sep 7 213</span> or <span className="mono">2026-09-07 213</span>. The days fill in above so you can check them before saving.</p>
         <textarea value={paste} onChange={e => setPaste(e.target.value)} rows={5} placeholder={'9/7 213\n9/8 211\n9/9 210'} aria-label="Pasted weights" />
         {bad.length > 0 && <p className="alert warn small"><b>Skipped {plural(bad.length, 'line')} I couldn't read</b><span className="mono">{bad.slice(0, 5).join(' · ')}{bad.length > 5 ? ' …' : ''}</span></p>}
-        <button type="button" className="btn soft sm" style={{ justifySelf: 'start' }} onClick={fill} disabled={!paste.trim()}>Fill in the days</button>
+        <button type="button" className="btn soft sm self-start" onClick={fill} disabled={!paste.trim()}>Fill in the days</button>
       </details>
 
       <div className="sheet-foot">

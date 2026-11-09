@@ -90,7 +90,7 @@ export function SafetyView() {
 
       <section className="tile lemon">
         <h2>Questions to ask your clinician</h2>
-        <ul className="small" style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 6 }}>{SAFETY.questions.map(q => <li key={q}>{q}</li>)}</ul>
+        <ul className="small bullets">{SAFETY.questions.map(q => <li key={q}>{q}</li>)}</ul>
       </section>
 
       <section className="tile">

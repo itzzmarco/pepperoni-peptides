@@ -90,7 +90,7 @@ function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now, site }: 
         <span className="sub num">{st.text}</span>
       </div>
       <div className="next-hero">
-        <div className="stack" style={{ gap: 6 }}>
+        <div className="stack gap-2">
           <span className="next-name">{regName(r)}</span>
           <span className="next-dose">{fmtNum(Number(r.dose), 3)} {r.unit}</span>
           <span className="sub">
@@ -100,12 +100,11 @@ function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now, site }: 
         {total > 0 && <TodayRing done={doneToday} total={total} />}
       </div>
       {(done.length > 0 || todo.length > 0) && <DayBar done={done} todo={todo} now={now} />}
-      <div className="spread" style={{ alignItems: 'center' }}>
-        <button className="btn" onClick={() => actions.logDose(r)}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-          Log now
-        </button>
-      </div>
+      {/* The card's one action spans its width, so the row ends the hero cleanly. */}
+      <button className="btn" onClick={() => actions.logDose(r)}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+        Log now
+      </button>
     </section>
   );
 }
@@ -179,9 +178,9 @@ export function TodayView(actions: Actions) {
   return (
     <section className="view">
       <header className="head">
-        <div className="spread rise" style={{ alignItems: 'center' }}>
-          <span className="stack" style={{ gap: 2 }}>
-            <span style={{ fontWeight: 500, color: 'var(--ink-3)' }}>{hello}</span>
+        <div className="spread rise mid">
+          <span className="stack gap-1">
+            <span className="greet">{hello}</span>
             <span className="eyebrow">{fmtDay(now)}</span>
           </span>
         </div>
@@ -238,7 +237,7 @@ export function TodayView(actions: Actions) {
             </span>
           </a>
 
-          <a href="#trends" className="tile lilac rise" style={{ ...rise(4), gap: 6 }}>
+          <a href="#trends" className="tile lilac rise gap-2" style={rise(4)}>
             <span className="label">Weight</span>
             {wNow ? (
               <>
@@ -249,7 +248,7 @@ export function TodayView(actions: Actions) {
             ) : <span className="sub">Add your weight in a daily check-in.</span>}
           </a>
 
-          <a href="#trends" className="tile peach rise" style={{ ...rise(5), gap: 6 }}>
+          <a href="#trends" className="tile peach rise gap-2" style={rise(5)}>
             <span className="label">Side effects</span>
             {effects.length ? (
               <>
@@ -262,7 +261,7 @@ export function TodayView(actions: Actions) {
           {partner && (
             <a href="#partner" className="tile span-2 partner-tile rise" style={rise(6)}>
               <span className="avatar" aria-hidden="true">{firstName(partner.name)[0]}</span>
-              <span className="stack" style={{ gap: 2, flex: 1, minWidth: 0 }}>
+              <span className="stack gap-1" style={{ flex: 1, minWidth: 0 }}>
                 <span className="label" style={{ color: 'var(--peach-ink)' }}>{firstName(partner.name)} · partner</span>
                 <span className="tile-title">
                   {pW ? <>{fmtNum(pW.last.w, 1)}<small className="sub"> {pUnit}</small>{pW.count > 1 && <span className="sub"> · {pW.change > 0 ? '+' : pW.change < 0 ? '−' : ''}{Math.abs(pW.change).toFixed(1)} since {fmtShort(pW.first.at)}</span>}</> : 'No weigh-ins yet'}
@@ -274,10 +273,10 @@ export function TodayView(actions: Actions) {
           )}
 
           {shots.map(({ r, s: sug }, i) => (
-            <button key={r.id} type="button" className="tile sky span-2 rise" style={{ ...rise(6 + i), display: 'flex', alignItems: 'center', gap: 16 }} onClick={() => actions.logDose(r)}
+            <button key={r.id} type="button" className="tile sky span-2 rise row-tile gap-4" style={rise(6 + i)} onClick={() => actions.logDose(r)}
               aria-label={`Next shot of ${regName(r)}: ${siteLabel(sug.site, r.route)}, ${whenNext(r, doses, now)}. Log it.`}>
               <SiteFigure s={sug} size={76} />
-              <span className="stack" style={{ gap: 2, minWidth: 0 }}>
+              <span className="stack gap-1" style={{ minWidth: 0 }}>
                 <span className="label">Next shot · {regName(r)}</span>
                 <span className="tile-title">{siteLabel(sug.site, r.route)}</span>
                 <span className="sub" style={{ color: 'var(--ink-2)', fontWeight: 600 }}>{whenNext(r, doses, now)} · {doseText(r)}</span>
@@ -286,7 +285,7 @@ export function TodayView(actions: Actions) {
             </button>
           ))}
 
-          <button type="button" className={`tile mint rise${comingUp?.st.due ? '' : ' wide-sm'}`} style={{ ...rise(7), gap: 6 }} onClick={actions.checkin}>
+          <button type="button" className={`tile mint rise gap-2${comingUp?.st.due ? '' : ' wide-sm'}`} style={rise(7)} onClick={actions.checkin}>
             <span className="label">Check-in</span>
             {checkedIn ? (
               <>
@@ -302,15 +301,15 @@ export function TodayView(actions: Actions) {
           </button>
 
           {comingUp?.st.due && (
-            <a href="#peptides" className="tile sky rise" style={{ ...rise(8), gap: 6 }}>
+            <a href="#peptides" className="tile sky rise gap-2" style={rise(8)}>
               <span className="label">Coming up</span>
               <span className="tile-title">{regName(comingUp.r)}</span>
               <span className="sub">{fmtDay(comingUp.st.due)} · {fmtNum(Number(comingUp.r.dose), 3)} {comingUp.r.unit}</span>
             </a>
           )}
 
-          <a href={learnP ? `#${learnP.id}` : '#calculator'} className={`tile lemon rise ${comingUp?.st.due ? 'span-2' : 'wide-sm'}`} style={{ ...rise(9), display: 'flex', alignItems: 'center', gap: 14 }}>
-            <span className="stack" style={{ gap: 6, flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
+          <a href={learnP ? `#${learnP.id}` : '#calculator'} className={`tile lemon rise row-tile gap-4 ${comingUp?.st.due ? 'span-2' : 'wide-sm'}`} style={rise(9)}>
+            <span className="stack gap-2" style={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
               <span className="label">{learnP ? `Evidence · Tier ${learnP.tier} ${TIERS[learnP.tier].label}` : 'Guide'}</span>
               <span className="tile-title">{learnP ? `What the research says about ${learnP.name}` : 'Dose math, step by step'}</span>
             </span>

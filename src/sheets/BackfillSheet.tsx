@@ -140,7 +140,7 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
 
   // Sheet re-focuses itself whenever onClose changes, so this must keep one identity while typing.
   // With unsaved entries, the first close (Escape, scrim, close button, Cancel, a drag) arms a confirmation in the footer
-  // instead of leaving; a second close, or Discard, leaves. Any new edit disarms it.
+  // instead of leaving; further closes keep it up (focus goes back to Keep editing), so only Discard leaves. Any new edit disarms it.
   const pendingRef = useRef(0);
   pendingRef.current = pending;
   const [leaving, setLeaving] = useState(false);
@@ -148,8 +148,9 @@ export function BackfillSheet({ onClose }: { onClose: () => void }) {
   leavingRef.current = leaving;
   const keep = useRef<HTMLButtonElement>(null);
   const close = useCallback(() => {
-    if (pendingRef.current && !leavingRef.current) { setLeaving(true); return; }
-    onClose();
+    if (!pendingRef.current) { onClose(); return; }
+    if (leavingRef.current) keep.current?.focus();
+    else setLeaving(true);
   }, [onClose]);
   useEffect(() => { setLeaving(false); }, [weights, ticks]);
   useEffect(() => { if (leaving) keep.current?.focus(); }, [leaving]);

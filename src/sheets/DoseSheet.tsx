@@ -24,8 +24,13 @@ const ago = (t: Date) => {
   return d <= 0 ? 'today' : d === 1 ? 'yesterday' : `${d} days ago`;
 };
 
-/** `onFix` opens the regimen's settings, for vial details that don't add up. */
-export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose: () => void; onFix?: (r: Regimen) => void }) {
+type Draft = { d: ReturnType<typeof blank>; auto: boolean; view: 'clock' | 'body' };
+/** Everything typed into a dose sheet, parked while "Fix details" has the regimen open and handed back when it returns. */
+export type DoseDraft = Draft & { drafts: [string, Draft][]; start: string };
+
+/** `onFix` opens the regimen's settings, for vial details that don't add up, and carries the form's state there and back
+ *  (`draft`), so the amount, time, spot, notes and other peptides' drafts are all still there on return. */
+export function DoseSheet({ r: initial, onClose, onFix, draft }: { r: Regimen; onClose: () => void; onFix?: (r: Regimen, draft: DoseDraft) => void; draft?: DoseDraft }) {
   const toast = useToast();
   const { fail, errFor, invalid } = useFieldError('d-err');
   const { doses, regimens } = useLedger();
@@ -33,18 +38,18 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
   const [r, setR] = useState(initial);
   // This peptide's next spot in its own rotation starts out picked. `auto` stays true until the person taps a spot.
   const [first] = useState(() => nextSite(initial, doses));
-  const [d, setD] = useState(() => blank(initial, first?.site));
-  const [auto, setAuto] = useState(!!first);
+  const [d, setD] = useState(() => draft?.d ?? blank(initial, first?.site));
+  const [auto, setAuto] = useState(draft?.auto ?? !!first);
   const last = useMemo(() => lastUsedBySite(doses), [doses]);
   // This regimen's belly-clock history, newest first.
   const bellyDoses = useMemo(() => doses.filter(x => x.rid === r.id && bellyHour(x.site)).slice(0, 3), [doses, r.id]);
   const recent = bellyDoses.map(x => bellyHour(x.site)!);
-  const [view, setView] = useState<'clock' | 'body'>(first?.hour ? 'clock' : 'body');
+  const [view, setView] = useState<'clock' | 'body'>(draft?.view ?? (first?.hour ? 'clock' : 'body'));
   const next = nextBellyHour(recent[0] ?? null, last);
   // Each peptide keeps its own draft, so switching chips and back loses no edits.
-  const drafts = useRef(new Map<string, { d: typeof d; auto: boolean; view: typeof view }>());
+  const drafts = useRef(new Map<string, Draft>(draft?.drafts));
   // A changed dose form, or one whose other peptides hold drafts, asks before a stray dismiss throws it away (LeaveGuard).
-  const guard = useLeaveGuard(JSON.stringify([r.id, d, [...drafts.current].filter(([id]) => id !== r.id)]), onClose);
+  const guard = useLeaveGuard(JSON.stringify([r.id, d, [...drafts.current].filter(([id]) => id !== r.id)]), onClose, draft?.start);
   const { close } = guard;
 
   const set = (k: keyof typeof d) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setD({ ...d, [k]: e.target.value });
@@ -146,7 +151,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
             <div className="alert danger" role="alert">
               <b>These numbers don't add up, so there's no draw to show.</b>
               {checks.map(c => <span key={c.title}>{c.title} {c.body}</span>)}
-              {onFix && <div className="mt-2"><button type="button" className="btn sm" onClick={() => onFix(r)}>Fix {regName(r)}'s details</button></div>}
+              {onFix && <div className="mt-2"><button type="button" className="btn sm" onClick={() => onFix(r, { d, auto, view, drafts: [...drafts.current], start: guard.start })}>Fix {regName(r)}'s details</button></div>}
             </div>
           )}
         </section>

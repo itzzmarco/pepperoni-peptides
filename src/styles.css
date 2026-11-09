@@ -55,6 +55,8 @@
   --brand: #C93D87; --brand-ink: #FFFFFF;
   /* Sheets: their own surface, a 1px top light, and the scrim that dims the page behind. Primary-button hover. */
   --sheet-bg: #F6F6F8; --sheet-hi: rgba(255,255,255,.8); --scrim: rgba(16,18,24,.5);
+  /* The phone sheet's drag handle: a neutral at about 3:1 on --sheet-bg, so it reads as a handle in both themes. */
+  --grabber: #888E9B;
   --btn-hover: #353B4D;
   /* Motion */
   --ease-out: cubic-bezier(.22, 1, .36, 1);
@@ -103,7 +105,7 @@
     --skel: #222632; --skel-shine: rgba(255,255,255,.16);
     --illo-shade: rgba(0,0,0,.3); --illo-shade-on-dark: rgba(0,0,0,.3); --illo-line: #8E94A3;
     --brand: #EE79B4; --brand-ink: #101218;
-    --sheet-bg: #171A23; --sheet-hi: rgba(255,255,255,.09); --scrim: rgba(0,0,0,.66);
+    --sheet-bg: #171A23; --sheet-hi: rgba(255,255,255,.09); --scrim: rgba(0,0,0,.66); --grabber: #666C7B;
     --btn-hover: #CDD2DC;
     color-scheme: dark;
   }
@@ -136,7 +138,7 @@
   --skel: #222632; --skel-shine: rgba(255,255,255,.16);
   --illo-shade: rgba(0,0,0,.3); --illo-shade-on-dark: rgba(0,0,0,.3); --illo-line: #8E94A3;
   --brand: #EE79B4; --brand-ink: #101218;
-  --sheet-bg: #171A23; --sheet-hi: rgba(255,255,255,.09); --scrim: rgba(0,0,0,.66);
+  --sheet-bg: #171A23; --sheet-hi: rgba(255,255,255,.09); --scrim: rgba(0,0,0,.66); --grabber: #666C7B;
   --btn-hover: #CDD2DC;
   color-scheme: dark;
 }
@@ -217,10 +219,8 @@ button.sync[data-s="error"] i { border-radius: 1px; transform: rotate(45deg); }
 /* At the narrowest phones the signed-out pill drops its person icon, the status pills keep their word and drop the mark
    instead (touch has no tooltip, so the word is what tells Synced from Offline), and the row tightens, so the wordmark keeps its whole name. */
 @media (max-width: 359px) { .topbar .row { gap: 6px; } button.sync:not([data-s]) { padding-inline: 12px; } button.sync:not([data-s]) > svg { display: none; } span.sync, button.sync[data-s] { padding-inline: 10px; } :is(span.sync, button.sync[data-s]) > i { display: none; } }
-@media (max-width: 420px) { .hide-sm { display: none; } .show-sm { display: inline; } button.sync[data-s] { min-width: 44px; justify-content: center; padding: 0 10px; }
-  /* On a profile or guide the back chevron and the page name lead, so the status pill gives way to its mark alone (each
-     status has its own shape, and the button keeps its full label for screen readers). */
-  .topbar[data-sub] button.sync[data-s] > span { display: none; } .topbar[data-sub] button.sync[data-s] > i { display: inline-block; } }
+/* Sub-pages keep the status word too: their bar reads only "Learn" beside the chevron, so there is room for it. */
+@media (max-width: 420px) { .hide-sm { display: none; } .show-sm { display: inline; } button.sync[data-s] { min-width: 44px; justify-content: center; padding: 0 10px; } }
 /* One quiet line of small print under the bar (no card, no edge), so each page's greeting or hero leads. */
 .notice { margin-top: 2px; padding: 0 4px; color: var(--ink-3); font-size: var(--fs-xs); line-height: 1.4; text-wrap: pretty; }
 .notice b { color: var(--ink-2); font-weight: 600; }
@@ -233,8 +233,6 @@ main { padding-block: 8px 40px; }
 .head p { color: var(--ink-3); max-width: 62ch; }
 .head .lede { color: var(--ink); }
 .head-actions { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 4px; }
-/* A profile's actions pin just under the sticky top bar (14px + 44px row + 10px), on a compact glass strip of their own. */
-.head-actions.pin { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 68px); z-index: 20; padding: 6px; border-radius: var(--r-md); background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); box-shadow: inset 0 0 0 1px var(--glass-edge); }
 /* Hero header (Trends): a neutral card with a display headline; the range's dose bars along the bottom carry the colour. */
 .head.hero { padding: 20px 20px 16px; gap: 10px; border-radius: var(--r-xl); background: var(--surface); box-shadow: var(--ring), var(--shadow-1); }
 .head.hero .eyebrow { color: var(--lilac-ink); }
@@ -753,8 +751,8 @@ tr:last-child td { border-bottom: 0; }
 .sheet:focus { outline: none; }
 .scrim[data-closing] { pointer-events: none; }
 /* Phone grabber: drag it down to close. Only it starts a drag, so the form still scrolls normally; it stays pinned at the top while the form scrolls. */
-.grabber { position: sticky; top: 0; z-index: 2; display: grid; place-items: center; height: 44px; margin: 0 0 -16px; background: var(--sheet-bg); box-shadow: inset 0 1px 0 var(--sheet-hi); border-radius: var(--r-xl) var(--r-xl) 0 0; cursor: grab; touch-action: none; }
-.grabber i { width: 40px; height: 5px; border-radius: 3px; background: var(--surface-3); }
+.grabber { position: sticky; top: 0; z-index: 2; display: grid; place-items: center; height: 44px; margin: 0 0 -8px; background: var(--sheet-bg); box-shadow: inset 0 1px 0 var(--sheet-hi); border-radius: var(--r-xl) var(--r-xl) 0 0; cursor: grab; touch-action: none; }
+.grabber i { width: 40px; height: 5px; border-radius: 3px; background: var(--grabber); }
 /* On phones the grabber is the sheet's top edge, so the sheet has no top padding for content to show through above it. */
 @media (max-width: 699px) { .sheet { padding-top: 0; } }
 @media (min-width: 700px) { .grabber { display: none; } }
@@ -869,15 +867,15 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
 /* Tab bar */
 .tabbar { position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: min(440px, calc(100% - 32px)); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; padding: 6px; border-radius: var(--r-xl); background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6); box-shadow: var(--shadow-3), inset 0 0 0 1px var(--glass-edge); view-transition-name: tabbar; isolation: isolate; overflow: hidden; }
 /* Opaque fallback for both glass bars; it comes after both rules so it wins on equal specificity. */
-@supports not (backdrop-filter: blur(1px)) { .topbar, .tabbar, .head-actions.pin { background: var(--bg); } }
+@supports not (backdrop-filter: blur(1px)) { .topbar, .tabbar { background: var(--bg); } }
 /* People who ask the OS for less transparency get the same opaque bars, with no blur behind them. */
-@media (prefers-reduced-transparency: reduce) { .topbar, .tabbar, .head-actions.pin { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; } }
-/* One pill behind the current tab: one fifth of the track. It slides from tab to tab as one solid rounded shape; crossing
-   sides it passes under the log button (the button paints above the track), and it never comes to rest there. */
+@media (prefers-reduced-transparency: reduce) { .topbar, .tabbar { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; } }
+/* One pill behind the current tab: one fifth of the track. It slides between the tabs on one side of the log button;
+   crossing sides it fades in afresh on the far side (TabBar keys it by side), so it never passes through or rests under the button. */
 .tab-track { position: absolute; z-index: -1; inset: 6px; pointer-events: none; }
 .tab-ind { position: absolute; top: 0; bottom: 0; left: 0; width: 20%; border-radius: 22px; background: var(--tab-pill); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); }
-/* The log button leads the markup (it tops the desktop rail); on the phone bar Today and Trends move ahead of it. */
-.tabbar > a:nth-of-type(-n+2) { order: -1; }
+/* The log button is in the markup twice, once where each layout shows it: the middle of the phone bar, the top of the rail. */
+.tabbar .log.log-rail { display: none; }
 .tabbar a { color: var(--ink-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; font-size: var(--fs-xs); font-weight: 500; text-decoration: none; border-radius: 22px; }
 @media (hover: hover) { .tabbar a:hover { color: var(--ink); } }
 .tabbar a[aria-current] { color: var(--ink); }
@@ -896,7 +894,8 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
   body { padding-left: 100px; }
   .tabbar { left: 0; top: 0; bottom: 0; transform: none; width: calc(88px + env(safe-area-inset-left, 0px)); padding: 12px 6px 12px calc(6px + env(safe-area-inset-left, 0px)); border-radius: 0; align-content: start; box-shadow: inset -1px 0 0 var(--line); grid-template-columns: minmax(0, 1fr); grid-template-rows: 88px; grid-auto-rows: 64px; }
   /* The primary action sits apart at the top of the rail, over a hairline, with the four tabs below it. */
-  .tabbar > a:nth-of-type(-n+2) { order: 0; }
+  .tabbar .log.log-rail { display: flex; }
+  .tabbar .log.log-bar { display: none; }
   .tabbar .log { align-self: start; min-height: 64px; position: relative; }
   .tabbar .log::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: -12px; height: 1px; background: var(--line); }
   .tab-track { inset: 100px 6px auto calc(6px + env(safe-area-inset-left, 0px)); height: calc(4 * 64px); }
@@ -940,6 +939,8 @@ button.tile { appearance: none; border: 0; text-align: left; font: inherit; curs
 footer.foot { padding-block: 8px 0; font-size: var(--fs-xs); color: var(--ink-3); }
 footer.foot .wrap { display: grid; gap: 6px; padding: 0 4px; }
 footer.foot p { max-width: 90ch; }
+.about > summary { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; font-weight: 600; color: var(--ink-2); }
+.about > p { margin-top: 2px; }
 
 /* A form error shown right under the field it names; the field itself takes the same red edge. */
 .field-err { color: var(--danger); font-weight: 500; }
@@ -1071,6 +1072,7 @@ footer.foot p { max-width: 90ch; }
 
   /* Toast rises in, fades out before it unmounts */
   .toast { animation: toast-in var(--dur-med) var(--ease-spring) backwards; }
+  .toast[data-wait] { animation-delay: var(--dur-med); }
   .toast[data-out] { animation: toast-out var(--dur-med) var(--ease-in) forwards; }
   @keyframes toast-in { from { opacity: 0; transform: translate(-50%, 16px) scale(.96); } }
   @keyframes toast-out { to { opacity: 0; transform: translate(-50%, 6px); } }
@@ -1121,8 +1123,9 @@ footer.foot p { max-width: 90ch; }
   :root[data-routed] :is(.cal, .pattern, .dots7, .strip, .strip28, .daybar) .pop { animation-delay: 60ms; }
   /* A route that arrives through the page fade has no entrances of its own: the fade is its entrance. Otherwise the new
      page would be captured mid-entrance (headlines at opacity 0, marks at scale 0) and the fade would show a blank page.
-     The flag stays until the next route change, so nothing replays once the fade ends. */
-  :root[data-routed="fade"] :is(.rise, .pop, .grow, .hbar-val, .draw, .chart .area, .chart .pt) { animation: none; }
+     They run at zero length rather than being removed, so when App clears the flag after the fade (and after the
+     longest entrance would have ended) each one is already finished and nothing replays; later arrivals animate as usual. */
+  :root[data-routed="fade"] :is(.rise, .pop, .grow, .hbar-val, .draw, .chart .area, .chart .pt) { animation-duration: 0s; animation-delay: 0s; }
   :root[data-routed="fade"] .draw { stroke-dashoffset: 0; }
   /* A sheet closed by a route change leaves on its own: only its live exit shows, never a frozen copy in the crossfade. */
   .scrim { view-transition-name: sheet; }

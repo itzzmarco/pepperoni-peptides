@@ -8,14 +8,14 @@ import { upcoming } from './lib/schedule';
 import { transitionGate } from './lib/routeSwap';
 import { TodayView } from './views/TodayView';
 import { TrendsView } from './views/TrendsView';
-import { PeptidesView } from './views/PeptidesView';
+import { PeptidesView, regName } from './views/PeptidesView';
 import { LibraryView } from './views/LibraryView';
 import { PeptideDetail } from './views/PeptideDetail';
 import { CalculatorView } from './views/CalculatorView';
 import { SafetyView } from './views/SafetyView';
 import { PartnerView } from './views/PartnerView';
 import { RegimenSheet, blankRegimen } from './sheets/RegimenSheet';
-import { DoseSheet } from './sheets/DoseSheet';
+import { DoseSheet, type DoseDraft } from './sheets/DoseSheet';
 import { CheckinSheet } from './sheets/CheckinSheet';
 import { BackfillSheet } from './sheets/BackfillSheet';
 import { AccountSheet } from './sheets/AccountSheet';
@@ -40,9 +40,9 @@ function parseHash(): { tab: Route; id: string | null } {
 }
 
 type SheetState =
-  // `back` reopens that regimen's dose sheet when the edit started there.
-  | { kind: 'regimen'; r: Regimen; isNew: boolean; back?: boolean }
-  | { kind: 'dose'; r: Regimen }
+  // `back` reopens that regimen's dose sheet, with what was typed into it, when the edit started there.
+  | { kind: 'regimen'; r: Regimen; isNew: boolean; back?: DoseDraft }
+  | { kind: 'dose'; r: Regimen; draft?: DoseDraft }
   | { kind: 'checkin' }
   | { kind: 'backfill' }
   | { kind: 'account' }
@@ -81,6 +81,7 @@ export function App() {
     // first-paint entrances stay off (styles.css), and the new page is captured fully drawn rather than blank.
     let at = parseHash();
     let fading = false;
+    let unfade: ReturnType<typeof setTimeout> | undefined;
     const swap = () => {
       const next = parseHash();
       const root = document.documentElement;
@@ -97,10 +98,19 @@ export function App() {
       // "forward") stays in the page fade instead of dissolving on its own when no glyph is there to meet it.
       delete document.documentElement.dataset.dir;
       const start = viewTransition();
-      go(start ? update => start(() => { fading = true; try { flushSync(update); } finally { fading = false; } }) : null);
+      clearTimeout(unfade);
+      // Once the fade has finished and every entrance it skipped would have ended too, the page goes back to the plain
+      // "routed" flag, so content that mounts later (a new card, a range switch) animates in like anywhere else.
+      // The skipped entrances ran at zero length rather than not at all (styles.css), so nothing on screen replays.
+      const settle = () => { unfade = setTimeout(() => { const root = document.documentElement; if (root.dataset.routed === 'fade') root.dataset.routed = ''; }, 800); };
+      go(start ? update => {
+        const t = start(() => { fading = true; try { flushSync(update); } finally { fading = false; } });
+        t.finished.then(settle, settle);
+        return t;
+      } : null);
     };
     window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    return () => { window.removeEventListener('hashchange', onHash); clearTimeout(unfade); };
   }, []);
   // Arriving on a route names it in the window title and moves focus to its headline, so keyboard and screen-reader
   // users land on the new page instead of staying in the navigation. The first load keeps focus where the browser put it.
@@ -183,7 +193,7 @@ export function App() {
   const close = useCallback(() => setSheet(null), []);
   // Closing a regimen edit that started in a dose sheet goes back to that dose sheet. One function for the sheet's whole
   // life, so App re-rendering (a sync status update) never re-runs Sheet's focus effect and pulls the cursor out of a field.
-  const backToDose = useCallback(() => setSheet(s => (s?.kind === 'regimen' ? { kind: 'dose', r: s.r } : s)), []);
+  const backToDose = useCallback(() => setSheet(s => (s?.kind === 'regimen' ? { kind: 'dose', r: s.r, draft: s.back } : s)), []);
   const goPeptides = useCallback(() => {
     setSheet(null);
     if (window.location.hash !== '#peptides') window.location.hash = 'peptides';
@@ -265,17 +275,21 @@ export function App() {
       </main>
       <footer className="foot gutter" inert={bg}>
         <div className="wrap">
-          <p><b>Peptide Ledger</b> is an educational reference and personal journal. It does not diagnose, treat, or recommend doses, and it does not sell or endorse any product. Information reflects sources reviewed through {AS_OF}; rules and evidence change, so check the linked sources and ask your clinician or pharmacist.</p>
+          {/* The hotlines stay in view; the long statement folds under one quiet line so it never outweighs a short page. */}
           <p>US Poison Control: 1-800-222-1222 · Emergency: 911 · Suicide &amp; Crisis Lifeline: 988</p>
+          <details className="about">
+            <summary>About this app <svg className="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg></summary>
+            <p><b>Peptide Ledger</b> is an educational reference and personal journal. It does not diagnose, treat, or recommend doses, and it does not sell or endorse any product. Information reflects sources reviewed through {AS_OF}; rules and evidence change, so check the linked sources and ask your clinician or pharmacist.</p>
+          </details>
         </div>
       </footer>
       <div className="app-end" />
-      <TabBar current={route.id ? 'learn' : tab} exact={!route.id && tab === route.tab} onLog={logNext} logLabel={nextDue ? `Log ${nextDue.name}` : 'Add a peptide'} logWord={nextDue ? 'Log' : 'Add'} inert={bg} />
+      <TabBar current={route.id ? 'learn' : tab} exact={!route.id && tab === route.tab} onLog={logNext} logLabel={nextDue ? `Log ${regName(nextDue)}` : 'Add a peptide'} logWord={nextDue ? 'Log' : 'Add'} inert={bg} />
       <SheetClosing.Provider key={session} value={closing}>
         {shown?.kind === 'regimen' && (shown.back
-          ? <RegimenSheet initial={shown.r} isNew={false} onClose={backToDose} onSaved={x => setSheet(x ? { kind: 'dose', r: x } : null)} />
+          ? <RegimenSheet initial={shown.r} isNew={false} onClose={backToDose} onSaved={x => setSheet(s => (x ? { kind: 'dose', r: x, draft: s?.kind === 'regimen' ? s.back : undefined } : null))} />
           : <RegimenSheet initial={shown.r} isNew={shown.isNew} onClose={close} onSaved={goPeptides} onLog={actions.logDose} onSignIn={actions.signIn} />)}
-        {shown?.kind === 'dose' && <DoseSheet r={shown.r} onClose={close} onFix={r => setSheet({ kind: 'regimen', r, isNew: false, back: true })} />}
+        {shown?.kind === 'dose' && <DoseSheet r={shown.r} draft={shown.draft} onClose={close} onFix={(r, back) => setSheet({ kind: 'regimen', r, isNew: false, back })} />}
         {shown?.kind === 'checkin' && <CheckinSheet onClose={close} onBackfill={() => setSheet({ kind: 'backfill' })} />}
         {shown?.kind === 'backfill' && <BackfillSheet onClose={close} />}
         {shown?.kind === 'account' && <AccountSheet onClose={close} />}

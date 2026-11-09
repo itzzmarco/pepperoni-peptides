@@ -6,10 +6,11 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
  * the explicit Discard and leave loses what was entered; any new edit takes the question away.
  * `ask(go)` puts the same question in front of any other action that would drop the form, such as a link away.
  * `snapshot` is the form's values as one string; the form counts as changed once it differs from the first one.
+ * `from` is the first snapshot of a form being reopened with its edits (so they still count as changes); `start` hands it on.
  * `close` keeps one identity for the sheet's life, since Sheet re-focuses itself whenever onClose changes.
  */
-export function useLeaveGuard(snapshot: string, onClose: () => void) {
-  const [start] = useState(snapshot);
+export function useLeaveGuard(snapshot: string, onClose: () => void, from?: string) {
+  const [start] = useState(from ?? snapshot);
   const dirty = useRef(false);
   dirty.current = snapshot !== start;
   const [leaving, setLeaving] = useState(false);
@@ -27,7 +28,7 @@ export function useLeaveGuard(snapshot: string, onClose: () => void) {
   const close = useCallback(() => ask(onClose), [ask, onClose]);
   useEffect(() => { setLeaving(false); }, [snapshot]);
   useEffect(() => { if (leaving) keep.current?.focus(); }, [leaving]);
-  return { close, ask, leaving, stay: () => setLeaving(false), keep, leave: () => next.current() };
+  return { start, close, ask, leaving, stay: () => setLeaving(false), keep, leave: () => next.current() };
 }
 
 /** The footer of a guarded sheet: its own buttons, or the leave question in their place. */

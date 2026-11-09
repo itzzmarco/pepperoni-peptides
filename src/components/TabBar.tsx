@@ -22,24 +22,29 @@ function Tab({ k, label, current, exact }: { k: keyof typeof ICON; label: string
   );
 }
 
-/** Floating glass tab bar; the labelled button in the middle logs the next due dose, or adds a peptide when none is set up. A pill slides to the current tab.
+/** Floating glass tab bar; the labelled button in the middle logs the next due dose, or adds a peptide when none is set up. A pill marks the current tab.
  *  `exact` is false on a screen that belongs to the tab's section without being the tab's own page. */
 export function TabBar({ current, exact, onLog, logLabel, logWord, inert }: { current: Route; exact: boolean; onLog: () => void; logLabel: string; logWord: string; inert?: boolean }) {
   const col = COL[current as keyof typeof COL];
-  // One pill stays mounted and slides to every tab as one solid shape. Crossing sides it passes under the log button
-  // and never comes to rest there.
+  // One pill per side of the log button: it slides between the two tabs on its side, and crossing to the other side it
+  // goes and a new one fades in there (keyed by side), so it never travels through the log button.
+  // Its visible word says what a tap does right now; aria-label and the tooltip, which start with that word, name the
+  // peptide it will log (the soonest due), so the sheet that opens is no surprise.
+  // It is rendered where each layout shows it, top of the rail and middle of the phone bar, with the other copy hidden
+  // (display: none, styles.css), so keyboard and switch order always match what is on screen.
+  const log = (where: string) => (
+    <button className={`log ${where}`} type="button" onClick={onLog} aria-label={logLabel} title={logLabel}>
+      <span className="log-dot"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></span>
+      {logWord}
+    </button>
+  );
   return (
     <nav className="tabbar" aria-label="Main" inert={inert}>
-      {col != null && <span className="tab-track"><span className="tab-ind" aria-hidden="true" style={{ ['--k' as string]: col, ['--r' as string]: ROW[current as keyof typeof ROW] }} /></span>}
-      {/* Its visible word says what a tap does right now; aria-label and the tooltip, which start with that word, name the
-          peptide it will log (the soonest due), so the sheet that opens is no surprise.
-          It comes first, as the primary action: the rail shows it on top, and the phone bar moves Today and Trends before it. */}
-      <button className="log" type="button" onClick={onLog} aria-label={logLabel} title={logLabel}>
-        <span className="log-dot"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></span>
-        {logWord}
-      </button>
+      {col != null && <span className="tab-track"><span key={col < 2 ? 'l' : 'r'} className="tab-ind" aria-hidden="true" style={{ ['--k' as string]: col, ['--r' as string]: ROW[current as keyof typeof ROW] }} /></span>}
+      {log('log-rail')}
       <Tab k="today" label="Today" current={current} exact={exact} />
       <Tab k="trends" label="Trends" current={current} exact={exact} />
+      {log('log-bar')}
       <Tab k="learn" label="Learn" current={current} exact={exact} />
       <Tab k="peptides" label="Peptides" current={current} exact={exact} />
     </nav>

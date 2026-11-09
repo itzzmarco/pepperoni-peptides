@@ -191,6 +191,8 @@ export function LibraryView() {
     const a = (e.target as Element).closest('a[href^="#"]');
     if (a && !GUIDES.some(g => g.href === a.getAttribute('href'))) back.y = window.scrollY;
   };
+  const fresh = useRef(true);
+  useEffect(() => { fresh.current = false; }, []);
   const list = useMemo(
     () => PEPTIDES.filter(p => matches(p, applied)).sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0) || a.name.localeCompare(b.name)),
     [applied],
@@ -263,10 +265,12 @@ export function LibraryView() {
       </div>
       <p className="sr-only" aria-live="polite">{count}</p>
       <div className="cards" ref={grid}>
-        {list.length ? list.map(p => (
+        {list.length ? list.map((p, i) => (
           // The name leads; family and tier share one quiet line under it, and legal status is the only chip.
           // The tapped card marks its glyph, which travels into the profile header as the page opens (styles.css).
-          <a className="card" href={`#${p.id}`} key={p.id} style={{ ['--vt' as string]: `c-${p.id}` }} onClick={open}>
+          // On the page's first paint the first few cards rise in on the same capped stagger as the other tabs' blocks;
+          // cards a filter brings in later are left to the filter's own transition.
+          <a className={`card${fresh.current && i < 6 ? ' rise' : ''}`} href={`#${p.id}`} key={p.id} style={{ ['--vt' as string]: `c-${p.id}`, ['--i' as string]: i + 1 }} onClick={open}>
             <div className="card-top">
               <div><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 2).join(' · ')}</div> : null}</div>
               <FamilyGlyph family={p.family} />

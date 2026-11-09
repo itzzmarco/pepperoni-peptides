@@ -36,6 +36,12 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
   const { regimens, doses } = useLedger();
   const mine = regimens.filter(r => r.compoundId === p.id);
   const banner = cautionBanner(p);
+  const actions = (
+    <>
+      <button className="btn" onClick={() => onTrack(p.id)}>{mine.length ? 'Track another regimen' : 'Track this in my log'}</button>
+      <a className="btn ghost" href="#calculator">Dose math</a>
+    </>
+  );
   return (
     <article className="view">
       <header className="head band rise" data-t={p.tier}>
@@ -59,12 +65,9 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
           </span>
         </div>
       )}
-      {/* The page's two actions, under the header. The row pins under the top bar as the evidence scrolls by, so the
-          next step stays in reach all the way down. */}
-      <div className="head-actions pin rise" style={rise(3)}>
-        <button className="btn" onClick={() => onTrack(p.id)}>{mine.length ? 'Track another regimen' : 'Track this in my log'}</button>
-        <a className="btn ghost" href="#calculator">Dose math</a>
-      </div>
+      {/* The page's two actions sit under the header and scroll away with it, so nothing floats over the evidence and
+          warnings; the same row comes back once at the end, for whoever has read the whole profile. */}
+      <div className="head-actions rise" style={rise(3)}>{actions}</div>
 
       {mine.length > 0 && <Glp1Alert regimens={regimens} />}
       {/* One instrument card per screen: the first regimen gets the dark card, any others are plain tiles. */}
@@ -140,6 +143,7 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
           </section>
         ) : null}
       </div>
+      <div className="head-actions">{actions}</div>
     </article>
   );
 }

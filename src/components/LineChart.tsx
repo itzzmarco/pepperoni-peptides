@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { fmtShort } from '../lib/format';
 
 export interface Pt {
@@ -10,6 +10,8 @@ export interface Pt {
 /**
  * Line with area wash, end label, and a hover tooltip per point. The panel title names the series.
  * An optional second series (`points2`) draws as a second line in another color, without the wash.
+ * Keyboard: the chart is one tab stop; arrow keys (and Home/End) step through every point in time order and
+ * show the same tip, which a live region reads out. A visually hidden list carries every plotted value.
  */
 export function LineChart({ points, points2 = [], y0, y1, ticks, x0, x1, label, fmt = String }: {
   points: Pt[];
@@ -48,13 +50,29 @@ export function LineChart({ points, points2 = [], y0, y1, ticks, x0, x1, label, 
   const last = pts[pts.length - 1];
   const lx = sx(last.x.getTime());
   const last2 = pts2[pts2.length - 1];
+  // Every point of both series in time order: the keyboard walks this list, the hidden list reads it out.
+  const all = [...pts, ...pts2].sort(byX);
+  const [sel, setSel] = useState<number | null>(null);
+  const picked = sel != null ? all[Math.min(sel, all.length - 1)] : undefined;
+  const tipAt = (p: Pt) => ({ left: (sx(p.x.getTime()) / W) * 100, top: (sy(p.y) / H) * 100, text: p.tip });
+  const shown = picked ? tipAt(picked) : hover;
+  const onKey = (e: KeyboardEvent) => {
+    const n = all.length;
+    const i = sel ?? n;
+    const next = e.key === 'ArrowRight' || e.key === 'ArrowUp' ? Math.min(n - 1, sel == null ? n - 1 : i + 1)
+      : e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? Math.max(0, i - 1)
+      : e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : null;
+    if (next == null) return;
+    e.preventDefault();
+    setSel(next);
+  };
   const dots = (ps: Pt[], cls: string) => ps.map((p, i) => {
     const cx = sx(p.x.getTime()), cy = sy(p.y);
     const isLast = i === ps.length - 1;
     return (
       <g key={`${cls}${i}`}>
         {(isLast || ps.length < 12) && <circle className={`pt ${cls}`} cx={cx} cy={cy} r={isLast ? 5 : 4} />}
-        <circle cx={cx} cy={cy} r={11} fill="transparent" onMouseEnter={() => setHover({ left: (cx / W) * 100, top: (cy / H) * 100, text: p.tip })} />
+        <circle cx={cx} cy={cy} r={11} fill="transparent" onMouseEnter={() => setHover(tipAt(p))} />
       </g>
     );
   });
@@ -70,7 +88,8 @@ export function LineChart({ points, points2 = [], y0, y1, ticks, x0, x1, label, 
   const close = last2 && Math.abs(sy(last2.y) - sy(last.y)) < 16;
   const above = !last2 || sy(last.y) <= sy(last2.y);
   return (
-    <div className="chart-wrap" ref={wrap} onMouseLeave={() => setHover(null)}>
+    <div className="chart-wrap" ref={wrap} onMouseLeave={() => setHover(null)} tabIndex={0} role="group"
+      aria-label={`${label}. Arrow keys step through the points.`} onKeyDown={onKey} onBlur={() => setSel(null)}>
       <svg className="chart" width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
         {ticks.map(t => (
           <g key={t}>
@@ -91,12 +110,15 @@ export function LineChart({ points, points2 = [], y0, y1, ticks, x0, x1, label, 
         {dots(pts, '')}
         {endLabel(last, '', above || !close ? -8 : 18)}
         {last2 && endLabel(last2, 'two', above && close ? 18 : -8)}
+        {picked && <circle className="pt-focus" cx={sx(picked.x.getTime())} cy={sy(picked.y)} r={8} />}
       </svg>
-      {hover && (
-        <div className="tip" style={{ left: `clamp(60px, ${hover.left}%, calc(100% - 60px))`, top: `${hover.top}%` }}>
-          {hover.text}
+      {shown && (
+        <div className="tip" aria-hidden="true" style={{ left: `clamp(60px, ${shown.left}%, calc(100% - 60px))`, top: `${shown.top}%` }}>
+          {shown.text}
         </div>
       )}
+      <span className="sr-only" aria-live="polite">{picked?.tip ?? ''}</span>
+      <ul className="sr-only">{all.map((p, i) => <li key={i}>{p.tip}</li>)}</ul>
     </div>
   );
 }

@@ -21,9 +21,14 @@ const still = () => prefersReducedMotion() || document.visibilityState === 'hidd
 export const exitMs = () =>
   typeof document === 'undefined' ? 240 : cssMs(getComputedStyle(document.documentElement).getPropertyValue('--dur-med'), 240);
 
-/** Counts a number up (or down) to `target` with an ease-out, so a stat reads as "this just changed". */
+/** A route change has happened this session (App sets `data-routed`): screens being revisited open on their real numbers. */
+const routed = () => typeof document !== 'undefined' && document.documentElement.dataset.routed != null;
+
+/** Counts a number up (or down) to `target` with an ease-out, so a stat reads as "this just changed".
+ *  It counts from `from` only on the session's first paint; after a route change it opens on `target`,
+ *  and only a later change of the value itself animates. */
 export function useCountUp(target: number, from = 0, ms = 900) {
-  const [v, setV] = useState(() => (still() ? target : from));
+  const [v, setV] = useState(() => (still() || routed() ? target : from));
   const cur = useRef(v);
   useEffect(() => {
     const a = cur.current;

@@ -244,7 +244,7 @@ function Pattern({ doses, checkins, now }: { doses: DoseEntry[]; checkins: Check
           {withDoses.map(x => <button key={x.id} type="button" className="fchip" aria-pressed={x.id === r.id} onClick={() => setPick(x.id)}>{regName(x)}</button>)}
         </div>
       )}
-      <p style={{ fontSize: '1.25rem', fontWeight: 500, lineHeight: 1.3 }}>{sentence}</p>
+      <p style={{ fontSize: 'var(--fs-lg)', fontWeight: 500, lineHeight: 1.3 }}>{sentence}</p>
       <div className="pattern" role="img" aria-label={`Four weeks, Monday first: ${name} doses and days with side effects. ${sentence}`}>
         <div className="wk head" aria-hidden="true">{['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <span key={i}>{d}</span>)}</div>
         {weeks.map((w, wi) => (
@@ -310,10 +310,11 @@ export function TrendsView({ onBackfill, onAdd }: { onBackfill: () => void; onAd
         {!empty && <DoseBars doses={doses} days={days} now={now} />}
       </header>
       {/* Nothing logged yet: one card explains what will show up and offers the first step, instead of a dashboard of dashes.
-          The share row waits until there is a log to export. */}
-      {empty ? (
+          The share panel stays under it, so a fresh device can restore a backup before logging anything. */}
+      {empty ? <>
         <History doses={doses} checkins={checkins} onBackfill={onBackfill} onAdd={onAdd} art={<IlloTrends />} />
-      ) : <>
+        <ExportPanel ledger={ledger} />
+      </> : <>
       <div className="seg rise" role="group" aria-label="Time range" style={rise(1)}>
         {RANGES.map(([d, l]) => <button key={d} type="button" aria-pressed={days === d} onClick={() => setDays(d)}>{l}</button>)}
       </div>

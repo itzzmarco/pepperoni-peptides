@@ -34,9 +34,9 @@ export function SafetyView() {
         <h2 style={{ color: 'var(--danger)' }}>Get emergency help now if you have</h2>
         <ul>{RED_FLAGS.map(f => <li key={f}>{f}</li>)}</ul>
         <div className="callout-nums">
-          <div><span className="xsmall">Emergency</span><b>911</b></div>
-          <div><span className="xsmall">Poison Control (US, 24/7)</span><b>1-800-222-1222</b></div>
-          <div><span className="xsmall">Suicide &amp; Crisis Lifeline</span><b>988</b></div>
+          <a href="tel:911"><span className="xsmall">Emergency</span><b>911</b></a>
+          <a href="tel:+18002221222"><span className="xsmall">Poison Control (US, 24/7)</span><b>1-800-222-1222</b></a>
+          <a href="tel:988"><span className="xsmall">Suicide &amp; Crisis Lifeline</span><b>988</b></a>
         </div>
         <p className="small">Bring the vial or packaging with you so the care team knows what you took.</p>
       </section>

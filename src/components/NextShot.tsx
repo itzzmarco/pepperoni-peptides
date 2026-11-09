@@ -65,7 +65,7 @@ export function NextShot({ r, doses }: { r: Regimen; doses: DoseEntry[] }) {
       <SiteFigure s={s} size={72} />
       <span className="stack" style={{ gap: 2, minWidth: 0 }}>
         <span className="label">Next shot · {whenNext(r, doses)}</span>
-        <b style={{ fontSize: '1.0625rem', lineHeight: 1.25 }}>{s.hour ? `Belly, ${s.hour} o'clock` : siteLabel(s.site, r.route)}</b>
+        <b style={{ fontSize: 'var(--fs-lg)', lineHeight: 1.25 }}>{s.hour ? `Belly, ${s.hour} o'clock` : siteLabel(s.site, r.route)}</b>
         <span className="small" style={{ color: 'var(--ink-2)' }}>{doseText(r)} · {s.why}</span>
       </span>
     </div>

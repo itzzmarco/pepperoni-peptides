@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import type { Regimen } from './lib/types';
 import { PEP } from './data/peptides';
@@ -81,14 +81,43 @@ export function App() {
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
-  // The glass top bar picks up a hairline once the page scrolls under it, and the page's name once its title has gone.
+  // The glass top bar picks up a hairline once the page scrolls under it.
   const [scrolled, setScrolled] = useState(false);
-  const [titled, setTitled] = useState(false);
   useEffect(() => {
-    const onScroll = () => { setScrolled(window.scrollY > 8); setTitled(window.scrollY > 120); };
+    const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  // It takes the page's name exactly when the page's own headline (its h1) has slid fully under the bar, however tall
+  // the notice, back row or headline are on this screen. A mutation observer follows the h1 when a route or state swaps it,
+  // and the observer is rebuilt when the window resizes, since the bar's height sets where "under the bar" starts.
+  const [titled, setTitled] = useState(false);
+  const barRef = useRef<HTMLElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const main = mainRef.current;
+    if (!main || typeof IntersectionObserver === 'undefined') return;
+    let io: IntersectionObserver | null = null, h: Element | null = null;
+    const watch = () => {
+      const next = main.querySelector('h1');
+      if (next === h) return;
+      if (h) io?.unobserve(h);
+      h = next;
+      if (h) io?.observe(h); else setTitled(false);
+    };
+    const build = () => {
+      io?.disconnect();
+      const barH = barRef.current?.offsetHeight ?? 0;
+      io = new IntersectionObserver(([e]) => setTitled(!e.isIntersecting && e.boundingClientRect.top < barH), { rootMargin: `-${barH}px 0px 0px 0px` });
+      h = null;
+      watch();
+    };
+    build();
+    const mo = new MutationObserver(watch);
+    mo.observe(main, { childList: true, subtree: true });
+    window.addEventListener('resize', build);
+    return () => { io?.disconnect(); mo.disconnect(); window.removeEventListener('resize', build); };
   }, []);
   // A closed sheet stays mounted (same instance, so focus return still works) while its exit plays.
   // Swapping straight to another sheet skips the exit; reduced motion unmounts at once.
@@ -136,7 +165,7 @@ export function App() {
   const tab = route.tab === 'calculator' || route.tab === 'safety' ? 'learn' : route.tab === 'partner' ? 'today' : route.tab;
   return (
     <>
-      <header className="topbar gutter" inert={bg} data-scrolled={scrolled ? 'true' : undefined} data-titled={titled ? '' : undefined}>
+      <header ref={barRef} className="topbar gutter" inert={bg} data-scrolled={scrolled ? 'true' : undefined} data-titled={titled ? '' : undefined}>
         <div className="wrap">
           <div className="row">
             <a className="brand" href="#today" aria-label="Peptide Ledger, today">
@@ -167,7 +196,7 @@ export function App() {
           </p>
         </div>
       </div>
-      <main className="gutter" inert={bg}>
+      <main ref={mainRef} className="gutter" inert={bg}>
         <div className="wrap">{view}</div>
       </main>
       <footer className="foot gutter" inert={bg}>

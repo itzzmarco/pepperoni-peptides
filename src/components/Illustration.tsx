@@ -27,7 +27,7 @@ export function IlloStart({ size = 168 }: Props) {
       </g>
       <rect x="92" y="72" width="12" height="12" rx="4" fill="var(--go)" />
       <path d="M95 78l2 2 4-4" fill="none" stroke="var(--mint-ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <rect x="28" y="30" width="22" height="9" rx="3" fill="var(--lilac-line)" />
+      <rect x="28" y="30" width="22" height="9" rx="3" fill="var(--brand)" />
       <rect x="31" y="39" width="16" height="5" fill="var(--ink-4)" />
       <path d="M24 50q0-6 6-6h18q6 0 6 6v44q0 8-8 8H32q-8 0-8-8z" fill="var(--surface)" stroke="var(--illo-line)" strokeWidth="2.5" />
       <path d="M26 76h26v18q0 6-6 6H32q-6 0-6-6z" fill="var(--lilac-line)" opacity=".55" />

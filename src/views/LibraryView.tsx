@@ -115,25 +115,36 @@ function FilterRow({ label, children }: { label: string; children: ReactNode }) 
 }
 
 const GUIDES = [
-  { href: '#calculator', tone: 'lilac', title: 'Dose math, step by step', sub: 'Vial, water and syringe units', icon: 'M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5V2M8.5 2h7M14.5 16h-5' },
-  { href: '#safety', tone: 'peach', title: 'Safety & law', sub: 'Warning signs and US rules', icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
+  { href: '#calculator', tone: 'lilac', title: 'Dose math, step by step', icon: 'M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5V2M8.5 2h7M14.5 16h-5' },
+  { href: '#safety', tone: 'peach', title: 'Safety & law', icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
 ];
+
+/** How long typing must pause before the grid follows the search box in one transition. */
+const SETTLE_MS = 180;
 
 export function LibraryView() {
   const [f, setRaw] = useState<Filters>(loadFilters);
   // Searching or filtering moves the cards instead of snapping them: the box and chips update at once, and the grid
   // follows inside a view transition where each card has its own name (see :root[data-filtering] in styles.css), so
   // cards that stay slide and the rest fade. Reduced motion, or no view transitions, updates the grid at once.
+  // Typing waits for a short pause (SETTLE_MS) so a word animates the grid once, not once per keystroke; chips move it at once.
   const [applied, setApplied] = useState(f);
   const seq = useRef(0);
-  const setF = (next: Filters) => {
-    setRaw(next);
+  const typing = useRef<ReturnType<typeof setTimeout>>(undefined);
+  useEffect(() => () => clearTimeout(typing.current), []);
+  const apply = (next: Filters) => {
     const start = viewTransition();
     if (!start) { setApplied(next); return; }
     const root = document.documentElement, mine = ++seq.current;
     const done = () => { if (mine === seq.current) delete root.dataset.filtering; };
     root.dataset.filtering = '';
     try { start(() => flushSync(() => setApplied(next))).finished.then(done, done); } catch { done(); setApplied(next); }
+  };
+  const setF = (next: Filters) => {
+    setRaw(next);
+    clearTimeout(typing.current);
+    if (next.q !== f.q && viewTransition()) typing.current = setTimeout(() => apply(next), SETTLE_MS);
+    else apply(next);
   };
   useEffect(() => {
     back.q = f.q;
@@ -176,7 +187,7 @@ export function LibraryView() {
         <span className="eyebrow">Learn</span>
         <h1>What the evidence says.<br /><span className="soft">{PEPTIDES.length} peptides, graded.</span></h1>
         <p>Compounds that trend online, with what studies show, how they're regulated in the US, and the warning signs to know. Updated {AS_OF}.</p>
-        {/* The two guides are one tap from the top; their full tiles and the overview come after the library. */}
+        {/* The two guides are one tap from the top, so the spot after the library goes to the tier explainer. */}
         <nav className="row-wrap" aria-label="Guides">
           {GUIDES.map(g => (
             <a key={g.href} href={g.href} className="btn soft sm">
@@ -218,18 +229,6 @@ export function LibraryView() {
             <button className="btn" onClick={() => setF({ q: '', fam: 'all', tier: 'all', legal: 'all' })}>Clear filters</button>
           </div>
         )}
-      </div>
-
-      <div className="bento">
-        {GUIDES.map(g => (
-          <a key={g.href} href={g.href} className={`tile ${g.tone}`} style={{ gap: 10 }}>
-            <span className="badge-icon" style={{ width: 44, height: 44, background: 'var(--surface)', color: `var(--${g.tone}-ink)` }} aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={g.icon} /></svg>
-            </span>
-            <span className="tile-title">{g.title}</span>
-            <span className="sub">{g.sub}</span>
-          </a>
-        ))}
       </div>
 
       <details className="tile mint" id="tiers">

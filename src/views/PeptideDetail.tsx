@@ -49,7 +49,7 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
         <h1>{p.name}</h1>
         {p.aka?.length ? <p className="small">Also called {p.aka.join(', ')}</p> : null}
         <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /><WadaChip w={p.wada} /></div>
-        <p style={{ color: 'var(--ink)', fontSize: '1.0625rem', lineHeight: 1.45 }}>{p.summary}</p>
+        <p style={{ color: 'var(--ink)', fontSize: 'var(--fs-lg)', lineHeight: 1.45 }}>{p.summary}</p>
         <SeqStrip p={p} />
         {p.seqNote && <p className="xsmall">{p.seqNote}</p>}
       </header>

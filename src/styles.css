@@ -47,6 +47,8 @@
   --illo-shade: rgba(30,34,48,.07); --illo-line: #3F4452;
   /* Brand mark: the vial cap, same pink as the installed icon. */
   --brand: #E05A9E;
+  /* Solid family glyphs: how much of the ink stays in the tile, and of the tint in the icon. Dark mode keeps them dark tiles with light icons. */
+  --glyph-solid: 100%; --glyph-solid-fg: 100%;
   /* Sheets: their own surface, a 1px top light, and the scrim that dims the page behind. Primary-button hover. */
   --sheet-bg: #F6F6F8; --sheet-hi: rgba(255,255,255,.8); --scrim: rgba(16,18,24,.5);
   --btn-hover: #353B4D;
@@ -86,9 +88,10 @@
     --glass: rgba(16,18,24,.74); --glass-edge: rgba(255,255,255,.08); --tab-pill: rgba(255,255,255,.15);
     --dark-glow: rgba(141,180,255,.18); --dark-glow-2: rgba(127,224,181,.10); --dark-hi: rgba(255,255,255,.16);
     --recent-1: #7A3A1E; --recent-2: #5E2D18; --recent-3: #472316; --recent-ink: #FDE8DC;
-    --skel: #222632; --skel-shine: rgba(255,255,255,.06);
+    --skel: #222632; --skel-shine: rgba(255,255,255,.16);
     --illo-shade: rgba(0,0,0,.3); --illo-line: #C3C8D3;
     --brand: #EE79B4;
+    --glyph-solid: 32%; --glyph-solid-fg: 0%;
     --sheet-bg: #171A23; --sheet-hi: rgba(255,255,255,.09); --scrim: rgba(0,0,0,.66);
     --btn-hover: #CDD2DC;
     color-scheme: dark;
@@ -116,9 +119,10 @@
   --glass: rgba(16,18,24,.74); --glass-edge: rgba(255,255,255,.08); --tab-pill: rgba(255,255,255,.15);
   --dark-glow: rgba(141,180,255,.18); --dark-glow-2: rgba(127,224,181,.10); --dark-hi: rgba(255,255,255,.16);
   --recent-1: #7A3A1E; --recent-2: #5E2D18; --recent-3: #472316; --recent-ink: #FDE8DC;
-  --skel: #222632; --skel-shine: rgba(255,255,255,.06);
+  --skel: #222632; --skel-shine: rgba(255,255,255,.16);
   --illo-shade: rgba(0,0,0,.3); --illo-line: #C3C8D3;
   --brand: #EE79B4;
+  --glyph-solid: 32%; --glyph-solid-fg: 0%;
   --sheet-bg: #171A23; --sheet-hi: rgba(255,255,255,.09); --scrim: rgba(0,0,0,.66);
   --btn-hover: #CDD2DC;
   color-scheme: dark;
@@ -380,14 +384,17 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .daybar .mark { position: absolute; top: 15px; width: 24px; height: 24px; margin-left: -12px; border-radius: 12px; display: grid; place-items: center; }
 .daybar .mark.done { background: var(--go); color: var(--dark); border: 3px solid var(--dark); }
 .daybar .mark.todo { background: var(--dark); border: 2.5px solid var(--on-dark); }
-.daybar .t { position: absolute; top: 46px; transform: translateX(-50%); font-size: 11px; color: var(--on-dark-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
-.daybar .t.end { right: 0; transform: none; }
+.daybar .t { position: absolute; top: 46px; text-align: center; font-size: 11px; color: var(--on-dark-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.daybar .t.end { right: 0; text-align: right; }
 /* Next up: the name at display size, with a ring of today's doses beside it */
 .next-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 14px; align-items: center; }
-.next-name { font-size: clamp(1.75rem, 7vw, 2.25rem); font-weight: 600; letter-spacing: -.02em; line-height: 1.05; overflow-wrap: anywhere; }
-.next-dose { color: var(--on-dark-2); font-weight: 500; }
+/* The name wraps only between words; the dose gets its own line under it. */
+.next-name { font-size: clamp(var(--fs-xl), 6.4vw, var(--fs-stat)); font-weight: 600; letter-spacing: -.02em; line-height: 1.08; overflow-wrap: break-word; }
+.next-dose { font-size: var(--fs-lg); color: var(--on-dark-2); font-weight: 500; font-variant-numeric: tabular-nums; }
 .today-ring { position: relative; width: 76px; height: 76px; display: grid; place-items: center; flex: none; }
-.today-ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.today-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+/* Phone widths: a smaller ring leaves the name a wider column. */
+@media (max-width: 400px) { .today-ring { width: 60px; height: 60px; } .today-ring b { font-size: var(--fs-lg); } .next-hero { gap: 10px; } }
 .today-ring circle { fill: none; stroke-width: 7; }
 .today-ring .track { stroke: var(--dark-line); }
 .today-ring .arc { stroke: var(--go); stroke-linecap: round; }
@@ -473,7 +480,9 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .tile.lilac .chart .pt { stroke: var(--lilac); }
 .tile.mint { --chart-line: var(--mint-ink); }
 .tile.mint .chart .pt { stroke: var(--mint); }
-.chart-wrap { position: relative; }
+.chart-wrap { position: relative; border-radius: var(--r-sm); }
+.chart-wrap:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.chart .pt-focus { fill: none; stroke: var(--ink); stroke-width: 2; }
 .tip { position: absolute; pointer-events: none; background: var(--btn); color: var(--btn-ink); font-size: var(--fs-xs); padding: 5px 10px; border-radius: 10px; white-space: nowrap; transform: translate(-50%, -120%); z-index: 2; }
 /* Names get a fixed share (long ones ellipsize, the full name is the row's label), so the bars keep a readable track at 320px. */
 .hbar { display: grid; grid-template-columns: minmax(84px, 34%) minmax(0, 1fr); column-gap: 10px; row-gap: 4px; }
@@ -528,6 +537,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 12px; }
 .card { position: relative; display: grid; gap: 8px; align-content: start; grid-template-rows: auto auto 1fr auto; text-align: left; background: var(--surface); box-shadow: var(--ring); border-radius: var(--r-md); padding: 16px; color: var(--ink); text-decoration: none; min-width: 0; }
 .glyph { display: inline-grid; place-items: center; border-radius: 14px; flex: none; }
+.glyph.solid { background: color-mix(in srgb, var(--g-ink) var(--glyph-solid), var(--dark)); color: color-mix(in srgb, var(--g-tint) var(--glyph-solid-fg), var(--on-dark)); }
 .card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
 .card h3 { font-size: 1.0625rem; overflow-wrap: anywhere; }
 .card .fam { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); margin-bottom: 2px; }
@@ -549,6 +559,7 @@ details > summary { cursor: pointer; list-style: none; }
 details > summary::-webkit-details-marker { display: none; }
 
 details[open] > summary .chev { transform: rotate(90deg); }
+.btn[aria-expanded="true"] > .chev { transform: rotate(180deg); }
 
 /* Peptide profile: a header band washed with the evidence tier's tint */
 .band { --tc: var(--t1); --tb: var(--t1-bg); padding: 20px; border-radius: var(--r-xl); box-shadow: var(--shadow-1);
@@ -589,9 +600,11 @@ details[open] > summary .chev { transform: rotate(90deg); }
 .howto { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
 
 /* Safety */
-.callout-nums { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; }
-.callout-nums div { background: var(--surface); border-radius: 16px; padding: 10px 14px; display: grid; }
-.callout-nums b { font-family: var(--f-mono); font-size: 1.0625rem; user-select: all; white-space: nowrap; }
+/* Tap-to-call: each number is a full-width link, well past the 44px target. */
+.callout-nums { display: grid; gap: 8px; }
+.callout-nums a { background: var(--surface); border-radius: 16px; padding: 10px 14px; min-height: 56px; display: grid; align-content: center; color: var(--ink); text-decoration: none; }
+.callout-nums a:focus-visible { outline: 2px solid var(--danger); outline-offset: 2px; }
+.callout-nums b { font-family: var(--f-mono); font-size: var(--fs-lg); color: var(--danger); white-space: nowrap; }
 .emerg ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
 .timeline-v { display: grid; position: relative; padding-left: 24px; }
 .timeline-v::before { content: ""; position: absolute; left: 7px; top: 6px; bottom: 6px; width: 2px; background: var(--line); }
@@ -776,7 +789,7 @@ footer.foot p { max-width: 90ch; }
   .grow.up { animation-name: grow-up; transform-origin: bottom; }
   @keyframes grow-up { from { transform: scaleY(0); } }
   .syringe .moves { transition: transform var(--dur-slow) var(--ease-out); }
-  details > summary .chev { transition: transform var(--dur-med) var(--ease-out); }
+  details > summary .chev, .btn > .chev { transition: transform var(--dur-med) var(--ease-out); }
 
   /* Tactile feedback: quick press, gentle lift */
   .btn, .fchip, .icon-btn, .tabbar .log, .tabbar a, .seg button, .hour, .scale button { transition: transform var(--dur-fast) var(--ease-out), filter var(--dur-fast) var(--ease-out); }
@@ -799,7 +812,9 @@ footer.foot p { max-width: 90ch; }
   :root[data-filtering]::view-transition-new(root) { animation: none; }
 
   /* Sliding selection: tab pill and segmented control */
-  .tab-ind, .seg::before { transition: transform var(--dur-med) var(--ease-spring), opacity var(--dur-fast) var(--ease-out); }
+  .tab-ind { transition: transform var(--dur-med) var(--ease-spring), opacity var(--dur-fast) var(--ease-out); }
+  /* The seg pill settles without overshoot, so it never pokes past the rounded track. */
+  .seg::before { transition: transform var(--dur-med) var(--ease-out), opacity var(--dur-fast) var(--ease-out); }
   .tab-ind { animation: fade-in var(--dur-med) var(--ease-out) backwards; }
 
   /* Sheets: scrim fades; phones slide up from the bottom, wider screens fade and scale from .96. Exit reverses. */
@@ -840,9 +855,10 @@ footer.foot p { max-width: 90ch; }
   ::view-transition-group(topbar), ::view-transition-group(tabbar), ::view-transition-group(notice) { animation-duration: 0s; }
   ::view-transition-old(topbar), ::view-transition-old(tabbar), ::view-transition-old(notice) { display: none; }
   ::view-transition-new(topbar), ::view-transition-new(tabbar), ::view-transition-new(notice) { animation: none; }
-  /* After a route change the root fade is the only page motion: blocks don't rise or settle on top of it,
-     while dots, bars, calendars and sparklines still pop, grow and draw in. */
-  :root[data-routed] .rise { animation: none; }
+  /* After a route change the root fade is the only page motion: blocks don't rise, and dots, bars, rings and
+     sparklines open drawn, so a returning user never reads in-between numbers (useCountUp follows the same rule). */
+  :root[data-routed] :is(.rise, .pop, .grow, .draw) { animation: none; }
+  :root[data-routed] .draw { stroke-dasharray: none; stroke-dashoffset: 0; }
   /* A sheet closed by a route change leaves on its own: only its live exit shows, never a frozen copy in the crossfade. */
   .scrim { view-transition-name: sheet; }
   ::view-transition-group(sheet) { animation-duration: 0s; }

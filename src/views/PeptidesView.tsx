@@ -110,9 +110,15 @@ function Reminders({ r, doses }: { r: Regimen; doses: DoseEntry[] }) {
 function RegimenCard({ r, doses, actions, i = 0 }: { r: Regimen; doses: DoseEntry[]; actions: Actions; i?: number }) {
   const toast = useToast();
   const [remind, setRemind] = useState(false);
+  const [more, setMore] = useState(false);
   const p = PEP[r.compoundId];
   const st = regimenStatus(r, doses);
   const { math, checks } = checkRegimen(r);
+  const pause = (
+    <button className={r.paused ? 'btn sm' : 'btn quiet sm'} onClick={() => { store.saveRegimen({ ...r, paused: !r.paused }); toast(r.paused ? 'Resumed.' : 'Paused. Your history is kept.'); }}>
+      {r.paused ? 'Resume' : 'Pause'}
+    </button>
+  );
   return (
     <article className={`tile regimen rise${r.paused ? ' paused' : ''}`} style={{ ['--i' as string]: i + 2 }}>
       <div className="top">
@@ -140,15 +146,22 @@ function RegimenCard({ r, doses, actions, i = 0 }: { r: Regimen; doses: DoseEntr
       )}
       <Strip rid={r.id} doses={doses} />
       {remind && <Reminders r={r} doses={doses} />}
+      {/* One primary action; everything else sits behind a single quiet "More" so the card ends on one short row. */}
       <div className="row-wrap">
-        {!r.paused && <button className="btn sm" onClick={() => actions.logDose(r)}>Log dose</button>}
-        <button className="btn ghost sm" onClick={() => actions.editRegimen(r)}>Edit</button>
-        {!r.paused && r.freq !== 'prn' && <button className="btn quiet sm" aria-expanded={remind} onClick={() => setRemind(!remind)}>Reminders</button>}
-        <button className="btn quiet sm" onClick={() => { store.saveRegimen({ ...r, paused: !r.paused }); toast(r.paused ? 'Resumed.' : 'Paused. Your history is kept.'); }}>
-          {r.paused ? 'Resume' : 'Pause'}
+        {r.paused ? pause : <button className="btn sm" onClick={() => actions.logDose(r)}>Log dose</button>}
+        <button type="button" className="btn quiet sm" aria-expanded={more} aria-controls={`more-${r.id}`} onClick={() => setMore(!more)}>
+          More
+          <svg className="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
         </button>
-        {p && <a className="btn quiet sm" href={`#${p.id}`}>About {p.name}</a>}
       </div>
+      {more && (
+        <div className="row-wrap" id={`more-${r.id}`}>
+          <button className="btn ghost sm" onClick={() => actions.editRegimen(r)}>Edit</button>
+          {!r.paused && r.freq !== 'prn' && <button className="btn quiet sm" aria-expanded={remind} onClick={() => setRemind(!remind)}>Reminders</button>}
+          {!r.paused && pause}
+          {p && <a className="btn quiet sm" href={`#${p.id}`}>About {p.name}</a>}
+        </div>
+      )}
     </article>
   );
 }

@@ -101,7 +101,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
         <div className="sheet-head">
           <div className="stack" style={{ gap: 4 }}>
             <span className="eyebrow">Log a dose</span>
-            <h2 style={{ fontSize: '1.75rem' }}>{regName(r)}</h2>
+            <h2 style={{ fontSize: 'var(--fs-2xl)' }}>{regName(r)}</h2>
           </div>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
@@ -182,7 +182,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
                 suggested={nextSite({ ...r, route: d.route }, doses, 'map')?.site} />
             )}
             <div style={{ borderTop: '1px solid color-mix(in srgb, var(--sky-ink) 15%, transparent)', paddingTop: 12 }}>
-              <p className="spread" style={{ fontWeight: 600, fontSize: '1.125rem', justifyContent: 'flex-start', gap: 8 }}>
+              <p className="spread" style={{ fontWeight: 600, fontSize: 'var(--fs-lg)', justifyContent: 'flex-start', gap: 8 }}>
                 {d.site && siteFits ? siteLabel(d.site, d.route) : clock ? `Suggested: ${BELLY.find(b => b.h === next)!.label}` : 'Tap where you injected'}
                 {auto && d.site && siteFits && <span className="chip" style={{ background: 'var(--surface)', color: 'var(--sky-ink)' }}>Next in rotation</span>}
               </p>

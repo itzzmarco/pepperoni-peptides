@@ -32,9 +32,12 @@ const GLYPH: Record<FamilyKey, { tone: string; solid?: boolean; d: string }> = {
  */
 export function FamilyGlyph({ family, size = 40, ground }: { family: FamilyKey; size?: number; ground?: 'surface' }) {
   const g = GLYPH[family] ?? GLYPH.repair;
-  const bg = g.solid ? `var(--${g.tone}-ink)` : ground === 'surface' ? 'var(--surface)' : `var(--${g.tone})`;
+  // Solid glyphs take their colours from `.glyph.solid`, which keeps them dark tiles with light icons in dark mode.
+  const tone = g.solid
+    ? { ['--g-ink' as string]: `var(--${g.tone}-ink)`, ['--g-tint' as string]: `var(--${g.tone})` }
+    : { background: ground === 'surface' ? 'var(--surface)' : `var(--${g.tone})`, color: `var(--${g.tone}-ink)` };
   return (
-    <span className="glyph" aria-hidden="true" style={{ width: size, height: size, background: bg, color: `var(--${g.tone}${g.solid ? '' : '-ink'})` }}>
+    <span className={g.solid ? 'glyph solid' : 'glyph'} aria-hidden="true" style={{ width: size, height: size, ...tone }}>
       <svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={g.d} /></svg>
     </span>
   );

@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from 'react';
 import type { Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { upcoming, type RegimenStatus } from '../lib/schedule';
@@ -6,6 +7,7 @@ import { checkRegimen } from '../lib/vial';
 import { DAY, dayKey, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
 import { adherence, topEffects, usualMinutes } from '../lib/insights';
 import { nextSite, siteLabel, type NextSite } from '../lib/sites';
+import { placeLabels } from '../lib/trackLabels';
 import { PEP } from '../data/peptides';
 import { TIERS } from '../data/reference';
 import { configured, useAccount } from '../lib/account';
@@ -19,17 +21,31 @@ import { Glp1Alert, regName, type Actions } from './PeptidesView';
 const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
 const rise = (i: number) => ({ ['--i' as string]: i });
 
-/** Today's doses on a 6 AM to midnight track: filled dots are logged, rings are still due (at the usual time). */
+/** Width (px) of one time label's box under the track, and of the pinned "12 AM" at the end. */
+const LABEL = 48, END_LABEL = 36;
+
+/** Today's doses on a 6 AM to midnight track: filled dots are logged, rings are still due (at the usual time).
+    Times sit in boxes kept inside the card, with a label-wide gap between them (placeLabels). */
 function DayBar({ done, todo, now }: { done: Date[]; todo: Date[]; now: Date }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(248);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    setWidth(el.clientWidth);
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => setWidth(el.clientWidth));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const A = 6 * 60, B = 24 * 60;
   const pos = (d: Date) => Math.min(100, Math.max(0, ((d.getHours() * 60 + d.getMinutes() - A) / (B - A)) * 100));
   const nowPct = pos(now);
   const marks = [...done.map(d => ({ d, done: true })), ...todo.map(d => ({ d, done: false }))].sort((a, b) => a.d.getTime() - b.d.getTime());
-  let lastLabel = -100;
-  const label = (p: number) => { const ok = p - lastLabel > 16; if (ok) lastLabel = p; return ok; };
+  const { lefts, showEnd } = placeLabels(marks.map(m => (pos(m.d) / 100) * width), width, LABEL, END_LABEL);
   const desc = [...done.map(d => `logged at ${fmtTime(d)}`), ...todo.map(d => `due around ${fmtTime(d)}`)].join(', ');
   return (
-    <div className="daybar" role="img" aria-label={`Today: ${desc}. It's ${fmtTime(now)}.`}>
+    <div ref={ref} className="daybar" role="img" aria-label={`Today: ${desc}. It's ${fmtTime(now)}.`}>
       <div className="track" />
       <div className="fill grow" style={{ width: `${nowPct}%` }} />
       {nowPct > 0 && nowPct < 100 && <div className="now pop" style={{ left: `${nowPct}%`, ...rise(8) }}><span>Now</span></div>}
@@ -38,10 +54,10 @@ function DayBar({ done, todo, now }: { done: Date[]; todo: Date[]; now: Date }) 
           <span className={`mark pop ${m.done ? 'done' : 'todo'}`} style={{ left: `${pos(m.d)}%`, ...rise(4 + i) }}>
             {m.done && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>}
           </span>
-          {label(pos(m.d)) && <span className="t" style={{ left: `${pos(m.d)}%`, color: m.done ? undefined : 'var(--on-dark)', fontWeight: m.done ? 400 : 600 }}>{fmtTime(m.d)}</span>}
+          {lefts[i] != null && <span className="t" style={{ left: lefts[i]!, width: LABEL, color: m.done ? undefined : 'var(--on-dark)', fontWeight: m.done ? 400 : 600 }}>{fmtTime(m.d)}</span>}
         </span>
       ))}
-      <span className="t end">12 AM</span>
+      {showEnd && <span className="t end">12 AM</span>}
     </div>
   );
 }
@@ -75,8 +91,9 @@ function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now, site }: 
       </div>
       <div className="next-hero">
         <div className="stack" style={{ gap: 6 }}>
-          <span className="next-name">{regName(r)} · <span className="next-dose">{fmtNum(Number(r.dose), 3)} {r.unit}</span></span>
-          <span className="sub" style={{ fontSize: '.9375rem' }}>
+          <span className="next-name">{regName(r)}</span>
+          <span className="next-dose">{fmtNum(Number(r.dose), 3)} {r.unit}</span>
+          <span className="sub">
             {[usual && st.s !== 'ok' ? `Usually around ${fmtTime(usual)}` : '', math ? (isVolumeUnit(r.unit) ? `about ${drugAmount(math.doseMg, PEP[r.compoundId]?.defaultUnit)}` : `draw ${fmtNum(math.units, 1)} units`) : checks.length ? 'check the vial details' : '', site ? siteLabel(site.site, r.route) : r.route].filter(Boolean).join(' · ')}
           </span>
         </div>

@@ -36,15 +36,15 @@
   --shadow-2: 0 2px 4px rgba(30,34,48,.06), 0 10px 24px rgba(30,34,48,.10);
   --shadow-3: 0 3px 6px rgba(30,34,48,.08), 0 18px 40px rgba(30,34,48,.18);
   /* Glass chrome (top bar, tab bar) and the pill that marks the current tab. */
-  --glass: rgba(246,246,248,.74); --glass-edge: rgba(30,34,48,.08); --tab-pill: rgba(30,34,48,.09);
+  --glass: rgba(246,246,248,.74); --glass-edge: rgba(30,34,48,.08); --tab-pill: #FFFFFF;
   /* Instrument card: highlights layered over --dark, plus a 1px top light. */
   --dark-glow: rgba(141,180,255,.26); --dark-glow-2: rgba(127,224,181,.12); --dark-hi: rgba(255,255,255,.14);
   /* Dark themes only: a bright edge and a soft sky halo, since a black shadow can't lift the card off a near-black page. */
   --dark-ring: rgba(255,255,255,0); --dark-halo: rgba(141,180,255,0);
   /* Raised and outlined surfaces on the instrument card: insets, pattern cells, picker chips, figure boxes. */
   --dark-fill: rgba(255,255,255,.08); --dark-fill-2: rgba(255,255,255,.1); --dark-edge: rgba(255,255,255,.2);
-  /* Resting tiles: a light falling from the top left. Hover on a dark page: a lighter surface and a top edge, since a shadow barely shows there. */
-  --tile-sheen: rgba(255,255,255,.6); --lift-hi: rgba(255,255,255,0); --lift-edge: rgba(255,255,255,0);
+  /* Hover on a dark page: a lighter surface and a top edge, since a shadow barely shows there. */
+  --lift-hi: rgba(255,255,255,0); --lift-edge: rgba(255,255,255,0);
   /* Belly-clock hours used recently, newest first, and the text on them. */
   --recent-1: #F9C9AE; --recent-2: #FBDCCB; --recent-3: #FDEBE1; --recent-ink: #7C2D12;
   /* Skeleton blocks and their shimmer; illustration ground shadow and outline. */
@@ -62,7 +62,6 @@
   --ease-spring: cubic-bezier(.25, 1, .5, 1);
   /* Loops that should read as one steady sweep (the skeleton sheen). */
   --ease-linear: linear;
-  --ease-pop: cubic-bezier(.34, 1.56, .64, 1);
   --dur-fast: 140ms; --dur-med: 240ms; --dur-slow: 450ms;
   /* Spacing steps for stacks, rows and small offsets, so every screen keeps the same rhythm. */
   --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
@@ -98,7 +97,7 @@
     --dark-glow: rgba(141,180,255,.28); --dark-glow-2: rgba(127,224,181,.14); --dark-hi: rgba(255,255,255,.22);
     --dark-ring: rgba(141,180,255,.28); --dark-halo: rgba(141,180,255,.16);
     --dark-fill: rgba(255,255,255,.09); --dark-fill-2: rgba(255,255,255,.12); --dark-edge: rgba(255,255,255,.22);
-    --tile-sheen: rgba(255,255,255,.05); --lift-hi: rgba(255,255,255,.05); --lift-edge: rgba(255,255,255,.12);
+    --lift-hi: rgba(255,255,255,.05); --lift-edge: rgba(255,255,255,.12);
     --recent-1: #7A3A1E; --recent-2: #5E2D18; --recent-3: #472316; --recent-ink: #FDE8DC;
     --skel: #222632; --skel-shine: rgba(255,255,255,.16);
     --illo-shade: rgba(0,0,0,.3); --illo-shade-on-dark: rgba(0,0,0,.3); --illo-line: #8E94A3;
@@ -131,7 +130,7 @@
   --dark-glow: rgba(141,180,255,.28); --dark-glow-2: rgba(127,224,181,.14); --dark-hi: rgba(255,255,255,.22);
   --dark-ring: rgba(141,180,255,.28); --dark-halo: rgba(141,180,255,.16);
   --dark-fill: rgba(255,255,255,.09); --dark-fill-2: rgba(255,255,255,.12); --dark-edge: rgba(255,255,255,.22);
-  --tile-sheen: rgba(255,255,255,.05); --lift-hi: rgba(255,255,255,.05); --lift-edge: rgba(255,255,255,.12);
+  --lift-hi: rgba(255,255,255,.05); --lift-edge: rgba(255,255,255,.12);
   --recent-1: #7A3A1E; --recent-2: #5E2D18; --recent-3: #472316; --recent-ink: #FDE8DC;
   --skel: #222632; --skel-shine: rgba(255,255,255,.16);
   --illo-shade: rgba(0,0,0,.3); --illo-shade-on-dark: rgba(0,0,0,.3); --illo-line: #8E94A3;
@@ -183,20 +182,22 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .topbar .row { display: flex; align-items: center; gap: 8px; }
 .brand { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); font-weight: 600; font-size: var(--fs-md); min-width: 0; }
 .brand svg { flex: none; }
+/* Sub-pages (a profile, the guides): a bare chevron at the bar's start leads back up to Learn. */
+.topbar .bar-back { background: transparent; box-shadow: none; margin-left: -10px; }
 /* Once the page title scrolls under the bar, the wordmark gives its place to the route or peptide name. The name is plain
-   text laid over the wordmark's spot (not part of the link) and only takes taps while it shows. */
+   text laid over the wordmark's spot and never takes taps, so the whole spot stays the brand link. */
 .brand-wrap { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; margin-right: auto; min-width: 0; }
 .brand-wrap > * { grid-area: 1 / 1; }
 .wordmark, .bar-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bar-title { padding-left: 34px; font-weight: 600; font-size: var(--fs-md); color: var(--ink); min-width: 0; opacity: 0; transform: translateY(6px); pointer-events: none; }
 .topbar[data-titled] .wordmark { opacity: 0; transform: translateY(-6px); }
-.topbar[data-titled] .bar-title { opacity: 1; transform: none; pointer-events: auto; }
+.topbar[data-titled] .bar-title { opacity: 1; transform: none; }
 .sync { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--ink-2); background: var(--surface); box-shadow: var(--ring); border-radius: 999px; padding: 6px 12px 6px 10px; white-space: nowrap; min-height: 44px; }
 .sync i { width: 7px; height: 7px; border-radius: 50%; background: var(--good); display: inline-block; }
 .or { display: flex; align-items: center; gap: 12px; color: var(--ink-3); font-size: var(--fs-xs); }
 .or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--surface-3); }
 button.sync { appearance: none; border: 0; cursor: pointer; min-height: 44px; font-weight: 500; }
-button.sync:hover { background: var(--surface-2); }
+@media (hover: hover) { button.sync:hover { background: var(--surface-2); } }
 .sync[data-s="idle"] i, .sync[data-s="syncing"] i, .sync-chip[data-s="idle"] .dot, .sync-chip[data-s="syncing"] .dot { background: var(--sky-ink); }
 .sync[data-s="offline"] i, .sync-chip[data-s="offline"] .dot { background: var(--ink-4); }
 .sync[data-s="error"] i, .sync-chip[data-s="error"] .dot { background: var(--danger); }
@@ -212,9 +213,9 @@ button.sync[data-s="error"] i { border-radius: 1px; transform: rotate(45deg); }
    in the accessible name and tooltip, and each status has its own shape), and the row tightens, so the wordmark keeps its whole name. */
 @media (max-width: 359px) { .topbar .row { gap: 6px; } button.sync:not([data-s]) { padding-inline: 12px; } button.sync:not([data-s]) > svg { display: none; } span.sync, button.sync[data-s] { padding-inline: 12px; } :is(span.sync, button.sync[data-s]) > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
 @media (max-width: 420px) { .hide-sm { display: none; } .show-sm { display: inline; } button.sync[data-s] { min-width: 44px; justify-content: center; padding: 0 10px; } }
-/* Quiet on purpose: a neutral card with a lemon edge, so the instrument card stays the loudest thing on screen. */
-.notice { margin-top: 8px; padding: 8px 12px; background: var(--surface); border-left: 3px solid color-mix(in srgb, var(--lemon-ink) 45%, transparent); box-shadow: var(--ring); color: var(--ink-2); border-radius: var(--r-sm); font-size: var(--fs-xs); line-height: 1.4; text-wrap: pretty; }
-.notice b { color: var(--lemon-ink); }
+/* One quiet line of small print under the bar (no card, no edge), so each page's greeting or hero leads. */
+.notice { margin-top: 2px; padding: 0 4px; color: var(--ink-3); font-size: var(--fs-xs); line-height: 1.4; text-wrap: pretty; }
+.notice b { color: var(--ink-2); font-weight: 600; }
 
 main { padding-block: 8px 40px; }
 .view { display: grid; gap: 16px; }
@@ -223,9 +224,8 @@ main { padding-block: 8px 40px; }
 .head p { color: var(--ink-3); max-width: 62ch; }
 .head .lede { color: var(--ink); }
 .head-actions { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 4px; }
-/* Hero header (Trends): a lilac-to-mint wash with a display headline and the range's dose bars along the bottom. */
-.head.hero { padding: 20px 20px 16px; gap: 10px; border-radius: var(--r-xl); box-shadow: var(--shadow-1);
-  background: radial-gradient(120% 100% at 100% 0%, color-mix(in srgb, var(--lilac-line) 20%, transparent), transparent 60%), linear-gradient(160deg, var(--lilac), var(--mint)); }
+/* Hero header (Trends): a neutral card with a display headline; the range's dose bars along the bottom carry the colour. */
+.head.hero { padding: 20px 20px 16px; gap: 10px; border-radius: var(--r-xl); background: var(--surface); box-shadow: var(--ring), var(--shadow-1); }
 .head.hero .eyebrow { color: var(--lilac-ink); }
 .head.hero h1 { font-size: clamp(2.125rem, 9vw, 2.75rem); letter-spacing: -.02em; }
 .head.hero h1 .soft { color: var(--ink-3); }
@@ -246,8 +246,10 @@ main { padding-block: 8px 40px; }
 /* Tiles */
 .tile { border-radius: var(--r-lg); padding: 18px; display: grid; gap: 12px; align-content: start; min-width: 0; background: var(--surface); box-shadow: var(--ring), var(--shadow-1); color: var(--ink); text-decoration: none; }
 a.tile { color: var(--ink); }
-/* Tinted tiles rest on the same elevation as white ones, with a soft light from the top left over the tint. */
-.tile:is(.mint, .lilac, .peach, .sky, .lemon, .teal) { background: radial-gradient(130% 100% at 0% 0%, var(--tile-sheen), transparent 58%), var(--tint); box-shadow: var(--shadow-1); }
+/* Tiles are neutral. A tint class only names the tile's job: its label and its data marks (dots, bars, lines) take
+   that colour, the ground stays white. The one exception is a tile holding a drawing that is itself painted in
+   --surface (the belly clock, the body map): it keeps its tint as the ground the drawing sits on. */
+.tile:is(.sky):has(.clock, .bodymap, .miniclock, .minibody) { background: var(--tint); box-shadow: var(--shadow-1); }
 .tile.mint { --tint: var(--mint); } .tile.mint .label { color: var(--mint-ink); }
 .tile.lilac { --tint: var(--lilac); } .tile.lilac .label { color: var(--lilac-ink); }
 .tile.peach { --tint: var(--peach); } .tile.peach .label { color: var(--peach-ink); }
@@ -278,6 +280,7 @@ a.tile { color: var(--ink); }
 .tone-mint.tone-mint { color: var(--mint-2); }
 .tone-lilac.tone-lilac { color: var(--lilac-ink); }
 .tone-sky.tone-sky { color: var(--sky-ink); }
+.tone-peach.tone-peach { color: var(--peach-ink); }
 .tone-danger.tone-danger { color: var(--danger); }
 .sub.em { color: var(--ink-2); font-weight: 600; }
 .center { text-align: center; }
@@ -295,22 +298,22 @@ a.tile { color: var(--ink); }
 /* A 320px phone leaves about 100px inside a half-width tile: the big stat steps down so "100%" keeps its inset. */
 @media (max-width: 359px) { .bento .big { font-size: var(--fs-stat); } .bento .stat { font-size: var(--fs-2xl); } }
 .miniclock .pop { transform-box: fill-box; transform-origin: center; }
-.inset { background: color-mix(in srgb, var(--surface) 65%, transparent); border-radius: var(--r-sm); padding: 10px 12px; }
+.inset { background: var(--surface-2); border-radius: var(--r-sm); padding: 10px 12px; }
 .tile.dark .inset { background: var(--dark-fill); }
 .white-inset { background: var(--surface); color: var(--ink); border-radius: var(--r-md); padding: 16px; }
 .arrow { width: 48px; height: 48px; border-radius: 24px; background: var(--btn); color: var(--btn-ink); display: grid; place-items: center; flex: none; }
 
 /* Buttons */
 .btn { appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; background: var(--btn); color: var(--btn-ink); min-height: 48px; padding: 0 22px; border-radius: 999px; font-weight: 600; font-size: var(--fs-label); cursor: pointer; text-decoration: none; white-space: nowrap; }
-.btn:not(.ghost, .quiet, .soft, .danger, .glass, [disabled]):hover { background: var(--btn-hover); }
+@media (hover: hover) { .btn:not(.ghost, .quiet, .soft, .danger, .glass, [disabled]):hover { background: var(--btn-hover); } }
 .btn.ghost { background: var(--surface); color: var(--ink); box-shadow: var(--ring); }
-.btn.ghost:hover { background: var(--surface-2); filter: none; }
+@media (hover: hover) { .btn.ghost:hover { background: var(--surface-2); filter: none; } }
 .btn.quiet { background: transparent; color: var(--ink-2); padding: 0 12px; }
-.btn.quiet:hover { color: var(--ink); background: var(--surface-2); filter: none; }
+@media (hover: hover) { .btn.quiet:hover { color: var(--ink); background: var(--surface-2); filter: none; } }
 .btn.soft { background: var(--surface-2); color: var(--ink); }
-.btn.soft:hover { background: var(--surface-3); }
+@media (hover: hover) { .btn.soft:hover { background: var(--surface-3); } }
 .btn.danger { background: var(--danger); color: var(--danger-bg); }
-.btn.danger:hover { filter: saturate(1.3) brightness(.92); }
+@media (hover: hover) { .btn.danger:hover { filter: saturate(1.3) brightness(.92); } }
 .btn.sm { min-height: 44px; padding: 0 16px; font-size: var(--fs-sm); }
 .btn.block { width: 100%; }
 /* In a wrapping action row a long label (a compound's full name) wraps inside the pill instead of running past the card. */
@@ -318,10 +321,10 @@ a.tile { color: var(--ink); }
 .row-wrap > .btn, .head-actions > .btn { white-space: normal; padding-block: 6px; line-height: 1.25; }
 .btn[disabled] { opacity: .5; cursor: not-allowed; }
 .tile.dark .btn:not(.glass) { background: var(--on-dark); color: var(--dark); }
-.tile.dark .btn:not(.glass):hover { background: var(--on-dark-2); }
+@media (hover: hover) { .tile.dark .btn:not(.glass):hover { background: var(--on-dark-2); } }
 .tile.dark .btn.glass { background: var(--dark-line); color: var(--on-dark); }
 .icon-btn { appearance: none; width: 44px; height: 44px; border-radius: 22px; border: 0; background: var(--surface); box-shadow: var(--ring); color: var(--ink); display: inline-grid; place-items: center; cursor: pointer; flex: none; text-decoration: none; }
-.icon-btn:hover { background: var(--surface-2); }
+@media (hover: hover) { .icon-btn:hover { background: var(--surface-2); } }
 /* Theme: a sun, a moon or a half disc for Auto, with the word beside it wherever the bar has room. */
 .icon-btn.theme { width: auto; min-width: 44px; padding: 0 12px 0 10px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: var(--fs-sm); font-weight: 500; }
 /* Below 600px the bar's row is already full with the brand and the account pill, so the picture stands alone there. */
@@ -343,7 +346,6 @@ a.tile { color: var(--ink); }
 .seg:has(> button:nth-child(2)[aria-pressed="true"]) { --k: 1; }
 .seg:has(> button:nth-child(3)[aria-pressed="true"]) { --k: 2; }
 .seg:has(> button:nth-child(4)[aria-pressed="true"]) { --k: 3; }
-.tile.sky .seg, .tile.lilac .seg { background: color-mix(in srgb, var(--surface) 60%, transparent); }
 
 /* Form */
 .field { display: grid; gap: 6px; min-width: 0; }
@@ -376,7 +378,6 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .checks.peachy label:has(input:checked) { background: var(--peach-ink); color: var(--peach); }
 .checks.red label:has(input:checked) { background: var(--danger); color: var(--danger-bg); }
 .checks input { accent-color: var(--accent); margin: 0; }
-.tile.peach .checks label { box-shadow: none; }
 
 /* Chips */
 .chip { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); font-weight: 600; padding: 5px 10px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; line-height: 1.3; }
@@ -393,7 +394,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .legal[data-l="interim"], .legal[data-l="pending"], .legal[data-l="investigational"] { box-shadow: inset 0 0 0 1.5px var(--t4); color: var(--peach-ink); }
 .wada { background: var(--surface-2); color: var(--ink-2); font-weight: 500; }
 .fchip { appearance: none; border: 0; box-shadow: var(--ring); background: var(--surface); min-height: 44px; padding: 0 14px; border-radius: 999px; font-size: var(--fs-sm); cursor: pointer; color: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; flex: none; }
-.fchip:hover { color: var(--ink); }
+@media (hover: hover) { .fchip:hover { color: var(--ink); } }
 .fchip[aria-pressed="true"] { background: var(--btn); color: var(--btn-ink); box-shadow: none; }
 .usual-units { display: grid; gap: 6px; margin-top: -6px; }
 .usual-units .fchip { white-space: normal; text-align: left; padding: 6px 14px; gap: 8px; }
@@ -431,7 +432,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .tile.dark .alert { color: var(--ink); }
 /* An action inside an alert on the instrument card keeps the page's dark button, not the card's white one. */
 .tile.dark .alert .btn:not(.glass) { background: var(--btn); color: var(--btn-ink); }
-.tile.dark .alert .btn:not(.glass):hover { background: var(--btn-hover); }
+@media (hover: hover) { .tile.dark .alert .btn:not(.glass):hover { background: var(--btn-hover); } }
 
 /* Today */
 .daybar { position: relative; height: 66px; margin-top: 2px; }
@@ -495,12 +496,16 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .pattern { display: grid; gap: 6px; }
 .pattern .wk { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
 .pattern .wk.head span { font-size: var(--fs-xs); color: var(--on-dark-3); text-align: center; }
-.pattern .c { height: 24px; border-radius: 7px; background: var(--dark-fill); }
+.pattern .c { appearance: none; border: 0; padding: 0; height: 32px; border-radius: 8px; background: var(--dark-fill); cursor: pointer; }
 .pattern .c.dose { background: var(--dose-cell); }
 .pattern .c.effect { background: var(--effect-cell); }
 .pattern .c.dose.effect { background: linear-gradient(135deg, var(--dose-cell) 50%, var(--effect-cell) 50%); }
 .pattern .c.future { background: transparent; box-shadow: inset 0 0 0 1.5px var(--dark-edge); }
-.pattern .c.today { outline: 2px solid var(--on-dark); outline-offset: 2px; }
+.pattern .c.today { box-shadow: inset 0 0 0 2px var(--on-dark); }
+.pattern .c.future { cursor: default; }
+/* The inspected day: a ring outside the cell, and its date and events read out under the grid. */
+.pattern .c[aria-pressed="true"] { outline: 2px solid var(--on-dark); outline-offset: 2px; }
+.pattern-day { font-size: var(--fs-sm); font-weight: 600; color: var(--on-dark); min-height: 1.5em; }
 .tile.dark .legend { color: var(--on-dark-2); }
 .pick { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -20px; padding: 0 20px 2px; }
 .pick::-webkit-scrollbar { display: none; }
@@ -538,9 +543,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .chart .pt.two { fill: var(--chart-line-2); }
 .chart text.end { fill: var(--ink); }
 .chart text.end.two { fill: var(--peach-ink); }
-.tile.lilac .chart .pt { stroke: var(--lilac); }
 .tile.mint { --chart-line: var(--mint-ink); }
-.tile.mint .chart .pt { stroke: var(--mint); }
 .chart-wrap { position: relative; border-radius: var(--r-sm); touch-action: pan-y; }
 .chart-wrap:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .chart .pt-focus { fill: none; stroke: var(--ink); stroke-width: 2; }
@@ -585,7 +588,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .empty > .illo-ground { justify-self: stretch; }
 /* The art grows with the card, up to a size that still reads as a spot drawing. */
 .illo-ground > .illo { width: clamp(200px, 62%, 300px); }
-/* One empty-state layout everywhere: art, centred title, a line of copy, the main action. The dark Today card only swaps colours. */
+/* One empty-state layout everywhere: art, centred title, a line of copy, the main action. Today's dark card has its own drawing. */
 .empty :is(h2, h3) { font-size: var(--fs-xl); }
 .empty h1 .soft { color: var(--ink-4); }
 .empty > .eyebrow { margin-bottom: -6px; }
@@ -602,9 +605,15 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 /* The row's name stays pinned at its start while the chips scroll under it, and a round arrow at the end shows (and brings in)
    chips that are still off screen. */
 .filter-wrap { position: relative; min-width: 0; }
+/* The second and third filter rows fold under one chip; the result count sits at the other end of that row. */
+.more-filters > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.more-filters[open] > summary { margin-bottom: 10px; }
+.more-filters[open] > summary .fchip { background: var(--btn); color: var(--btn-ink); box-shadow: none; }
+.more-filters > summary:focus-visible { outline: none; }
+.more-filters > summary:focus-visible .fchip { outline: 2px solid var(--accent); outline-offset: 2px; }
 .filter-row .label { position: sticky; left: 0; z-index: 1; align-self: stretch; display: flex; align-items: center; padding-right: 6px; background: var(--bg); box-shadow: -16px 0 0 var(--bg); }
 .filter-more { appearance: none; position: absolute; right: -8px; top: 0; width: 44px; height: 44px; border: 0; border-radius: 22px; background: var(--surface); color: var(--ink); box-shadow: var(--ring), var(--shadow-1); display: grid; place-items: center; cursor: pointer; }
-.filter-more:hover { background: var(--surface-2); }
+@media (hover: hover) { .filter-more:hover { background: var(--surface-2); } }
 /* One column on phones, so chips like "Compoundable with Rx" stay on one line; more columns as the page widens. */
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 12px; }
 .card { position: relative; display: grid; gap: 8px; align-content: start; grid-template-rows: auto auto 1fr auto; text-align: left; background: var(--surface); box-shadow: var(--ring), var(--shadow-1); border-radius: var(--r-md); padding: 16px; color: var(--ink); text-decoration: none; min-width: 0; }
@@ -625,7 +634,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); ou
 .tier-row .what span { font-size: var(--fs-xs); color: var(--ink-3); }
 .tier-row .names { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 .tier-row .names a { display: inline-flex; align-items: center; min-height: 44px; font-size: var(--fs-sm); text-decoration: none; color: var(--ink); background: var(--surface-2); padding: 0 14px; border-radius: 999px; }
-.tier-row .names a:hover { background: var(--surface-3); }
+@media (hover: hover) { .tier-row .names a:hover { background: var(--surface-3); } }
 details > summary { cursor: pointer; list-style: none; }
 details > summary::-webkit-details-marker { display: none; }
 
@@ -718,11 +727,19 @@ tr:last-child td { border-bottom: 0; }
 @media (max-width: 699px) { .sheet { padding-top: 0; } }
 @media (min-width: 700px) { .grabber { display: none; } }
 .sheet-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 0 4px; }
+.sheet-head > :first-child { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+/* A sheet's display title (a peptide name) steps down on narrow phones so long names keep whole words. */
+.sheet-title { font-size: clamp(var(--fs-xl), 7vw, var(--fs-2xl)); }
+/* On phones the header drags the sheet like the grabber does; its buttons still tap. */
+@media (max-width: 699px) { .sheet-head { touch-action: none; cursor: grab; } .sheet-head :is(button, a, input, select) { cursor: pointer; } }
 /* The sticky action row carries the home-indicator inset itself, so when pinned it sits flush on the sheet's bottom edge and
    nothing scrolls through below it; the sheet then keeps only its fixed 16px of bottom padding. */
 .sheet:has(.sheet-foot) { padding-bottom: 16px; }
 .sheet-foot { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; position: sticky; bottom: -16px; background: var(--sheet-bg); padding: 10px 0 calc(4px + env(safe-area-inset-bottom, 0px)); }
 .sheet-foot .btn[type="submit"] { flex: 1 1 160px; }
+/* The dose sheet's site card: a hairline over the chosen spot and its note. A chip on a tinted card sits on white. */
+.site-foot { display: grid; gap: var(--sp-1); border-top: 1px solid color-mix(in srgb, var(--sky-ink) 15%, transparent); padding-top: var(--sp-3); }
+.chip.on-tint { background: var(--surface); color: var(--sky-ink); }
 
 /* Body map */
 .bodymap { position: relative; width: 260px; max-width: 100%; margin: 0 auto; }
@@ -755,6 +772,7 @@ tr:last-child td { border-bottom: 0; }
 .hour[data-next="true"] { border: 2px dashed var(--sky-ink); color: var(--sky-ink); background: var(--surface); }
 .hour[aria-pressed="true"] { background: var(--sky-ink); color: var(--bg); border: 3px solid var(--surface); box-shadow: 0 0 0 2px var(--sky-ink), 0 4px 10px color-mix(in srgb, var(--sky-ink) 35%, transparent); }
 .recent { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.recent > b { color: var(--ink-2); font-weight: 600; }
 .recent span { padding: 4px 10px; border-radius: 999px; font-size: var(--fs-xs); font-weight: 600; background: var(--recent-2); color: var(--recent-ink); }
 
 /* Fill in past days: a month grid like a paper wall calendar. Weight mode has a box per day; dose mode has a toggle per day. */
@@ -776,7 +794,7 @@ tr:last-child td { border-bottom: 0; }
 .bf-cell.jump { background: var(--peach); box-shadow: inset 0 0 0 2px var(--peach-bar); }
 .bf-cell.wrong { background: var(--danger-bg); box-shadow: inset 0 0 0 2px var(--danger); }
 .bf-cell.today .bf-d { color: var(--accent); }
-.bf-cell.future { background: transparent; box-shadow: inset 0 0 0 1.5px var(--line); opacity: .6; cursor: default; }
+.bf-cell.future { background: transparent; box-shadow: inset 0 0 0 1.5px var(--line); cursor: default; }
 .bf-cell.dose { appearance: none; border: 0; font: inherit; color: var(--mint-ink); cursor: pointer; justify-items: stretch; }
 .bf-cell.dose svg { justify-self: center; align-self: center; }
 .bf-cell.dose.due { box-shadow: inset 0 -4px 0 var(--mint-ink); }
@@ -819,12 +837,12 @@ input.code-input { font-family: var(--f-mono); font-size: var(--fs-xl); letter-s
   -webkit-mask: radial-gradient(circle at 50% 50%, transparent 31px, black 32px); mask: radial-gradient(circle at 50% 50%, transparent 31px, black 32px); }
 .tab-ind { position: absolute; top: 0; bottom: 0; left: 0; width: 20%; border-radius: 22px; background: var(--tab-pill); box-shadow: inset 0 0 0 1px var(--glass-edge), var(--shadow-1); transform: translateX(calc(var(--k) * 100%)); }
 .tabbar a { color: var(--ink-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; font-size: var(--fs-xs); font-weight: 500; text-decoration: none; border-radius: 22px; }
-.tabbar a:hover { color: var(--ink); }
+@media (hover: hover) { .tabbar a:hover { color: var(--ink); } }
 .tabbar a[aria-current] { color: var(--ink); }
 /* The log button reads like its neighbours: a pink disc where they have an icon, and a word under it. */
 .tabbar .log { justify-self: stretch; min-height: 56px; border: 0; background: none; padding: 0; color: var(--ink); font-size: var(--fs-xs); font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; border-radius: 22px; }
 .tabbar .log-dot { width: 40px; height: 40px; border-radius: 20px; background: var(--brand); color: var(--brand-ink); display: grid; place-items: center; box-shadow: var(--shadow-1); }
-.tabbar .log:hover .log-dot { background: color-mix(in srgb, var(--brand) 86%, var(--ink)); }
+@media (hover: hover) { .tabbar .log:hover .log-dot { background: color-mix(in srgb, var(--brand) 86%, var(--ink)); } }
 .app-end { height: calc(96px + env(safe-area-inset-bottom, 0px)); }
 .toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--btn); color: var(--btn-ink); padding: 12px 18px; border-radius: 999px; font-size: var(--fs-sm); z-index: 60; box-shadow: var(--shadow-3); max-width: calc(100% - 32px); }
 /* Mouse and keyboard widths: the same five destinations dock as a rail at the left edge, and the page makes room for it.
@@ -850,7 +868,6 @@ button.tile { appearance: none; border: 0; text-align: left; font: inherit; curs
 .illo { display: block; max-width: 100%; height: auto; }
 /* The art sits straight on its card, no inner plate, with softened outlines so it reads as a quiet drawing. */
 .illo-ground { display: grid; place-items: center; }
-.tile.dark .illo { --illo-line: var(--on-dark-3); --illo-shade: var(--illo-shade-on-dark); --surface: color-mix(in srgb, var(--on-dark) 62%, var(--dark)); --sky: color-mix(in srgb, var(--on-dark) 26%, var(--dark)); --sky-ink: var(--dose-cell); --mint-ink: var(--dark); --ink-4: var(--on-dark-3); --lilac-line: color-mix(in srgb, var(--on-dark) 26%, var(--dark)); }
 .skel-page { display: grid; gap: 12px; }
 .skel { position: relative; overflow: hidden; border-radius: var(--r-lg); background: var(--skel); }
 
@@ -872,7 +889,7 @@ footer.foot p { max-width: 90ch; }
 /* Track a peptide: the library search inside the sheet, each row with its glyph and tier; a choice folds to one row. */
 .find-list { display: grid; gap: 4px; max-height: 320px; overflow-y: auto; overscroll-behavior: contain; padding: 2px; }
 .find-row { appearance: none; border: 0; background: none; font: inherit; color: var(--ink); text-align: left; cursor: pointer; display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px; border-radius: var(--r-sm); }
-.find-row:hover { background: var(--surface-2); }
+@media (hover: hover) { .find-row:hover { background: var(--surface-2); } }
 .find-row[aria-pressed="true"] { background: var(--surface-2); box-shadow: inset 0 0 0 2px var(--accent); }
 :is(.find-row, .picked) .nm { flex: 1 1 auto; min-width: 0; display: grid; gap: 4px; justify-items: start; font-weight: 600; overflow-wrap: anywhere; }
 .find-row .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
@@ -896,13 +913,17 @@ footer.foot p { max-width: 90ch; }
 /* Motion: staggered first-paint reveal, lines that draw in, syringe that fills, sheets, toasts, route fades.
    Only transform, opacity and filter move, always on the --ease-* and --dur-* tokens. Off for reduced motion. */
 @media (prefers-reduced-motion: no-preference) {
-  /* backwards, not both: once a block has arrived it lets go of transform, so hover lift and press scale still apply. */
-  .rise { animation: rise var(--dur-slow) var(--ease-out) backwards; animation-delay: calc(var(--i, 0) * 50ms); }
-  @keyframes rise { from { opacity: 0; transform: translateY(16px); } }
+  /* backwards, not both: once a block has arrived it lets go of transform, so hover lift and press scale still apply.
+     The first paint settles in one short move: a --dur-med rise with the stagger capped at four steps, about 360ms in all. */
+  .rise { animation: rise var(--dur-med) var(--ease-out) backwards; animation-delay: calc(min(var(--i, 0), 4) * 30ms); }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } }
   .draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw calc(var(--dur-slow) * 2) var(--dur-med) var(--ease-out) forwards; }
   @keyframes draw { to { stroke-dashoffset: 0; } }
-  .pop { animation: pop var(--dur-slow) var(--ease-pop) both; animation-delay: calc(var(--i, 0) * 25ms + 200ms); }
+  /* Single marks (the day ring, the Now pin) settle on the same damped spring as the tab pill and sheets, with no bounce. */
+  .pop { animation: pop var(--dur-med) var(--ease-spring) both; animation-delay: calc(min(var(--i, 0), 6) * 20ms + 80ms); }
   @keyframes pop { from { transform: scale(0); } }
+  /* Dense grids (calendar days, week dots, the pattern, 28-day strips) fade in as one piece instead of cell by cell. */
+  :is(.cal, .pattern, .dots7, .strip, .strip28, .daybar) .pop { animation-name: fade-in; animation-delay: 80ms; }
   .grow { animation: grow var(--dur-slow) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 60ms + 250ms); transform-origin: left; }
   @keyframes grow { from { transform: scaleX(0); } }
   .grow.up { animation-name: grow-up; transform-origin: bottom; }
@@ -1006,7 +1027,13 @@ footer.foot p { max-width: 90ch; }
   .reveal { animation: rise-soft var(--dur-med) var(--ease-out) backwards; }
   @keyframes rise-soft { from { opacity: 0; transform: translateY(6px); } }
   :root[data-routed] :is(.pop, .grow) { animation-duration: var(--dur-med); animation-delay: calc(min(var(--i, 0), 12) * 12ms + 60ms); }
+  :root[data-routed] :is(.cal, .pattern, .dots7, .strip, .strip28, .daybar) .pop { animation-delay: 60ms; }
   :root[data-routed] .draw { animation-duration: var(--dur-slow); animation-delay: var(--dur-fast); }
+  /* A route that arrives through the page fade has no entrances of its own: the fade is its entrance. Otherwise the new
+     page would be captured mid-entrance (headlines at opacity 0, marks at scale 0) and the fade would show a blank page.
+     The flag stays until the next route change, so nothing replays once the fade ends. */
+  :root[data-routed="fade"] :is(.rise, .pop, .grow, .draw) { animation: none; }
+  :root[data-routed="fade"] .draw { stroke-dashoffset: 0; }
   /* A sheet closed by a route change leaves on its own: only its live exit shows, never a frozen copy in the crossfade. */
   .scrim { view-transition-name: sheet; }
   ::view-transition-group(sheet) { animation-duration: 0s; }

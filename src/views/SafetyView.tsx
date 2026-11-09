@@ -22,11 +22,7 @@ export function SafetyView() {
   const after = 3 + SAFETY.cards.length;
   return (
     <section className="view">
-      <div className="head-actions rise"><a className="btn ghost sm" href="#learn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
-        Learn
-      </a></div>
-      <header className="head rise" style={rise(1)}>
+      <header className="head rise">
         <span className="eyebrow">Guide · Safety &amp; law</span>
         <h1>Know the warning signs.<br /><span className="soft">And where US rules stand.</span></h1>
         <p>What to watch for, how to handle vials safely, and the state of US rules as of {AS_OF}.</p>

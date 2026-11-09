@@ -23,31 +23,49 @@ const Defs = () => (
   </defs>
 );
 
-/** Today, nothing tracked yet: a vial beside a calendar page with a first check mark. */
+/** Today, nothing tracked yet. Drawn for the dark instrument card it sits on, in that card's own colours: a lit
+ *  calendar page with this week's first day checked, a vial in front of it with a pink cap, and a few sparks. */
 export function IlloStart({ size = 240 }: Props) {
   return (
     <Ground><svg {...svg(size)}>
-      <Defs />
-      <ellipse cx="84" cy="108" rx="62" ry="7" fill="var(--illo-shade)" />
-      <Cast><rect x="62" y="22" width="78" height="80" rx="14" /><path d="M24 50q0-6 6-6h18q6 0 6 6v44q0 8-8 8H32q-8 0-8-8z" /></Cast>
-      <rect x="62" y="22" width="78" height="80" rx="14" fill="var(--sky)" stroke="var(--illo-line)" strokeWidth="1.5" />
-      <rect x="62" y="22" width="78" height="80" rx="14" fill="url(#illo-lo)" />
-      <rect x="62" y="22" width="78" height="20" rx="10" fill="var(--sky-ink)" />
-      <rect x="62" y="22" width="78" height="20" rx="10" fill="url(#illo-hi)" />
-      <g fill="var(--surface)" opacity=".9">
-        <rect x="74" y="52" width="12" height="12" rx="4" /><rect x="92" y="52" width="12" height="12" rx="4" /><rect x="110" y="52" width="12" height="12" rx="4" />
-        <rect x="74" y="72" width="12" height="12" rx="4" /><rect x="110" y="72" width="12" height="12" rx="4" />
+      <defs>
+        <radialGradient id="st-glow" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="var(--dose-cell)" stopOpacity=".35" /><stop offset="1" stopColor="var(--dose-cell)" stopOpacity="0" /></radialGradient>
+        <linearGradient id="st-page" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="var(--on-dark)" stopOpacity=".16" /><stop offset="1" stopColor="var(--on-dark)" stopOpacity=".06" /></linearGradient>
+        <linearGradient id="st-liquid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="var(--dose-cell)" /><stop offset="1" stopColor="var(--lilac-line)" /></linearGradient>
+        <linearGradient id="st-glass" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="var(--on-dark)" stopOpacity=".95" /><stop offset=".6" stopColor="var(--on-dark)" stopOpacity=".8" /><stop offset="1" stopColor="var(--on-dark-2)" stopOpacity=".85" /></linearGradient>
+      </defs>
+      <ellipse cx="88" cy="60" rx="78" ry="56" fill="url(#st-glow)" />
+      <ellipse cx="84" cy="110" rx="56" ry="5" fill="var(--illo-shade-on-dark)" />
+      {/* Calendar page */}
+      <rect x="58" y="18" width="84" height="84" rx="16" fill="url(#st-page)" stroke="var(--dark-edge)" strokeWidth="1.2" />
+      <path d="M58 34a16 16 0 0 1 16-16h52a16 16 0 0 1 16 16v4H58z" fill="var(--dose-cell)" />
+      <path d="M62 30q2-8 12-8h40" stroke="var(--on-dark)" strokeWidth="2" strokeLinecap="round" fill="none" opacity=".5" />
+      <g fill="var(--dark)"><circle cx="78" cy="18" r="3" /><circle cx="122" cy="18" r="3" /></g>
+      <g fill="var(--on-dark)" opacity=".14">
+        <rect x="68" y="48" width="14" height="14" rx="5" /><rect x="86" y="48" width="14" height="14" rx="5" /><rect x="104" y="48" width="14" height="14" rx="5" /><rect x="122" y="48" width="12" height="14" rx="5" />
+        <rect x="86" y="68" width="14" height="14" rx="5" /><rect x="104" y="68" width="14" height="14" rx="5" /><rect x="122" y="68" width="12" height="14" rx="5" />
+        <rect x="104" y="86" width="14" height="10" rx="4" /><rect x="122" y="86" width="12" height="10" rx="4" />
       </g>
-      <rect x="92" y="72" width="12" height="12" rx="4" fill="var(--go)" />
-      <path d="M95 78l2 2 4-4" fill="none" stroke="var(--mint-ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <rect x="28" y="30" width="22" height="9" rx="3" fill="var(--brand)" />
-      <rect x="31" y="39" width="16" height="5" fill="var(--ink-4)" />
-      <path d="M24 50q0-6 6-6h18q6 0 6 6v44q0 8-8 8H32q-8 0-8-8z" fill="var(--surface)" stroke="var(--illo-line)" strokeWidth="1.5" />
-      <path d="M26 76h26v18q0 6-6 6H32q-6 0-6-6z" fill="var(--lilac-line)" opacity=".55" />
-      <path d="M26 76h26v18q0 6-6 6H32q-6 0-6-6z" fill="url(#illo-lo)" />
-      <path d="M26 76h26" stroke="var(--lilac-line)" strokeWidth="2" />
-      <path d="M29 50v38" stroke="var(--surface)" strokeWidth="3" strokeLinecap="round" opacity=".9" />
-      <path d="M32 58h8M32 66h12" stroke="var(--illo-line)" strokeWidth="2" strokeLinecap="round" opacity=".5" />
+      <rect x="68" y="68" width="14" height="14" rx="5" fill="var(--go)" />
+      <path d="M71.5 75l2.5 2.5 4.5-5" fill="none" stroke="var(--dark)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      <rect x="85" y="67" width="16" height="16" rx="6" fill="none" stroke="var(--go)" strokeWidth="1.5" strokeDasharray="3 3" />
+      {/* Vial */}
+      <ellipse cx="40" cy="104" rx="20" ry="4" fill="var(--illo-shade-on-dark)" />
+      <rect x="27" y="26" width="26" height="11" rx="4" fill="var(--brand)" />
+      <rect x="29" y="27.5" width="10" height="3" rx="1.5" fill="var(--on-dark)" opacity=".45" />
+      <rect x="31" y="37" width="18" height="6" fill="var(--on-dark-3)" />
+      <path d="M22 50q0-7 7-7h22q7 0 7 7v44q0 9-9 9H31q-9 0-9-9z" fill="url(#st-glass)" />
+      <path d="M24 72h32v22q0 7-7 7H31q-7 0-7-7z" fill="url(#st-liquid)" />
+      <path d="M24 72h32" stroke="var(--on-dark)" strokeWidth="1.5" opacity=".7" />
+      <g fill="var(--on-dark)" opacity=".55"><circle cx="34" cy="86" r="2" /><circle cx="44" cy="80" r="1.4" /><circle cx="47" cy="92" r="1.6" /></g>
+      <rect x="31" y="52" width="18" height="12" rx="3" fill="var(--dark)" opacity=".12" />
+      <path d="M33 56h10M33 60h14" stroke="var(--dark)" strokeWidth="1.6" strokeLinecap="round" opacity=".35" />
+      <path d="M27 52v38" stroke="var(--on-dark)" strokeWidth="3" strokeLinecap="round" />
+      {/* Sparks */}
+      <path d="M148 40v8M144 44h8" stroke="var(--go)" strokeWidth="2" strokeLinecap="round" />
+      <path d="M14 30v6M11 33h6" stroke="var(--brand)" strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="150" cy="96" r="2.5" fill="var(--effect-cell)" />
+      <circle cx="64" cy="10" r="1.8" fill="var(--on-dark-3)" />
     </svg></Ground>
   );
 }

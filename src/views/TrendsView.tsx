@@ -232,6 +232,9 @@ function Pattern({ doses, checkins, now }: { doses: DoseEntry[]; checkins: Check
   const since = startOfDay(now).getTime() - 27 * DAY;
   const withDoses = regimens.filter(r => doses.some(d => d.rid === r.id && new Date(d.at).getTime() >= since));
   const [pick, setPick] = useState(() => (withDoses.find(r => (intervalDays(r) ?? 0) >= 2) ?? withDoses[0])?.id);
+  // The day being inspected: today until a cell is tapped or reached with the arrow keys.
+  const [sel, setSel] = useState(() => dayKey(now));
+  const cells = useRef<(HTMLButtonElement | null)[]>([]);
   const r = withDoses.find(x => x.id === pick) ?? withDoses[0];
   if (!r) return null;
   const dset = doseDays(doses, r.id), eset = effectDays(checkins);
@@ -244,6 +247,19 @@ function Pattern({ doses, checkins, now }: { doses: DoseEntry[]; checkins: Check
     : near === total
       ? `All ${total} side-effect days came within 2 days of a ${name} dose.`
       : `${near} of ${total} side-effect days came within 2 days of a ${name} dose.`;
+  const flat = weeks.flat();
+  const say = (c: (typeof flat)[number]) => `${fmtDay(c.date)}: ${[c.dose && `${name} dose`, c.effect && 'side effect logged'].filter(Boolean).join(', ') || 'nothing logged'}`;
+  const at = Math.max(0, flat.findIndex(c => dayKey(c.date) === sel));
+  // Arrow keys step through the days that have happened, a row up or down is a week; one Tab stop for the grid.
+  const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key];
+    if (!step) return;
+    e.preventDefault();
+    const to = at + step;
+    if (to < 0 || to >= flat.length || flat[to].future) return;
+    setSel(dayKey(flat[to].date));
+    cells.current[to]?.focus();
+  };
   return (
     <section className="tile dark rise" aria-labelledby="pattern-h" style={rise(5)}>
       <div className="spread">
@@ -256,16 +272,21 @@ function Pattern({ doses, checkins, now }: { doses: DoseEntry[]; checkins: Check
         </div>
       )}
       <p style={{ fontSize: 'var(--fs-lg)', fontWeight: 500, lineHeight: 1.3 }}>{sentence}</p>
-      <div className="pattern" role="img" aria-label={`Four weeks, Monday first: ${name} doses and days with side effects. ${sentence}`}>
+      <div className="pattern" role="group" aria-label={`Four weeks, Monday first: ${name} doses and days with side effects. ${sentence}`} onKeyDown={onKey}>
         <div className="wk head" aria-hidden="true">{['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <span key={i}>{d}</span>)}</div>
         {weeks.map((w, wi) => (
           <div key={wi} className="wk">
-            {w.map((c, i) => (
-              <span key={i} className={`c pop${c.future ? ' future' : `${c.dose ? ' dose' : ''}${c.effect ? ' effect' : ''}`}${dayKey(c.date) === dayKey(now) ? ' today' : ''}`}
-                style={rise(wi * 4 + i)} title={`${fmtDay(c.date)}${c.dose ? `: ${name} dose` : ''}${c.effect ? `${c.dose ? ',' : ':'} side effect logged` : ''}`} />
-            ))}
+            {w.map((c, i) => {
+              const k = wi * 7 + i, on = k === at;
+              return (
+                <button key={i} type="button" ref={el => { cells.current[k] = el; }} disabled={c.future} tabIndex={on ? 0 : -1} aria-pressed={on} aria-label={say(c)}
+                  className={`c pop${c.future ? ' future' : `${c.dose ? ' dose' : ''}${c.effect ? ' effect' : ''}`}${dayKey(c.date) === dayKey(now) ? ' today' : ''}`}
+                  onClick={() => setSel(dayKey(c.date))} />
+              );
+            })}
           </div>
         ))}
+        <p className="pattern-day" aria-live="polite">{say(flat[at])}</p>
         <div className="legend" style={{ paddingTop: 4 }}>
           <span><i style={{ background: 'var(--dose-cell)' }} />{name} dose</span>
           <span><i style={{ background: 'var(--effect-cell)' }} />Side effect logged</span>

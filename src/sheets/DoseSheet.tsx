@@ -85,14 +85,18 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
   // Why the picked spot was suggested, for this peptide and this view.
   const why = auto && d.site ? nextSite({ ...r, route: d.route }, doses, clock ? 'clock' : 'map')?.why ?? '' : '';
   let siteNote = '';
+  // A spot used recently: its note reads as a caution.
+  let siteWarn = false;
   if (auto && why) {
     siteNote = `${why}. Tap another spot if you use a different one.`;
   } else if (hour) {
     const ri = recent.indexOf(hour);
+    siteWarn = hour !== next && ri >= 0;
     siteNote = hour === next ? `One hour clockwise from ${recent[0] ?? 12} o'clock.` : ri >= 0 ? `Used ${ago(new Date(bellyDoses[ri].at))}. Try ${next} o'clock, the next hour clockwise.` : 'Not used recently.';
   } else if (d.site) {
     const t = last[d.site];
-    siteNote = t && Date.now() - t.getTime() < 3 * DAY ? 'Used in the last 3 days. Try a different spot to let it recover.' : t ? `Last used ${ago(t)}.` : 'Not used yet.';
+    siteWarn = !!t && Date.now() - t.getTime() < 3 * DAY;
+    siteNote = siteWarn ? 'Used in the last 3 days. Try a different spot to let it recover.' : t ? `Last used ${ago(t)}.` : 'Not used yet.';
   }
 
   return (
@@ -101,7 +105,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
         <div className="sheet-head">
           <div className="stack gap-1">
             <span className="eyebrow">Log a dose</span>
-            <h2 style={{ fontSize: 'var(--fs-2xl)' }}>{regName(r)}</h2>
+            <h2 className="sheet-title">{regName(r)}</h2>
           </div>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
@@ -172,7 +176,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
                   <span><i style={{ background: 'var(--recent-1)' }} />Used recently</span>
                 </div>
                 {bellyDoses.length > 0 && (
-                  <div className="recent"><span className="xsmall" style={{ background: 'none', padding: 0, color: 'var(--ink-2)' }}>Recent</span>
+                  <div className="recent"><b className="xsmall">Recent</b>
                     {bellyDoses.map(x => <span key={x.id}>{bellyHour(x.site)} o'clock · {ago(new Date(x.at))}</span>)}
                   </div>
                 )}
@@ -181,12 +185,12 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
               <BodyMap selected={hour ? '' : d.site} onSelect={pickSite} last={last} plan={plan} route={d.route}
                 suggested={nextSite({ ...r, route: d.route }, doses, 'map')?.site} />
             )}
-            <div style={{ borderTop: '1px solid color-mix(in srgb, var(--sky-ink) 15%, transparent)', paddingTop: 12 }}>
-              <p className="spread gap-2" style={{ fontWeight: 600, fontSize: 'var(--fs-lg)', justifyContent: 'flex-start' }}>
+            <div className="site-foot">
+              <p className="tile-title row-wrap">
                 {d.site && siteFits ? siteLabel(d.site, d.route) : clock ? `Suggested: ${BELLY.find(b => b.h === next)!.label}` : 'Tap where you injected'}
-                {auto && d.site && siteFits && <span className="chip" style={{ background: 'var(--surface)', color: 'var(--sky-ink)' }}>Next in rotation</span>}
+                {auto && d.site && siteFits && <span className="chip on-tint">Next in rotation</span>}
               </p>
-              <p className="small" style={{ color: siteNote.startsWith('Used') ? 'var(--peach-ink)' : 'var(--ink-2)' }}>{d.site && siteFits ? siteNote : clock ? (recent[0] ? `One hour clockwise from ${recent[0]} o'clock. Tap the spot you used.` : 'Start anywhere, then move one hour clockwise each time.') : 'Optional, but it powers site rotation.'}</p>
+              <p className={`small ${siteWarn ? 'tone-peach' : 'tone-ink'}`}>{d.site && siteFits ? siteNote : clock ? (recent[0] ? `One hour clockwise from ${recent[0]} o'clock. Tap the spot you used.` : 'Start anywhere, then move one hour clockwise each time.') : 'Optional, but it powers site rotation.'}</p>
             </div>
           </section>
         )}

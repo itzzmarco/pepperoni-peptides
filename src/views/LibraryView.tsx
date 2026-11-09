@@ -188,6 +188,10 @@ export function LibraryView() {
   );
   const usedLegal = (Object.keys(LEGAL) as LegalKey[]).filter(k => PEPTIDES.some(p => p.legal === k));
   const trialBacked = PEPTIDES.filter(p => p.tier <= 2).length;
+  const moreOn = (f.fam !== 'all' ? 1 : 0) + (f.legal !== 'all' ? 1 : 0);
+  // Opens by itself only when the page loads with one of its filters already set; after that it is the user's.
+  const [moreAtStart] = useState(moreOn > 0);
+  const count = list.length === PEPTIDES.length ? `All ${list.length}` : `${list.length} of ${PEPTIDES.length}`;
   // A button, not a #tiers link: the hash is the route, so a fragment link would leave Learn.
   const showTiers = () => {
     const d = document.getElementById('tiers') as HTMLDetailsElement | null;
@@ -212,9 +216,8 @@ export function LibraryView() {
           ))}
         </nav>
       </header>
-      {/* Finding a peptide is the main job here, so search, filters and results sit together right under the title,
-          so a query never filters a grid that is out of view. */}
-      <div className="section-title"><h2>Library</h2><span className="count" aria-live="polite">{list.length === PEPTIDES.length ? `All ${list.length}` : `${list.length} of ${PEPTIDES.length}`}</span></div>
+      {/* Finding a peptide is the main job here, so search, one filter row and the results sit together right under the
+          title, and the first cards show on a phone's first screen. The other filters fold away under More filters. */}
       <div className="search">
         <label className="sr-only" htmlFor="lib-q">Search peptides</label>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
@@ -222,11 +225,23 @@ export function LibraryView() {
       </div>
       <div className="filters">
         <FilterRow label="Evidence">{chip('tier', 'all', 'All')}{TIER_LIST.map(t => chip('tier', `${t}` as const, `T${t} ${TIERS[t].label}`, `var(--t${t})`))}</FilterRow>
-        <FilterRow label="Category">{chip('fam', 'all', 'All')}{(Object.keys(FAMILIES) as FamilyKey[]).map(k => chip('fam', k, FAMILIES[k].name))}</FilterRow>
-        <FilterRow label="US status">{chip('legal', 'all', 'All')}{usedLegal.map(k => chip('legal', k, LEGAL[k].label))}</FilterRow>
-        {/* Every card shows a tier, but the explainer sits after the library; this opens it and jumps there. */}
-        <button type="button" className="linkish small" style={{ justifySelf: 'start', minHeight: 44 }} onClick={showTiers}>What do tiers mean?</button>
+        <details className="more-filters" open={moreAtStart}>
+          <summary>
+            <span className="fchip">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
+              More filters{moreOn ? ` (${moreOn})` : ''}
+            </span>
+            <span className="count" aria-hidden="true">{count}</span>
+          </summary>
+          <div className="filters">
+            <FilterRow label="Category">{chip('fam', 'all', 'All')}{(Object.keys(FAMILIES) as FamilyKey[]).map(k => chip('fam', k, FAMILIES[k].name))}</FilterRow>
+            <FilterRow label="US status">{chip('legal', 'all', 'All')}{usedLegal.map(k => chip('legal', k, LEGAL[k].label))}</FilterRow>
+            {/* Every card shows a tier, but the explainer sits after the library; this opens it and jumps there. */}
+            <button type="button" className="linkish small" style={{ justifySelf: 'start', minHeight: 44 }} onClick={showTiers}>What do tiers mean?</button>
+          </div>
+        </details>
       </div>
+      <p className="sr-only" aria-live="polite">{count}</p>
       <div className="cards">
         {list.length ? list.map(p => (
           <a className="card" href={`#${p.id}`} key={p.id} style={{ ['--vt' as string]: `c-${p.id}` }}>

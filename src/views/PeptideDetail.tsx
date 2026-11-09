@@ -36,13 +36,16 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
   const { regimens, doses } = useLedger();
   const mine = regimens.filter(r => r.compoundId === p.id);
   const banner = cautionBanner(p);
+  // The page's two actions: under the header, and again after the evidence, so a reader who finishes it can act there.
+  const acts = (
+    <>
+      <button className="btn" onClick={() => onTrack(p.id)}>{mine.length ? 'Track another regimen' : 'Track this in my log'}</button>
+      <a className="btn ghost" href="#calculator">Dose math</a>
+    </>
+  );
   return (
     <article className="view">
-      <div className="head-actions rise"><a className="btn ghost sm" href="#learn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
-        Learn
-      </a></div>
-      <header className="head band rise" data-t={p.tier} style={rise(1)}>
+      <header className="head band rise" data-t={p.tier}>
         <BandArt />
         <div className="band-top">
           <FamilyGlyph family={p.family} size={44} ground="surface" />
@@ -65,10 +68,7 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
           </span>
         </div>
       )}
-      <div className="head-actions rise" style={rise(3)}>
-        <button className="btn" onClick={() => onTrack(p.id)}>{mine.length ? 'Track another regimen' : 'Track this in my log'}</button>
-        <a className="btn ghost" href="#calculator">Dose math</a>
-      </div>
+      <div className="head-actions rise" style={rise(3)}>{acts}</div>
 
       {mine.length > 0 && <Glp1Alert regimens={regimens} />}
       {/* One instrument card per screen: the first regimen gets the dark card, any others are plain tiles. */}
@@ -143,6 +143,7 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
           </section>
         ) : null}
       </div>
+      <div className="head-actions">{acts}</div>
     </article>
   );
 }

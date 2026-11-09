@@ -77,11 +77,14 @@ export function App() {
     // The bar goes back to the wordmark in the same update as the scroll, since every route opens at its top.
     // Leaving a peptide profile is a step back up to Learn, so its fade travels the other way. Moving between tabs,
     // the page shifts the way the tab bar was travelled; within one tab's section it rises as before.
+    // A swap made inside a view transition marks the root "fade": the fade is that page's entrance, so its own
+    // first-paint entrances stay off (styles.css), and the new page is captured fully drawn rather than blank.
     let at = parseHash();
+    let fading = false;
     const swap = () => {
       const next = parseHash();
       const root = document.documentElement;
-      root.dataset.routed = '';
+      root.dataset.routed = fading ? 'fade' : '';
       const step = tabPos(next) - tabPos(at);
       root.dataset.dir = step > 0 ? 'next' : step < 0 ? 'prev' : at.id && !next.id ? 'back' : 'forward';
       at = next;
@@ -91,7 +94,7 @@ export function App() {
     const go = transitionGate(swap);
     const onHash = () => {
       const start = viewTransition();
-      go(start ? update => start(() => flushSync(update)) : null);
+      go(start ? update => start(() => { fading = true; try { flushSync(update); } finally { fading = false; } }) : null);
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -130,7 +133,7 @@ export function App() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
   // It takes the page's name exactly when the page's own headline (its h1) has slid fully under the bar, however tall
-  // the notice, back row or headline are on this screen. A mutation observer follows the h1 when a route or state swaps it,
+  // the notice or headline are on this screen. A mutation observer follows the h1 when a route or state swaps it,
   // and the observer is rebuilt when the window resizes, since the bar's height sets where "under the bar" starts.
   const barRef = useRef<HTMLElement>(null);
   const mainRef = useRef<HTMLElement>(null);
@@ -203,13 +206,20 @@ export function App() {
   // While a sheet is open, the page behind it is inert: not focusable and hidden from screen readers.
   const bg = sheet ? true : undefined;
   const tab = route.tab === 'calculator' || route.tab === 'safety' ? 'learn' : route.tab === 'partner' ? 'today' : route.tab;
+  // A profile and the two guides sit one level under Learn: the bar carries their way back up.
+  const sub = !!route.id || route.tab === 'calculator' || route.tab === 'safety';
   return (
     <>
       <header ref={barRef} className="topbar gutter" inert={bg} data-scrolled={scrolled ? 'true' : undefined} data-titled={titled ? '' : undefined}>
         <div className="wrap">
           <div className="row">
-            {/* The link is only ever the vial and wordmark. Once the headline scrolls away, the page name takes the
-                wordmark's place as plain text laid over it, so tapping a name that reads Trends never jumps to Today. */}
+            {sub && (
+              <a className="icon-btn bar-back" href="#learn" aria-label="Back to Learn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+              </a>
+            )}
+            {/* The link is the vial and wordmark. Once the headline scrolls away, the page name takes the wordmark's
+                place as text laid over it that lets taps through, so the whole spot stays the link. */}
             <div className="brand-wrap">
             <a className="brand" href="#today" aria-label="Peptide Ledger, today">
               {/* The installed icon's vial, drawn the same way: a pink cap on a dark rounded tile. */}
@@ -229,10 +239,10 @@ export function App() {
           </div>
         </div>
       </header>
-      {/* Outside the sticky bar: it greets every route at the top, then scrolls away so only the brand row stays pinned. */}
+      {/* Outside the sticky bar: one quiet line of small print at the top of every route, which scrolls away so only the
+          brand row stays pinned and the page's own greeting or hero leads. */}
       <div className="gutter" inert={bg}>
         <div className="wrap">
-          {/* The whole warning, wrapped, so the emergency number is never cut off on a phone. */}
           <p className="notice" role="note">
             <b>Education only.</b> Not medical advice. Most peptides here aren't FDA-approved for what's promoted online. Emergency: 911.
           </p>

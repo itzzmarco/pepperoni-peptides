@@ -140,7 +140,7 @@ export function TodayView(actions: Actions) {
   const wUnit = checkins.find(c => c.weight)?.weightUnit ?? 'lb';
   const weights = weighIns(checkins, wUnit, now.getTime() - 90 * DAY);
   const wNow = weights[weights.length - 1], wFirst = weights[0];
-  const wShown = useCountUp(wNow?.w ?? 0, wFirst?.w ?? 0, 1100);
+  const wShown = useCountUp(wNow?.w ?? 0, wFirst?.w ?? 0);
   const wChange = wNow && wFirst && wNow !== wFirst ? wNow.w - wFirst.w : null;
   const wMin = Math.min(...weights.map(w => w.w)), wMax = Math.max(...weights.map(w => w.w));
   const spark = weights.slice(-12).map((w, i, a) => `${(i / Math.max(1, a.length - 1)) * 120},${4 + (1 - (w.w - wMin) / Math.max(0.1, wMax - wMin)) * 20}`).join(' ');

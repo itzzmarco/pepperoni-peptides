@@ -10,7 +10,7 @@ let pageOpener: HTMLElement | null = null;
 
 /**
  * Bottom sheet on phones, centered dialog on wider screens. Escape or a scrim tap closes it.
- * On phones, dragging the grabber down far or fast enough closes it too.
+ * On phones, dragging the grabber or the header row down far or fast enough closes it too.
  */
 export function Sheet({ onClose, children, label }: { onClose: () => void; children: ReactNode; label: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -48,10 +48,14 @@ export function Sheet({ onClose, children, label }: { onClose: () => void; child
     };
   }, [onClose, closing, opener]);
 
-  // Grabber drag: the sheet follows the finger; letting go either closes it or springs it back.
+  // Grabber or header drag: the sheet follows the finger; letting go either closes it or springs it back.
+  // Only those two start a drag (and only on phones, where the grabber shows), so the form scrolls and its
+  // fields and the header's buttons still take taps.
   const drag = useRef<{ y0: number; y: number; t: number; v: number } | null>(null);
   const onDown = (e: PointerEvent<HTMLDivElement>) => {
-    if (closing) return;
+    const t = e.target as Element;
+    if (closing || !t.closest('.grabber, .sheet-head') || t.closest('button, a, input, select, textarea, label')) return;
+    if (!ref.current?.querySelector('.grabber')?.getClientRects().length) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     // The entrance animation owns transform while it runs; end it so the finger moves the sheet from the first frame.
     // A cancelled CSS animation stays off until the name changes, which the exit (sheet-down) does.
@@ -82,8 +86,8 @@ export function Sheet({ onClose, children, label }: { onClose: () => void; child
   return (
     // A closing sheet is inert as well as click-through, so neither pointer nor keyboard can land in it on its way out.
     <div className="scrim" data-closing={closing || undefined} inert={closing || undefined} onMouseDown={e => e.target === e.currentTarget && onClose()}>
-      <div className="sheet" role="dialog" aria-modal="true" aria-label={label} ref={ref} tabIndex={-1}>
-        <div className="grabber" aria-hidden="true" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}><i /></div>
+      <div className="sheet" role="dialog" aria-modal="true" aria-label={label} ref={ref} tabIndex={-1} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
+        <div className="grabber" aria-hidden="true"><i /></div>
         {children}
       </div>
     </div>

@@ -71,10 +71,11 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
       </div>
 
       {mine.length > 0 && <Glp1Alert regimens={regimens} />}
-      {mine.map(r => {
+      {/* One instrument card per screen: the first regimen gets the dark card, any others are plain tiles. */}
+      {mine.map((r, i) => {
         const st = regimenStatus(r, doses);
         return (
-          <section key={r.id} className="tile dark rise" aria-label={`${p.name} in your log`} style={rise(4)}>
+          <section key={r.id} className={`tile${i ? '' : ' dark'} rise`} aria-label={`${p.name} in your log`} style={rise(4)}>
             <div className="spread"><span className="eyebrow">In your log</span><span className="sub">{st.text}</span></div>
             <div className="stack" style={{ gap: 4 }}>
               <span className="stat">{fmtNum(Number(r.dose), 3)}<small> {r.unit} · {freqText(r)}</small></span>
@@ -83,7 +84,7 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
             <Strip rid={r.id} doses={doses} />
             <div className="row-wrap">
               {!r.paused && <button className="btn sm" onClick={() => onLog(r)}>Log a dose</button>}
-              <a className="btn glass sm" href="#trends">See trends</a>
+              <a className={`btn ${i ? 'ghost' : 'glass'} sm`} href="#trends">See trends</a>
             </div>
           </section>
         );

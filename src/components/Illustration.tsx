@@ -122,27 +122,27 @@ export function IlloTrends({ size = 168 }: Props) {
   );
 }
 
-/** Partner, nobody linked yet: two people side by side, joined by a link that is still open. */
+/** Partner, nobody linked yet: two phones side by side, each with its own log on screen, joined by a link that is still open. */
 export function IlloPartner({ size = 168 }: Props) {
   return (
     <Ground><svg {...svg(size)}>
       <Defs />
       <ellipse cx="84" cy="108" rx="62" ry="7" fill="var(--illo-shade)" />
-      <Cast><rect x="14" y="30" width="56" height="70" rx="16" /><rect x="90" y="30" width="56" height="70" rx="16" /></Cast>
-      <rect x="14" y="30" width="56" height="70" rx="16" fill="var(--peach)" stroke="var(--illo-line)" strokeWidth="2.5" />
-      <rect x="14" y="30" width="56" height="70" rx="16" fill="url(#illo-lo)" />
-      <circle cx="42" cy="54" r="11" fill="var(--peach-ink)" />
-      <path d="M26 92q0-18 16-18t16 18" fill="var(--peach-ink)" />
-      <rect x="90" y="30" width="56" height="70" rx="16" fill="var(--sky)" stroke="var(--illo-line)" strokeWidth="2.5" />
-      <rect x="90" y="30" width="56" height="70" rx="16" fill="url(#illo-lo)" />
-      <circle cx="118" cy="54" r="11" fill="var(--sky-ink)" />
-      <path d="M102 92q0-18 16-18t16 18" fill="var(--sky-ink)" />
-      <g fill="url(#illo-hi)"><rect x="14" y="30" width="56" height="70" rx="16" /><rect x="90" y="30" width="56" height="70" rx="16" /></g>
-      <g fill="var(--surface)" opacity=".35"><circle cx="38" cy="50" r="4" /><circle cx="114" cy="50" r="4" /></g>
+      <Cast><rect x="20" y="34" width="48" height="68" rx="12" /><rect x="96" y="34" width="48" height="68" rx="12" /></Cast>
+      <rect x="20" y="34" width="48" height="68" rx="12" fill="var(--peach)" stroke="var(--illo-line)" strokeWidth="2.5" />
+      <rect x="20" y="34" width="48" height="68" rx="12" fill="url(#illo-lo)" />
+      <rect x="27" y="44" width="34" height="48" rx="6" fill="var(--surface)" />
+      <g fill="var(--peach-ink)"><rect x="32" y="52" width="20" height="4" rx="2" /><rect x="32" y="62" width="24" height="4" rx="2" opacity=".6" /><rect x="32" y="72" width="14" height="4" rx="2" opacity=".35" /></g>
+      <rect x="96" y="34" width="48" height="68" rx="12" fill="var(--sky)" stroke="var(--illo-line)" strokeWidth="2.5" />
+      <rect x="96" y="34" width="48" height="68" rx="12" fill="url(#illo-lo)" />
+      <rect x="103" y="44" width="34" height="48" rx="6" fill="var(--surface)" />
+      <path d="M108 80l7-8 6 4 10-14" fill="none" stroke="var(--sky-ink)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <g fill="url(#illo-hi)"><rect x="20" y="34" width="48" height="68" rx="12" /><rect x="96" y="34" width="48" height="68" rx="12" /></g>
+      <g fill="var(--illo-line)" opacity=".5"><rect x="38" y="38" width="12" height="2.5" rx="1.25" /><rect x="114" y="38" width="12" height="2.5" rx="1.25" /></g>
       <g fill="none" stroke="var(--illo-line)" strokeWidth="3" strokeLinecap="round">
-        <path d="M66 18h6a6 6 0 0 1 0 12h-6" /><path d="M94 30h-6a6 6 0 0 1 0-12h6" />
+        <path d="M64 18h6a6 6 0 0 1 0 12h-6" /><path d="M100 30h-6a6 6 0 0 1 0-12h6" />
       </g>
-      <circle cx="80" cy="24" r="2.5" fill="var(--lilac-line)" />
+      <circle cx="82" cy="24" r="2.5" fill="var(--lilac-line)" />
     </svg></Ground>
   );
 }

@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
-import { upcoming, type RegimenStatus } from '../lib/schedule';
+import { leftToday, upcoming, type RegimenStatus } from '../lib/schedule';
 import { drugAmount, isVolumeUnit } from '../lib/doseMath';
 import { checkRegimen } from '../lib/vial';
 import { DAY, dayKey, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
@@ -120,7 +120,8 @@ export function TodayView(actions: Actions) {
   const list = upcoming(regimens, doses, now);
   const next = list[0];
   const late = list.filter(x => x.st.s === 'late').length;
-  const dueNow = list.filter(x => x.st.s === 'due');
+  // Every dose still scheduled today, the evening dose of a twice-daily regimen included.
+  const left = leftToday(list, now);
   const loggedToday = doses.filter(d => dayKey(new Date(d.at)) === today);
   const usualToday = (r: Regimen) => {
     const m = usualMinutes(r.id, doses);
@@ -172,7 +173,7 @@ export function TodayView(actions: Actions) {
   // No regimens: the start card below is the call to action, so the title is just the greeting.
   else if (!regimens.length) { line1 = hasLog ? 'Nothing to take yet.' : 'Welcome.'; line2 = ''; }
   else if (late) { line1 = `${plural(late, 'dose')} overdue.`; line2 = 'Log it when you take it.'; }
-  else if (dueNow.length) { line1 = adh.pct == null || adh.pct >= 0.8 ? "You're on track." : "Here's today."; line2 = `${plural(dueNow.length, 'dose')} left today.`; }
+  else if (left) { line1 = adh.pct == null || adh.pct >= 0.8 ? "You're on track." : "Here's today."; line2 = `${plural(left, 'dose')} left today.`; }
   else { line1 = "You're all set today."; line2 = next?.st.due ? `Next: ${regName(next.r)}, ${fmtShort(next.st.due)}.` : 'Nothing scheduled.'; }
 
   return (
@@ -201,7 +202,7 @@ export function TodayView(actions: Actions) {
 
       {next ? (
         <NextUp r={next.r} st={next.st} actions={actions} now={now} done={done} todo={todo} site={shots.find(x => x.r === next.r)?.s ?? null}
-          doneToday={loggedToday.length} dueToday={list.filter(x => x.st.s === 'due' || x.st.s === 'late').length} />
+          doneToday={loggedToday.length} dueToday={left} />
       ) : offerSignIn && seenHere ? (
         <section className="tile dark empty rise" style={rise(2)}>
           <IlloStart />

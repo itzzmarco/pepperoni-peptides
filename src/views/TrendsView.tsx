@@ -124,7 +124,7 @@ function DoseBars({ doses, days, now }: { doses: DoseEntry[]; days: number; now:
       </div>
       <div className="hero-cap" aria-hidden="true">
         <span>{fmtShort(dayAt(0))}</span>
-        {at == null ? <span><b>{total} dose{total === 1 ? '' : 's'}</b> logged</span> : <span><b>{dayText(at)}</b></span>}
+        {at == null ? <span><b>{total} dose{total === 1 ? '' : 's'}</b> logged<small className="hero-hint">Drag to inspect a day</small></span> : <span><b>{dayText(at)}</b></span>}
         <span>Today</span>
       </div>
     </>

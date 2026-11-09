@@ -5,6 +5,8 @@ const at = (h: number, r: number, nudge = 0) => {
   const deg = (h % 12) * 30 + nudge, a = (deg * Math.PI) / 180;
   return { x: C + r * Math.sin(a), y: C - r * Math.cos(a), deg };
 };
+/** Spot positions as a share of the face, so the clock can shrink to fit a narrow card. */
+const pct = (v: number) => `${((v / (2 * C)) * 100).toFixed(2)}%`;
 
 /**
  * Twelve injection spots around the navel, read like a clock with 12 toward the chest. The arrow runs
@@ -21,7 +23,7 @@ export function BellyClock({ selected, next, recent, onSelect }: {
   const p0 = last ? at(last, 74, 5) : null, p1 = at(next, 74, -7);
   return (
     <div className="clock" role="group" aria-label="Belly clock injection sites">
-      <svg width="260" height="260" viewBox="0 0 260 260" aria-hidden="true">
+      <svg width="100%" height="100%" viewBox="0 0 260 260" aria-hidden="true">
         <circle className="face" cx={C} cy={C} r="128" />
         <circle className="ring" cx={C} cy={C} r="74" />
         <circle className="zone" cx={C} cy={C} r="40" />
@@ -39,7 +41,7 @@ export function BellyClock({ selected, next, recent, onSelect }: {
         const p = at(h, R), rank = recent.indexOf(h) + 1;
         return (
           <button
-            key={k} type="button" className="hour pop" style={{ left: p.x, top: p.y, ['--i' as string]: i }}
+            key={k} type="button" className="hour pop" style={{ left: pct(p.x), top: pct(p.y), ['--i' as string]: i }}
             data-recent={rank > 0 && rank <= 3 ? rank : undefined} data-next={h === next && selected !== h ? true : undefined}
             aria-pressed={selected === h} onClick={() => onSelect(h)}
             aria-label={`${h} o'clock${rank === 1 ? ', your last spot' : rank > 1 ? ', used recently' : ''}${h === next ? ', next clockwise' : ''}`}

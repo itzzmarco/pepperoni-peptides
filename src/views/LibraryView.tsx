@@ -103,6 +103,12 @@ function FilterRow({ label, children }: { label: string; children: ReactNode }) 
     if (el) setMore(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
   }, []);
   useEffect(() => {
+    // Back on Learn with a filter kept from before: bring its chip into view so the choice isn't hidden off the row's end.
+    const el = ref.current, on = el?.querySelector('[aria-pressed="true"]');
+    if (el && on) {
+      const past = on.getBoundingClientRect().right - el.getBoundingClientRect().right;
+      if (past > 0) el.scrollLeft += past + 48;
+    }
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);

@@ -116,6 +116,24 @@ export function upcoming(regimens: Regimen[], doses: DoseEntry[], now = new Date
     .sort((a, b) => RANK[a.st.s] - RANK[b.st.s] || (a.st.due?.getTime() ?? Infinity) - (b.st.due?.getTime() ?? Infinity));
 }
 
+/**
+ * Doses still to take today across `upcoming()` rows. A due or overdue dose counts once, and so does every later dose
+ * whose time still falls today, so a twice-daily regimen logged this morning still has its evening dose left.
+ */
+export function leftToday(list: { r: Regimen; st: RegimenStatus }[], now = new Date()): number {
+  const today = dayKey(now);
+  let n = 0;
+  for (const { r, st } of list) {
+    const iv = intervalDays(r);
+    let t: number;
+    if (st.s === 'due' || st.s === 'late') { n++; t = Math.max(st.due?.getTime() ?? 0, now.getTime()) + (iv ?? Infinity) * DAY; }
+    else if (st.s === 'ok' && st.due) t = st.due.getTime();
+    else continue;
+    for (; Number.isFinite(t) && iv && dayKey(new Date(t)) === today; t += iv * DAY) n++;
+  }
+  return n;
+}
+
 /** The last `n` days (oldest first) with whether a dose of this regimen was logged that day. */
 export function adherenceDays(rid: string, doses: DoseEntry[], n = 28, now = new Date()) {
   const on = new Set(doses.filter(d => d.rid === rid).map(d => dayKey(new Date(d.at))));

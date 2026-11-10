@@ -1,6 +1,6 @@
 import type { FamilyKey, LegalKey, SafetyCard, Source, Tier, TimelineEvent } from '../lib/types';
 
-export const AS_OF = 'November 7, 2026';
+export const AS_OF = 'November 10, 2026';
 export const AS_OF_SHORT = 'Nov 2026';
 
 export const TIERS: Record<Tier, { label: string; long: string }> = {

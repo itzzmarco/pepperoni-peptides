@@ -3,6 +3,7 @@ import { AS_OF, LEGAL, SAFETY, TIMELINE, TIMELINE_SOURCES } from '../data/refere
 import { PEPTIDES } from '../data/peptides';
 import { RED_FLAGS } from '../data/options';
 import { LegalChip } from '../components/Chips';
+import { BackToLearn, Kinetic, Mast } from '../components/Mast';
 
 function Sources({ list }: { list: Source[] }) {
   return (
@@ -20,17 +21,13 @@ const rise = (i: number) => ({ ['--i' as string]: i });
 export function SafetyView() {
   return (
     <section className="view">
-      <div className="head-actions rise"><a className="btn ghost sm" href="#learn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
-        Learn
-      </a></div>
-      <header className="head rise" style={rise(1)}>
-        <span className="eyebrow">Guide · Safety &amp; law</span>
-        <h1>Know the warning signs.<br /><span className="soft">And where US rules stand.</span></h1>
-        <p>What to watch for, how to handle vials safely, and the state of US rules as of {AS_OF}.</p>
-      </header>
+      <Mast>
+        <BackToLearn />
+        <Kinetic a="Know the warning signs." b="And where US rules stand." />
+        <p className="rise" style={rise(5)}>What to watch for, how to handle vials safely, and the state of US rules as of {AS_OF}.</p>
+      </Mast>
 
-      <section className="tile emerg rise" style={{ ...rise(2), background: 'var(--danger-bg)', boxShadow: 'none' }}>
+      <section className="tile emerg rise" style={{ ...rise(2), background: 'var(--danger-bg)' }}>
         <h2 style={{ color: 'var(--danger)' }}>Get emergency help now if you have</h2>
         <ul>{RED_FLAGS.map(f => <li key={f}>{f}</li>)}</ul>
         <div className="callout-nums">

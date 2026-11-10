@@ -13,7 +13,7 @@ Peptide Ledger is a static web app (React + TypeScript + Vite), laid out like a 
   - **Dose math**: reconstitution arithmetic for a dose a prescriber gave you (vial mg, water mL, U-100 syringe units), with a to-scale syringe and checks for common mistakes such as mcg/mg mix-ups and draws that don't fit the syringe.
   - **Safety & law**: emergency signs and hotlines, vial and needle safety, contamination findings, a plain-language guide to how FDA sorts compounding ingredients, and a timeline of US peptide rules from 2023 to 2027.
 
-The visual style ("Soft Bento") uses tinted tiles with one job per color: mint for adherence and evidence, lilac for weight and dose math, peach for side effects and warnings, sky for sites and schedule, lemon for learning. Light and dark themes follow the device or the toggle.
+The visual style ("In Solution") puts a cobalt field at the top of every screen, with a slow wave along its lower edge and one live graphic: a chain of beads that is the last 28 days on Today and the amino-acid sequence on a peptide page. Changing screens drains and refills the field. Below it, white cells use one accent color per job: mint for adherence and evidence, lilac for weight and dose math, peach for side effects, sky for sites and schedule, lemon for learning. The drop in the top bar opens the look panel: a theme (Auto follows the device, or Light, or Dark) and the color of the field, from seven ready-made colors or any color of the person's own. A picked color is darkened until white text on it is readable, the rest of the app takes its hue, and the choice is saved on the device. All motion is off when the device asks for reduced motion.
 
 ## What this app will not do
 
@@ -109,8 +109,8 @@ src/
   App.tsx              tab bar, routing (#today, #trends, #partner, #learn, #peptides, #calculator, #safety, #<peptide-id>), sheets
   views/               Today, Trends, Partner, Peptides, Learn (library), dose math, safety, and the peptide detail page
   sheets/              add/edit regimen, log a dose, daily check-in, account
-  components/          tab bar, chips, charts, syringe, body map, belly clock, sheet, toast, theme toggle
-  lib/                 types, storage, accounts and sync, dose math, schedules, insights (adherence, side-effect pattern), CSV, formatting
+  components/          tab bar, chips, charts, syringe, body map, belly clock, sheet, toast, look panel (theme and color)
+  lib/                 types, storage, accounts and sync, dose math, schedules, insights (adherence, side-effect pattern), CSV, formatting, field colors
   data/                library, reference content, form options
 public/                icons, web manifest, service worker
 supabase/migrations/   the accounts table, partner links, and their row-level security

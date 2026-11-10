@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { flushSync } from 'react-dom';
 import type { Regimen } from './lib/types';
 import { PEP } from './data/peptides';
 import { AS_OF } from './data/reference';
@@ -19,7 +20,7 @@ import { BackfillSheet } from './sheets/BackfillSheet';
 import { AccountSheet } from './sheets/AccountSheet';
 import { useAccount } from './lib/account';
 import { AccountButton } from './components/AccountButton';
-import { ThemeToggle } from './components/ThemeToggle';
+import { Look } from './components/Look';
 import { TabBar } from './components/TabBar';
 
 const ROUTES = ['today', 'trends', 'learn', 'peptides', 'calculator', 'safety', 'partner'] as const;
@@ -54,7 +55,12 @@ export function App() {
     if (recovering || linkError) setSheet({ kind: 'account' });
   }, [recovering, linkError]);
   useEffect(() => {
-    const onHash = () => { setRoute(parseHash()); setSheet(null); window.scrollTo(0, 0); };
+    const swap = () => { setRoute(parseHash()); setSheet(null); window.scrollTo(0, 0); };
+    // Where the browser supports it, the old screen drains away and the new one fills in (see "Changing screens" in styles.css).
+    const onHash = () => {
+      if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) swap();
+      else document.startViewTransition(() => flushSync(swap));
+    };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
@@ -72,8 +78,9 @@ export function App() {
     signIn: () => setSheet({ kind: 'account' }),
   };
   // The middle tab-bar button logs whatever is overdue or due first, else the next dose coming up.
+  const nextUp = upcoming(regimens, doses)[0];
   const logNext = () => {
-    const r = upcoming(regimens, doses)[0]?.r;
+    const r = nextUp?.r;
     if (r) actions.logDose(r);
     else actions.addRegimen();
   };
@@ -97,19 +104,19 @@ export function App() {
         <div className="wrap">
           <div className="row">
             <a className="brand" href="#today" aria-label="Peptide Ledger, today">
-              <svg width="22" height="26" viewBox="0 0 26 30" aria-hidden="true">
-                <rect x="6" y="1" width="14" height="6" rx="2" fill="var(--sky-ink)" />
-                <rect x="8" y="7" width="10" height="3" fill="var(--ink-4)" />
-                <path d="M5 12 Q5 10 7 10 H19 Q21 10 21 12 V26 Q21 29 18 29 H8 Q5 29 5 26 Z" fill="var(--surface)" stroke="var(--ink)" strokeWidth="1.8" />
-                <path d="M6.5 22 H19.5 V26 Q19.5 27.5 18 27.5 H8 Q6.5 27.5 6.5 26 Z" fill="var(--lilac-line)" opacity=".6" />
+              <svg width="34" height="22" viewBox="0 0 34 22" fill="none" aria-hidden="true">
+                <path d="M6 15 17 6l11 9" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" opacity=".55" />
+                <circle cx="6" cy="15" r="5" fill="var(--go)" />
+                <circle cx="17" cy="6" r="5" fill="currentColor" />
+                <circle cx="28" cy="15" r="5" fill="var(--aa-ne)" />
               </svg>
               Peptide Ledger
             </a>
             <AccountButton onOpen={() => setSheet({ kind: 'account' })} />
-            <ThemeToggle />
+            <Look />
           </div>
           <p className="notice" role="note">
-            <b>Education only.</b>
+            <b>Education only.</b>{' '}
             <span>Not medical advice. Most peptides here aren't FDA-approved for what's promoted online. Emergency: 911.</span>
           </p>
         </div>
@@ -124,7 +131,7 @@ export function App() {
         </div>
       </footer>
       <div className="app-end" />
-      <TabBar current={route.id ? 'learn' : tab} onLog={logNext} inert={bg} />
+      <TabBar current={route.id ? 'learn' : tab} onLog={logNext} due={nextUp?.st.s === 'due' || nextUp?.st.s === 'late'} inert={bg} />
       {sheet?.kind === 'regimen' && (sheet.back
         ? <RegimenSheet initial={sheet.r} isNew={false} onClose={() => setSheet({ kind: 'dose', r: sheet.r })} onSaved={x => setSheet(x ? { kind: 'dose', r: x } : null)} />
         : <RegimenSheet initial={sheet.r} isNew={sheet.isNew} onClose={close} onSaved={goPeptides} onLog={actions.logDose} onSignIn={actions.signIn} />)}

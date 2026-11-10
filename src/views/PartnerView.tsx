@@ -7,6 +7,7 @@ import { adherenceDays, freqText, regimenStatus } from '../lib/schedule';
 import { adherence } from '../lib/insights';
 import { DAY, dayKey, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
 import { LineChart } from '../components/LineChart';
+import { Kinetic, Mast } from '../components/Mast';
 import { regName } from './PeptidesView';
 
 const RANGES = [[30, 'Month'], [90, '3 months'], [0, 'Since start']] as const;
@@ -69,15 +70,14 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
   if (!acct.configured || !acct.user || !partners.length) {
     return (
       <section className="view">
-        <header className="head rise">
-          <span className="eyebrow">Partner</span>
-          <h1>Track progress together.</h1>
-          <p>Link accounts with your partner and you'll each see the other's weight and shots next to your own. Neither of you can change the other's log.</p>
-        </header>
-        <div className="head-actions">
-          {loading && acct.user ? <span className="small muted">Checking for a linked partner…</span>
-            : <button className="btn" onClick={onAccount}>{acct.user ? 'Link your partner' : 'Sign in to link'}</button>}
-        </div>
+        <Mast>
+          <Kinetic a="Track progress together." />
+          <p className="rise" style={rise(4)}>Link accounts with your partner and you'll each see the other's weight and shots next to your own. Neither of you can change the other's log.</p>
+          <div className="head-actions rise" style={rise(5)}>
+            {loading && acct.user ? <span className="small">Checking for a linked partner…</span>
+              : <button className="btn" onClick={onAccount}>{acct.user ? 'Link your partner' : 'Sign in to link'}</button>}
+          </div>
+        </Mast>
         {error && <p className="alert warn"><b>Couldn't load your partner.</b><span>{error}</span></p>}
       </section>
     );
@@ -111,20 +111,19 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
 
   return (
     <section className="view">
-      <header className="head rise">
-        <span className="eyebrow">Partner · view only</span>
-        <h1>{name}'s progress.<br /><span className="soft">{line2}</span></h1>
-      </header>
+      <Mast>
+        <p className="when rise"><b>Partner</b><span>View only</span></p>
+        <Kinetic a={`${name}'s progress.`} b={line2} />
+        <div className="seg rise" role="group" aria-label="Time range" style={rise(2)}>
+          {RANGES.map(([d, l]) => <button key={d} type="button" aria-pressed={days === d} onClick={() => setDays(d)}>{l}</button>)}
+        </div>
+      </Mast>
 
       {partners.length > 1 && (
         <div className="pick rise" role="group" aria-label="Partner" style={{ margin: 0, padding: 0 }}>
           {partners.map(x => <button key={x.id} type="button" className="fchip" aria-pressed={x.id === p.id} onClick={() => setPick(x.id)}>{firstName(x.name)}</button>)}
         </div>
       )}
-
-      <div className="seg rise" role="group" aria-label="Time range" style={rise(1)}>
-        {RANGES.map(([d, l]) => <button key={d} type="button" aria-pressed={days === d} onClick={() => setDays(d)}>{l}</button>)}
-      </div>
 
       <section className="tile lilac rise" aria-labelledby="p-wt-h" style={rise(2)}>
         <div className="spread"><h2 id="p-wt-h" className="label">Weight change, together</h2><span className="count">{unit}</span></div>

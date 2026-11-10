@@ -1,19 +1,23 @@
 import { useState } from 'react';
 import type { FamilyKey, Peptide, Regimen } from '../lib/types';
-import { store, useLedger } from '../lib/store';
-import { FREQS } from '../lib/schedule';
-import { doseMath } from '../lib/doseMath';
+import { samePeptide, store, useLedger } from '../lib/store';
+import { DAY_SHORT, FREQS, WEEK, freqText, weekdaysOf } from '../lib/schedule';
+import { configured, useAccount } from '../lib/account';
+import { SYRINGE_UNITS, drugAmount, isVolumeUnit } from '../lib/doseMath';
+import { checkDose } from '../lib/vial';
 import { dayKey, fmtNum, newId } from '../lib/format';
 import { PEP, PEPTIDES } from '../data/peptides';
 import { FAMILIES, LEGAL, TIERS } from '../data/reference';
-import { ROUTES, SOURCES, UNITS, UNREGULATED_SOURCE } from '../data/options';
+import { ROUTES, SOURCES, UNREGULATED_SOURCE } from '../data/options';
+import { measuresFor } from '../data/measures';
 import { Sheet } from '../components/Sheet';
+import { UnitOptions, UsualUnits } from '../components/UnitPicker';
 import { useToast } from '../components/Toast';
 import { regName } from '../views/PeptidesView';
 
 const OTHER = '__other';
 
-export const isRisky = (p?: Peptide) => !!p && (p.tier >= 3 || ['restricted', 'unapproved', 'investigational', 'pending'].includes(p.legal));
+export const isRisky = (p?: Peptide) => !!p && (p.tier >= 3 || ['restricted', 'unapproved', 'investigational', 'pending', 'interim'].includes(p.legal));
 
 function Caution({ p }: { p?: Peptide }) {
   if (!p || !isRisky(p)) return null;
@@ -27,18 +31,25 @@ function Caution({ p }: { p?: Peptide }) {
   );
 }
 
+/** The unit a new regimen starts with: how the compound is usually measured. */
+const startUnit = (compoundId: string) => measuresFor(compoundId)[0]?.u ?? PEP[compoundId]?.defaultUnit;
+
 export function blankRegimen(compoundId = ''): Regimen {
   const p = PEP[compoundId];
   return {
-    id: newId(), compoundId, name: '', dose: '', unit: p?.defaultUnit ?? 'mg', freq: 'weekly', everyDays: '',
+    id: newId(), compoundId, name: '', dose: '', unit: startUnit(compoundId) ?? 'mg', freq: 'weekly', everyDays: '',
     route: p?.defaultRoute ?? 'Subcutaneous injection', prescriber: '', source: '', start: dayKey(new Date()),
     vialMg: '', diluentMl: '', notes: '',
   };
 }
 
-export function RegimenSheet({ initial, isNew, onClose, onSaved }: { initial: Regimen; isNew: boolean; onClose: () => void; onSaved: () => void }) {
+/** `onLog` opens the dose sheet for a peptide already tracked; `onSignIn` opens sign-in. */
+export function RegimenSheet({ initial, isNew, onClose, onSaved, onLog, onSignIn }: {
+  initial: Regimen; isNew: boolean; onClose: () => void; onSaved: (r?: Regimen) => void; onLog?: (r: Regimen) => void; onSignIn?: () => void;
+}) {
   const toast = useToast();
-  const { regimens } = useLedger();
+  const { regimens, doses } = useLedger();
+  const signedIn = !!useAccount().user;
   const [r, setR] = useState<Regimen>(initial);
   const [pick, setPick] = useState(initial.compoundId || (initial.name ? OTHER : ''));
   const [ack, setAck] = useState(false);
@@ -47,26 +58,42 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved }: { initial: Re
   const firstTime = isNew && regimens.length === 0;
   const p = PEP[pick];
   const set = <K extends keyof Regimen>(k: K) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => setR({ ...r, [k]: e.target.value });
-  const math = doseMath(r.dose, r.unit, r.vialMg, r.diluentMl);
+  const { math, checks } = checkDose({ ...r, compoundId: p ? pick : '' }, r.dose, r.unit);
+  const volume = isVolumeUnit(r.unit);
+  // Changing the unit of a regimen that has history: offer to relabel the doses logged in the old unit.
+  const oldUnitDoses = isNew || r.unit === initial.unit ? [] : doses.filter(x => x.rid === r.id && x.unit === initial.unit);
+  const [relabel, setRelabel] = useState(false);
+  // Adding something already in the list is usually someone looking for where to log today's dose.
+  const already = isNew && pick ? regimens.find(x => !x.paused && samePeptide(x, { compoundId: p ? pick : '', name: pick === OTHER ? r.name : '' })) : undefined;
+
+  // Choosing set weekdays starts with today's day ticked, so there's always at least one.
+  const setFreq = (freq: string) => setR(cur => ({ ...cur, freq, weekdays: freq === 'days' && !weekdaysOf(cur).length ? [new Date().getDay()] : cur.weekdays }));
+  const toggleDay = (d: number) => setR(cur => {
+    const has = weekdaysOf(cur).includes(d);
+    return { ...cur, weekdays: has ? weekdaysOf(cur).filter(x => x !== d) : [...weekdaysOf(cur), d] };
+  });
 
   const choose = (v: string) => {
     setPick(v);
     const np = PEP[v];
-    setR(cur => ({ ...cur, compoundId: np ? v : '', route: isNew && np?.defaultRoute ? np.defaultRoute : cur.route, unit: isNew && np?.defaultUnit ? np.defaultUnit : cur.unit }));
+    setR(cur => ({ ...cur, compoundId: np ? v : '', route: isNew && np?.defaultRoute ? np.defaultRoute : cur.route, unit: isNew && np ? startUnit(v) ?? cur.unit : cur.unit }));
   };
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const out: Regimen = { ...r, compoundId: p ? pick : '', name: pick === OTHER ? r.name.trim() : '', prescriber: r.prescriber.trim(), notes: r.notes.trim() };
+    const out: Regimen = { ...r, compoundId: p ? pick : '', name: pick === OTHER ? r.name.trim() : '', prescriber: r.prescriber.trim(), notes: r.notes.trim(), weekdays: r.freq === 'days' ? weekdaysOf(r) : undefined };
     const problem = !out.compoundId && !out.name ? 'Choose a peptide or type a name.'
       : !(Number(out.dose) > 0) ? 'Enter the dose you were prescribed.'
       : out.freq === 'custom' && !(Number(out.everyDays) >= 1) ? 'Enter how many days between doses.'
+      : out.freq === 'days' && !weekdaysOf(out).length ? 'Choose at least one day of the week.'
       : firstTime && !ack ? "Please confirm you understand this log isn't medical advice." : '';
     if (problem) { setErr(problem); return; }
     if (isNew) out.createdAt = new Date().toISOString();
+    const relabeled = relabel ? oldUnitDoses.map(x => ({ ...x, unit: out.unit })) : [];
+    if (relabeled.length) store.applyBatch({ doses: relabeled });
     store.saveRegimen(out);
-    toast(isNew ? `Tracking ${regName(out)}.` : 'Saved.');
-    onSaved();
+    toast(isNew ? `Tracking ${regName(out)}.` : relabeled.length ? `Saved, and ${relabeled.length === 1 ? '1 past dose' : `${relabeled.length} past doses`} now say ${out.unit}.` : 'Saved.');
+    onSaved(out);
   };
 
   return (
@@ -79,6 +106,13 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved }: { initial: Re
           </div>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg></button>
         </div>
+        {firstTime && configured && !signedIn && onSignIn && (
+          <div className="alert info" role="note">
+            <b>Have an account? Sign in first.</b>
+            <span>You're signed out, so what you add here stays on this device only. Signing in brings back the peptides, shots and weights already in your account.</span>
+            <div style={{ marginTop: 6 }}><button type="button" className="btn sm" onClick={onSignIn}>Sign in</button></div>
+          </div>
+        )}
         <label className="field"><span>Peptide or medication</span>
           <select id="r-compound" value={pick} onChange={e => choose(e.target.value)}>
             <option value="">Choose…</option>
@@ -91,12 +125,29 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved }: { initial: Re
           </select>
         </label>
         {pick === OTHER && <label className="field"><span>Name</span><input type="text" id="r-name" value={r.name} onChange={set('name')} maxLength={80} /></label>}
+        {already && (
+          <div className="alert info" role="status">
+            <b>You already track {regName(already)}: {fmtNum(Number(already.dose), 3)} {already.unit}, {freqText(already).toLowerCase()}.</b>
+            <span>To record a dose you just took, log it there so it stays with your history. Add it again here only for a second, separate regimen.</span>
+            {onLog && <div style={{ marginTop: 6 }}><button type="button" className="btn sm" onClick={() => onLog(already)}>Log a {regName(already)} dose</button></div>}
+          </div>
+        )}
         <Caution p={p} />
         <div className="grid-3">
           <label className="field"><span>Dose</span><input type="number" id="r-dose" step="any" min="0" inputMode="decimal" value={r.dose} onChange={set('dose')} /></label>
-          <label className="field"><span>Unit</span><select id="r-unit" value={r.unit} onChange={set('unit')}>{UNITS.map(u => <option key={u}>{u}</option>)}</select></label>
-          <label className="field"><span>How often</span><select id="r-freq" value={r.freq} onChange={set('freq')}>{FREQS.map(f => <option key={f.k} value={f.k}>{f.label}</option>)}</select></label>
+          <label className="field"><span>Unit</span><select id="r-unit" value={r.unit} onChange={set('unit')}><UnitOptions compoundId={p ? pick : ''} /></select></label>
+          <label className="field"><span>How often</span><select id="r-freq" value={r.freq} onChange={e => setFreq(e.target.value)}>{FREQS.map(f => <option key={f.k} value={f.k}>{f.label}</option>)}</select></label>
         </div>
+        <UsualUnits compoundId={p ? pick : ''} value={r.unit} onPick={u => setR({ ...r, unit: u })} />
+        {r.freq === 'days' && (
+          <div className="field">
+            <span id="r-days-h">Which days?</span>
+            <div className="row-wrap weekdays" role="group" aria-labelledby="r-days-h">
+              {WEEK.map(d => <button key={d} type="button" className="fchip" aria-pressed={weekdaysOf(r).includes(d)} onClick={() => toggleDay(d)}>{DAY_SHORT[d]}</button>)}
+            </div>
+            <small>For 5 days on, 2 off, pick Mon to Fri. Due days follow the calendar, so a late dose doesn't move the next one.</small>
+          </div>
+        )}
         {r.freq === 'custom' && <label className="field"><span>Every how many days?</span><input type="number" id="r-every" min="1" step="1" value={r.everyDays} onChange={set('everyDays')} /></label>}
         <div className="grid-2">
           <label className="field"><span>How it's taken</span><select id="r-route" value={r.route} onChange={set('route')}>{ROUTES.map(x => <option key={x}>{x}</option>)}</select></label>
@@ -111,16 +162,41 @@ export function RegimenSheet({ initial, isNew, onClose, onSaved }: { initial: Re
         {r.source === UNREGULATED_SOURCE && (
           <div className="alert warn"><b>Products from online vendors aren't regulated.</b><span>Independent tests have found wrong amounts, impurities, and bacterial endotoxin in "research use only" vials. A licensed pharmacy is the safer route when one is available.</span></div>
         )}
-        <details open={!!r.vialMg}>
-          <summary className="small" style={{ cursor: 'pointer' }}><b>Mixing from powder?</b> Add vial details to see units per dose</summary>
+        <details open={!!r.vialMg || isVolumeUnit(r.unit) || checks.length > 0}>
+          <summary className="small" style={{ cursor: 'pointer' }}>
+            {volume ? <><b>Vial details</b> Add them to see how much drug each dose is</> : <><b>Mixing from powder?</b> Add vial details to see units per dose</>}
+          </summary>
           <div className="grid-2" style={{ marginTop: 10 }}>
-            <label className="field"><span>Powder in vial (mg)</span><input type="number" id="r-vial" step="any" min="0" value={r.vialMg} onChange={set('vialMg')} /></label>
-            <label className="field"><span>Water added (mL)</span><input type="number" id="r-ml" step="any" min="0" value={r.diluentMl} onChange={set('diluentMl')} /></label>
+            <label className="field"><span>{volume ? 'Drug in vial (mg)' : 'Powder in vial (mg)'}</span><input type="number" id="r-vial" step="any" min="0" value={r.vialMg} onChange={set('vialMg')} /></label>
+            <label className="field"><span>{volume ? 'Liquid in vial (mL)' : 'Water added (mL)'}</span><input type="number" id="r-ml" step="any" min="0" value={r.diluentMl} onChange={set('diluentMl')} /></label>
           </div>
+          <p className="xsmall muted" style={{ marginTop: 6 }}>Measured the water with an insulin syringe? 100 units = 1 mL.</p>
+          {checks.map(c => (
+            <div key={c.title} className="alert danger" role="alert" style={{ marginTop: 10 }}>
+              <b>{c.title}</b><span>{c.body}</span>
+              {c.fix && (
+                <div style={{ marginTop: 6 }}>
+                  <button type="button" className="btn sm" onClick={() => {
+                    setR(cur => ({ ...cur, ...c.fix!.set }));
+                    // Doses saved as mg that were really syringe units are the same mix-up, so fix them too by default.
+                    if (c.fix!.set.unit === SYRINGE_UNITS) setRelabel(true);
+                  }}>{c.fix.label}</button>
+                </div>
+              )}
+            </div>
+          ))}
           <p className="small muted" style={{ marginTop: 8 }}>
-            {math ? <>Concentration {fmtNum(math.conc, 3)} mg/mL. Each dose is <b className="mono">{fmtNum(math.units, 1)} units</b> ({fmtNum(math.vol, 3)} mL) on a U-100 syringe, about {fmtNum(Math.floor(math.perVial), 0)} doses per vial.</> : 'Enter the dose in mcg or mg plus the vial details.'}
+            {math && volume
+              ? <>Concentration {fmtNum(math.conc, 3)} mg/mL. Each {r.unit === 'mL' ? `${fmtNum(Number(r.dose), 3)} mL dose` : `${fmtNum(Number(r.dose), 3)}-unit dose (${fmtNum(math.vol, 3)} mL)`} is <b className="mono">{drugAmount(math.doseMg, p?.defaultUnit)}</b>, about {fmtNum(Math.floor(math.perVial), 0)} doses per vial.</>
+              : math ? <>Concentration {fmtNum(math.conc, 3)} mg/mL. Each dose is <b className="mono">{fmtNum(math.units, 1)} units</b> ({fmtNum(math.vol, 3)} mL) on a U-100 syringe, about {fmtNum(Math.floor(math.perVial), 0)} doses per vial.</>
+              : checks.length ? 'Fix the numbers above to see the dose math.'
+              : volume ? 'Enter the mg of drug in the vial and the mL of liquid in it. If you mixed it yourself, that\'s the powder and the water you added.'
+              : 'Enter the dose in mcg or mg plus the vial details.'}
           </p>
         </details>
+        {oldUnitDoses.length > 0 && (
+          <div className="checks"><label><input type="checkbox" id="r-relabel" checked={relabel} onChange={e => setRelabel(e.target.checked)} /> Also change the {oldUnitDoses.length === 1 ? 'dose' : `${oldUnitDoses.length} doses`} you logged in {initial.unit} to {r.unit}. Only if they were saved in the wrong unit; the amounts stay the same.</label></div>
+        )}
         <label className="field"><span>Notes <small>(optional)</small></span><textarea id="r-notes" maxLength={500} value={r.notes} onChange={set('notes')} /></label>
         {firstTime && (
           <div className="checks"><label><input type="checkbox" id="r-ack" checked={ack} onChange={e => setAck(e.target.checked)} /> I understand this log isn't medical advice and won't tell me what dose to take.</label></div>

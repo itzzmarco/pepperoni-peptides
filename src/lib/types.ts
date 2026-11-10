@@ -3,6 +3,7 @@ export type Tier = 1 | 2 | 3 | 4 | 5;
 export type LegalKey =
   | 'approved'
   | 'compoundable'
+  | 'interim'
   | 'pending'
   | 'restricted'
   | 'investigational'
@@ -95,6 +96,8 @@ export interface Regimen {
   vialMg: string;
   diluentMl: string;
   notes: string;
+  /** For freq 'days': the days of the week it's taken, 0 = Sunday to 6 = Saturday. */
+  weekdays?: number[];
   paused?: boolean;
   createdAt?: string;
 }

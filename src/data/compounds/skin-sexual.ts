@@ -1,6 +1,6 @@
 import type { Peptide } from '../../lib/types';
 
-// Skin, hair, tan and sexual-health compounds. US status as of October 26, 2026.
+// Skin, hair, tan and sexual-health compounds. US status as of October 28, 2026.
 // Source notes: research_notes/Trending peptides evidence and safety/skin_tan_sexual_peptides.md
 // and regulation_and_safety.md. No forum or vendor dosing.
 
@@ -365,7 +365,7 @@ export const SKIN_SEXUAL: Peptide[] = [
     family: 'skin',
     tier: 5,
     legal: 'unapproved',
-    status: 'Not approved and not lawful to compound. Each ingredient is off Category 2 but not listed; BPC-157, TB-500 and KPV got non-binding 8-6-1 PCAC votes in favor in Jul 2026.',
+    status: 'Not approved, and the blend cannot be compounded: the Oct 28, 2026 HHS interim policy allows one listed peptide per product. Injectable GHK-Cu is not covered at all.',
     wada: 'Prohibited at all times (S0, S2.3)',
     summary: 'Grey-market injectable blends. GLOW combines GHK-Cu, BPC-157 and TB-500; KLOW adds KPV. Neither blend has been studied in people or animals, and doses and purity vary by seller.',
     mechanism: 'No mechanism has been tested for either blend. Each ingredient is a separate peptide with its own lab or animal data: GHK-Cu (a copper skin peptide), BPC-157 and TB-500 (promoted for healing) and, in KLOW, KPV (promoted as anti-inflammatory). How they act together is unknown.',

@@ -1,14 +1,17 @@
 import type { Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { upcoming, type RegimenStatus } from '../lib/schedule';
-import { doseMath } from '../lib/doseMath';
+import { drugAmount, isVolumeUnit } from '../lib/doseMath';
+import { checkRegimen } from '../lib/vial';
 import { DAY, dayKey, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
 import { adherence, doseDays, topEffects, usualMinutes } from '../lib/insights';
-import { BELLY, SITE_LABEL, lastBellyHour, lastUsedBySite, nextBellyHour, suggestSite } from '../lib/sites';
-import { INJECTABLE } from '../data/options';
+import { nextSite, siteLabel, type NextSite } from '../lib/sites';
 import { PEP } from '../data/peptides';
 import { TIERS } from '../data/reference';
-import { MiniClock } from '../components/BellyClock';
+import { configured, useAccount } from '../lib/account';
+import { firstName, usePartners, weightChange } from '../lib/partner';
+import { DeviceLogPrompt } from '../sheets/AccountSheet';
+import { SiteFigure, doseText, whenNext } from '../components/NextShot';
 import { useCountUp } from '../components/Motion';
 import { Kinetic, Mast } from '../components/Mast';
 import { Strand } from '../components/Strand';
@@ -44,10 +47,10 @@ function DayBar({ done, todo, now }: { done: Date[]; todo: Date[]; now: Date }) 
   );
 }
 
-function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now }: {
-  r: Regimen; st: RegimenStatus; actions: Actions; doneToday: number; dueToday: number; todo: Date[]; done: Date[]; now: Date;
+function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now, site }: {
+  r: Regimen; st: RegimenStatus; actions: Actions; doneToday: number; dueToday: number; todo: Date[]; done: Date[]; now: Date; site: NextSite | null;
 }) {
-  const math = doseMath(r.dose, r.unit, r.vialMg, r.diluentMl);
+  const { math, checks } = checkRegimen(r);
   const usual = todo[0];
   const total = doneToday + dueToday;
   return (
@@ -59,7 +62,7 @@ function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now }: {
       <div className="stack" style={{ gap: 6 }}>
         <span className="name">{regName(r)} <span>{fmtNum(Number(r.dose), 3)} {r.unit}</span></span>
         <span className="sub" style={{ fontSize: '.9375rem' }}>
-          {[usual && st.s !== 'ok' ? `Usually around ${fmtTime(usual)}` : '', math ? `draw ${fmtNum(math.units, 1)} units` : '', r.route].filter(Boolean).join(', ')}
+          {[usual && st.s !== 'ok' ? `Usually around ${fmtTime(usual)}` : '', math ? (isVolumeUnit(r.unit) ? `about ${drugAmount(math.doseMg, PEP[r.compoundId]?.defaultUnit)}` : `draw ${fmtNum(math.units, 1)} units`) : checks.length ? 'check the vial details' : '', site ? siteLabel(site.site, r.route) : r.route].filter(Boolean).join(' · ')}
         </span>
       </div>
       {(done.length > 0 || todo.length > 0) && <DayBar done={done} todo={todo} now={now} />}
@@ -81,6 +84,9 @@ function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now }: {
 
 export function TodayView(actions: Actions) {
   const { regimens, doses, checkins } = useLedger();
+  const acct = useAccount();
+  const signedIn = !!acct.user;
+  const seenHere = acct.seenHere;
   const now = new Date();
   const today = dayKey(now);
   const list = upcoming(regimens, doses, now);
@@ -117,18 +123,27 @@ export function TodayView(actions: Actions) {
   const checkedIn = checkins.find(c => dayKey(new Date(c.at)) === today);
   const lastFlag = checkins.find(c => c.flags.length && Date.now() - new Date(c.at).getTime() < 2 * DAY);
 
-  // Site suggestion for the next injectable dose: belly clock if this regimen has used it, else the least-used body site.
-  const inj = list.find(x => INJECTABLE.has(x.r.route));
-  const lastUsed = lastUsedBySite(doses);
-  const bh = inj ? lastBellyHour(inj.r.id, doses) : null;
-  const nextHour = bh ? nextBellyHour(bh, lastUsed) : null;
+  // Each injected peptide's next spot in its own rotation (belly clock or body map), soonest due first.
+  const shots = list.flatMap(x => { const s = nextSite(x.r, doses); return s ? [{ r: x.r, s }] : []; }).slice(0, 3);
   const comingUp = list.find(x => x !== next && x.st.s === 'ok');
   const learnP = next ? PEP[next.r.compoundId] : undefined;
+
+  // A linked partner's latest weight and next shot, view only.
+  const { partners, logs } = usePartners();
+  const partner = partners[0];
+  const pLog = partner ? logs[partner.id] : undefined;
+  const pUnit = wNow?.weightUnit ?? pLog?.checkins.find(c => c.weightUnit)?.weightUnit ?? 'lb';
+  const pW = pLog ? weightChange(pLog.checkins, pUnit, now.getTime() - 90 * DAY) : null;
+  const pNext = pLog ? upcoming(pLog.regimens, pLog.doses, now)[0] : undefined;
 
   const hour = now.getHours();
   const hello = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
   let line1: string, line2: string;
-  if (!regimens.length) { line1 = 'Welcome.'; line2 = 'Add what you were prescribed to start.'; }
+  const hasLog = regimens.length > 0 || doses.length > 0 || checkins.length > 0;
+  // Signed out on a site with accounts, an empty log usually means "sign in", not "start over".
+  const offerSignIn = configured && !signedIn && !regimens.length;
+  if (!regimens.length && offerSignIn && seenHere) { line1 = "You're signed out."; line2 = 'Sign in to see your log.'; }
+  else if (!regimens.length) { line1 = hasLog ? 'Nothing to take yet.' : 'Welcome.'; line2 = 'Add what you were prescribed to start.'; }
   else if (late) { line1 = `${plural(late, 'dose')} overdue.`; line2 = 'Log it when you take it.'; }
   else if (dueNow.length) { line1 = adh.pct == null || adh.pct >= 0.8 ? "You're on track." : "Here's today."; line2 = `${plural(dueNow.length, 'dose')} left today.`; }
   else { line1 = "You're all set today."; line2 = next?.st.due ? `Next: ${regName(next.r)}, ${fmtShort(next.st.due)}.` : 'Nothing scheduled.'; }
@@ -147,13 +162,25 @@ export function TodayView(actions: Actions) {
         )}
 
         {next ? (
-          <NextUp r={next.r} st={next.st} actions={actions} now={now} done={done} todo={todo}
+          <NextUp r={next.r} st={next.st} actions={actions} now={now} done={done} todo={todo} site={shots.find(x => x.r === next.r)?.s ?? null}
             doneToday={loggedToday.length} dueToday={list.filter(x => x.st.s === 'due' || x.st.s === 'late').length} />
+        ) : offerSignIn && seenHere ? (
+          <section className="nextup rise" style={rise(3)}>
+            <span className="lead">Sign in and your peptides, shots and weights come back.</span>
+            <span className="sub">Your log is saved in your account. Anything added while signed out stays on this device only, so sign in before you log.</span>
+            <div className="row-wrap">
+              <button className="btn" onClick={actions.signIn}>Sign in</button>
+              <button className="btn glass" onClick={actions.addRegimen}>Add a peptide anyway</button>
+            </div>
+          </section>
         ) : (
           <section className="nextup rise" style={rise(3)}>
             <span className="lead">Track a peptide or medication your clinician prescribed.</span>
-            <span className="sub">You'll see what's due, how consistent you've been, and where to inject next. Nothing leaves this device.</span>
-            <div><button className="btn" onClick={actions.addRegimen}>Add a peptide</button></div>
+            <span className="sub">You'll see what's due, how consistent you've been, and where to inject next. {signedIn ? 'It syncs to your account, and only you can see it.' : 'Nothing leaves this device.'}</span>
+            <div className="row-wrap">
+              <button className="btn" onClick={actions.addRegimen}>Add a peptide</button>
+              {offerSignIn && <button className="btn glass" onClick={actions.signIn}>I have an account</button>}
+            </div>
           </section>
         )}
 
@@ -170,9 +197,10 @@ export function TodayView(actions: Actions) {
       {!store.persistent && (
         <div className="alert warn"><b>This browser isn't saving your log.</b><span>Private browsing or blocked site storage stops saving. Entries will disappear when you close the tab, so export before you leave.</span></div>
       )}
+      <DeviceLogPrompt onToday />
       <Glp1Alert regimens={regimens} />
 
-      {regimens.length > 0 && (
+      {hasLog && (
         <div className="bento">
           <a href="#trends" className="tile mint row-2 rise" style={rise(5)}>
             <span className="label">Adherence</span>
@@ -204,20 +232,32 @@ export function TodayView(actions: Actions) {
             ) : <span className="sub">None logged this week.</span>}
           </a>
 
-          {inj && (
-            <button type="button" className="tile sky span-2 rise" style={{ ...rise(8), display: 'flex', alignItems: 'center', gap: 16 }} onClick={() => actions.logDose(inj.r)}>
-              {nextHour ? <MiniClock hour={nextHour} /> : (
-                <span className="badge-icon" style={{ background: 'var(--sky)', color: 'var(--sky-ink)' }} aria-hidden="true">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="2.5" /><path d="M12 8v7M8 10l4 1 4-1M10 21l2-6 2 6" /></svg>
+          {partner && (
+            <a href="#partner" className="tile span-2 partner-tile rise" style={rise(8)}>
+              <span className="avatar" aria-hidden="true">{firstName(partner.name)[0]}</span>
+              <span className="stack" style={{ gap: 2, flex: 1, minWidth: 0 }}>
+                <span className="label" style={{ color: 'var(--peach-ink)' }}>{firstName(partner.name)} · partner</span>
+                <span style={{ fontSize: '1.3125rem', fontWeight: 600, lineHeight: 1.2 }}>
+                  {pW ? <>{fmtNum(pW.last.w, 1)}<small className="sub"> {pUnit}</small>{pW.count > 1 && <span className="sub"> · {pW.change > 0 ? '+' : pW.change < 0 ? '−' : ''}{Math.abs(pW.change).toFixed(1)} since {fmtShort(pW.first.at)}</span>}</> : 'No weigh-ins yet'}
                 </span>
-              )}
-              <span className="stack" style={{ gap: 2 }}>
-                <span className="label">Next site for {regName(inj.r)}</span>
-                <span className="lead">{nextHour ? BELLY.find(b => b.h === nextHour)!.label : SITE_LABEL[suggestSite(lastUsed)]}</span>
-                <span className="sub">{nextHour ? `One hour clockwise from ${bh} o'clock` : 'Rested longest of your sites'}</span>
+                {pNext && <span className="sub">{regName(pNext.r)} · {pNext.st.text}</span>}
+              </span>
+              <span className="arrow" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+            </a>
+          )}
+
+          {shots.map(({ r, s: sug }, i) => (
+            <button key={r.id} type="button" className="tile sky span-2 rise" style={{ ...rise(8 + i), border: 0, textAlign: 'left', font: 'inherit', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 16 }} onClick={() => actions.logDose(r)}
+              aria-label={`Next shot of ${regName(r)}: ${siteLabel(sug.site, r.route)}, ${whenNext(r, doses, now)}. Log it.`}>
+              <SiteFigure s={sug} size={76} />
+              <span className="stack" style={{ gap: 2, minWidth: 0 }}>
+                <span className="label">Next shot · {regName(r)}</span>
+                <span className="lead">{siteLabel(sug.site, r.route)}</span>
+                <span className="sub" style={{ color: 'var(--ink-2)', fontWeight: 600 }}>{whenNext(r, doses, now)} · {doseText(r)}</span>
+                <span className="sub">{sug.why}</span>
               </span>
             </button>
-          )}
+          ))}
 
           <button type="button" className="tile mint rise" style={{ ...rise(9), gap: 6 }} onClick={actions.checkin}>
             <span className="label">Check-in</span>

@@ -6,6 +6,8 @@ const ICON = {
   learn: 'M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z',
   peptides: 'M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5V2M8.5 2h7M14.5 16h-5',
 };
+/** Grid column of each tab; the log button holds the middle one. */
+const SLOT: Record<string, number> = { today: 0, trends: 1, learn: 3, peptides: 4 };
 
 function Tab({ k, label, current }: { k: keyof typeof ICON; label: string; current: string }) {
   const on = current === k;
@@ -17,14 +19,15 @@ function Tab({ k, label, current }: { k: keyof typeof ICON; label: string; curre
   );
 }
 
-/** Floating bottom tab bar; the dark button in the middle logs the next due dose. */
-export function TabBar({ current, onLog, inert }: { current: Route; onLog: () => void; inert?: boolean }) {
+/** Floating bottom tab bar. A bead slides to the current tab; the white button in the middle logs the next dose and beats while one is due. */
+export function TabBar({ current, onLog, due, inert }: { current: Route; onLog: () => void; due?: boolean; inert?: boolean }) {
   return (
-    <nav className="tabbar" aria-label="Main" inert={inert}>
+    <nav className="tabbar" aria-label="Main" inert={inert} style={{ ['--at' as string]: SLOT[current] ?? 0 }}>
+      <i className="at" aria-hidden="true" />
       <Tab k="today" label="Today" current={current} />
       <Tab k="trends" label="Trends" current={current} />
-      <button className="log" type="button" onClick={onLog} aria-label="Log a dose">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+      <button className={`log${due ? ' due' : ''}`} type="button" onClick={onLog} aria-label="Log a dose">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
       </button>
       <Tab k="learn" label="Learn" current={current} />
       <Tab k="peptides" label="Peptides" current={current} />

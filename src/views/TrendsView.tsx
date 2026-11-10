@@ -9,6 +9,7 @@ import { ledgerToCsv } from '../lib/csv';
 import { PEP } from '../data/peptides';
 import { LineChart } from '../components/LineChart';
 import { useCountUp } from '../components/Motion';
+import { Kinetic, Mast } from '../components/Mast';
 import { useToast } from '../components/Toast';
 import { regName } from './PeptidesView';
 
@@ -194,7 +195,7 @@ function Pattern({ doses, checkins, now }: { doses: DoseEntry[]; checkins: Check
           {withDoses.map(x => <button key={x.id} type="button" className="fchip" aria-pressed={x.id === r.id} onClick={() => setPick(x.id)}>{regName(x)}</button>)}
         </div>
       )}
-      <p style={{ fontSize: '1.25rem', fontWeight: 500, lineHeight: 1.3 }}>{sentence}</p>
+      <p className="lead">{sentence}</p>
       <div className="pattern" role="img" aria-label={`Four weeks, Monday first: ${name} doses and days with side effects. ${sentence}`}>
         <div className="wk head" aria-hidden="true">{['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => <span key={i}>{d}</span>)}</div>
         {weeks.map((w, wi) => (
@@ -251,21 +252,20 @@ export function TrendsView() {
 
   return (
     <section className="view">
-      <header className="head rise">
-        <span className="eyebrow">Trends · {RANGES.find(r => r[0] === days)![1]}</span>
-        <h1>{line1}{line2 && <><br /><span className="soft">{line2[0].toUpperCase() + line2.slice(1)}.</span></>}</h1>
-      </header>
-      <div className="seg rise" role="group" aria-label="Time range" style={rise(1)}>
-        {RANGES.map(([d, l]) => <button key={d} type="button" aria-pressed={days === d} onClick={() => setDays(d)}>{l}</button>)}
-      </div>
+      <Mast>
+        <Kinetic a={line1} b={line2 ? `${line2[0].toUpperCase() + line2.slice(1)}.` : undefined} />
+        <div className="seg rise" role="group" aria-label="Time range" style={rise(2)}>
+          {RANGES.map(([d, l]) => <button key={d} type="button" aria-pressed={days === d} onClick={() => setDays(d)}>{l}</button>)}
+        </div>
+      </Mast>
 
-      <section className="tile mint rise" aria-labelledby="adh-h" style={rise(2)}>
+      <section className="tile mint rise" aria-labelledby="adh-h" style={rise(3)}>
         <div className="spread" style={{ alignItems: 'flex-end' }}>
-          <div className="stack" style={{ gap: 2 }}>
+          <div className="stack" style={{ gap: 6 }}>
             <h2 id="adh-h" className="label">Doses logged</h2>
-            <span className="big" style={{ fontSize: '2.75rem' }}>{adh.pct == null ? '–' : `${Math.round(pct)}%`}</span>
+            <span className="big">{adh.pct == null ? '–' : `${Math.round(pct)}%`}</span>
           </div>
-          <span className="sub" style={{ color: 'var(--mint-2)' }}>{adh.expected ? `${adh.logged} of ${adh.expected} due doses` : 'No scheduled doses yet'}</span>
+          <span className="sub">{adh.expected ? `${adh.logged} of ${adh.expected} due doses` : 'No scheduled doses yet'}</span>
         </div>
         <MonthCalendar doses={doses} now={now} />
         <div className="legend" style={{ color: 'var(--mint-2)' }}>
@@ -274,12 +274,12 @@ export function TrendsView() {
         </div>
       </section>
 
-      <section className="tile lilac rise" aria-labelledby="wt-h" style={rise(3)}>
+      <section className="tile lilac rise" aria-labelledby="wt-h" style={rise(4)}>
         <div className="spread" style={{ alignItems: 'flex-end' }}>
-          <div className="stack" style={{ gap: 2 }}>
+          <div className="stack" style={{ gap: 6 }}>
             <h2 id="wt-h" className="label">Weight</h2>
             {change != null
-              ? <span className="big" style={{ fontSize: '2.75rem' }}>{changeShown < 0 ? '−' : '+'}{Math.abs(changeShown).toFixed(1)}<small> {wUnit} {weeksSpan >= 1.5 ? `in ${Math.round(weeksSpan)} weeks` : ''}</small></span>
+              ? <span className="big">{changeShown < 0 ? '−' : '+'} {Math.abs(changeShown).toFixed(1)}<small> {wUnit} {weeksSpan >= 1.5 ? `in ${Math.round(weeksSpan)} weeks` : ''}</small></span>
               : <span className="sub">{weights.length ? 'Add another weigh-in to see a trend.' : 'No weights logged in this range. Add one in a daily check-in.'}</span>}
           </div>
         </div>

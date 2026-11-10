@@ -8,6 +8,7 @@ import { glp1Overlap } from '../lib/insights';
 import { PEP } from '../data/peptides';
 import { UNREGULATED_SOURCE } from '../data/options';
 import { LegalChip, TierChip } from '../components/Chips';
+import { Kinetic, Mast } from '../components/Mast';
 import { useToast } from '../components/Toast';
 
 export const regName = (r: Pick<Regimen, 'compoundId' | 'name'>) => PEP[r.compoundId]?.name ?? (r.name || 'Unnamed');
@@ -99,19 +100,18 @@ export function PeptidesView(actions: Actions) {
 
   return (
     <section className="view">
-      <header className="head rise">
-        <span className="eyebrow">Your peptides</span>
-        <h1>
-          {regimens.length ? <>{active.length} being tracked.<br /><span className="soft">{due ? `${due} due today.` : 'Nothing due today.'}</span></> : <>Nothing tracked yet.<br /><span className="soft">Add what you were prescribed.</span></>}
-        </h1>
-      </header>
-      <div className="head-actions rise" style={{ ['--i' as string]: 1 }}>
-        <button className="btn" onClick={actions.addRegimen}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-          Add a peptide
-        </button>
-        <a className="btn ghost" href="#learn">Browse the library</a>
-      </div>
+      <Mast>
+        {regimens.length
+          ? <Kinetic a={`${active.length} being tracked.`} b={due ? `${due} due today.` : 'Nothing due today.'} />
+          : <Kinetic a="Nothing tracked yet." b="Add what you were prescribed." />}
+        <div className="head-actions rise" style={{ ['--i' as string]: 3 }}>
+          <button className="btn" onClick={actions.addRegimen}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+            Add a peptide
+          </button>
+          <a className="btn ghost" href="#learn">Browse the library</a>
+        </div>
+      </Mast>
 
       <Glp1Alert regimens={regimens} />
 

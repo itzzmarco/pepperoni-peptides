@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import type { FamilyKey, LegalKey, Peptide, Tier } from '../lib/types';
 import { PEPTIDES } from '../data/peptides';
 import { AS_OF, FAMILIES, LEGAL, TIERS } from '../data/reference';
 import { fmtNum } from '../lib/format';
 import { Ladder, LegalChip, TierChip } from '../components/Chips';
+import { Kinetic, Mast } from '../components/Mast';
+import { Dots, seqBeads } from '../components/Strand';
 
 const TIER_LIST: Tier[] = [1, 2, 3, 4, 5];
 
@@ -87,6 +89,22 @@ function TierOverview() {
   );
 }
 
+/** The library's known sequences drifting past in three rows, each residue in its chemical-class color. Decorative. */
+function Wall() {
+  const known = PEPTIDES.filter(p => p.seq);
+  return (
+    <div className="wall" aria-hidden="true">
+      {[0, 1, 2].map(r => {
+        const run = known.filter((_, i) => i % 3 === r).map(p => (
+          <Fragment key={p.id}><b>{p.name}</b>{seqBeads(p).map((b, i) => <i key={i} className={b.c}>{b.t}</i>)}</Fragment>
+        ));
+        // ponytail: one run is about 2,000px, so a viewport wider than that shows a gap before the loop; repeat the run more if it matters.
+        return <div className="track" key={r} style={{ ['--dur' as string]: `${70 + r * 20}s` }}>{run}{run}</div>;
+      })}
+    </div>
+  );
+}
+
 const GUIDES = [
   { href: '#calculator', tone: 'lilac', title: 'Dose math, step by step', sub: 'Vial, water and syringe units', icon: 'M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5V2M8.5 2h7M14.5 16h-5' },
   { href: '#safety', tone: 'peach', title: 'Safety & law', sub: 'Warning signs and US rules', icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
@@ -111,24 +129,24 @@ export function LibraryView() {
   const trialBacked = PEPTIDES.filter(p => p.tier <= 2).length;
   return (
     <section className="view">
-      <header className="head rise">
-        <span className="eyebrow">Learn</span>
-        <h1>What the evidence says.<br /><span className="soft">{PEPTIDES.length} peptides, graded.</span></h1>
-        <p>Compounds that trend online, with what studies show, how they're regulated in the US, and the warning signs to know. Updated {AS_OF}.</p>
-      </header>
-      <div className="search rise" style={{ ['--i' as string]: 1 }}>
-        <label className="sr-only" htmlFor="lib-q">Search peptides</label>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
-        <input type="search" id="lib-q" value={f.q} onChange={e => setF({ ...f, q: e.target.value })} placeholder="Search name, nickname or goal" autoComplete="off" />
-      </div>
+      <Mast>
+        <Kinetic a="What the evidence says." b={`${PEPTIDES.length} peptides, graded.`} />
+        <p className="rise" style={{ ['--i' as string]: 5 }}>Compounds that trend online, with what studies show, how they're regulated in the US, and the warning signs to know. Updated {AS_OF}.</p>
+        <div className="search rise" style={{ ['--i' as string]: 6 }}>
+          <label className="sr-only" htmlFor="lib-q">Search peptides</label>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+          <input type="search" id="lib-q" value={f.q} onChange={e => setF({ ...f, q: e.target.value })} placeholder="Search name, nickname or goal" autoComplete="off" />
+        </div>
+        <Wall />
+      </Mast>
 
-      <div className="bento rise" style={{ ['--i' as string]: 2 }}>
+      <div className="bento rise" style={{ ['--i' as string]: 7 }}>
         {GUIDES.map(g => (
           <a key={g.href} href={g.href} className={`tile ${g.tone}`} style={{ gap: 10 }}>
-            <span className="badge-icon" style={{ width: 44, height: 44, background: 'var(--surface)', color: `var(--${g.tone}-ink)` }} aria-hidden="true">
+            <span className="badge-icon" style={{ width: 44, height: 44, background: `var(--${g.tone})`, color: `var(--${g.tone}-ink)` }} aria-hidden="true">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={g.icon} /></svg>
             </span>
-            <span style={{ fontSize: '1.125rem', fontWeight: 600, lineHeight: 1.2 }}>{g.title}</span>
+            <span className="lead">{g.title}</span>
             <span className="sub">{g.sub}</span>
           </a>
         ))}
@@ -136,7 +154,7 @@ export function LibraryView() {
           <summary className="spread" style={{ alignItems: 'center', flexWrap: 'nowrap' }}>
             <span className="stack" style={{ gap: 4 }}>
               <span className="label">How evidence tiers work</span>
-              <span style={{ fontSize: '1.125rem', fontWeight: 600, lineHeight: 1.25 }}>Only {trialBacked} of {PEPTIDES.length} have randomized human trials</span>
+              <span className="lead">Only {trialBacked} of {PEPTIDES.length} have randomized human trials</span>
             </span>
             <span className="arrow" aria-hidden="true"><svg className="chev" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg></span>
           </summary>
@@ -155,8 +173,8 @@ export function LibraryView() {
       <div className="cards">
         {list.length ? list.map(p => (
           <a className="card" href={`#${p.id}`} key={p.id}>
-            <div><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 2).join(' · ')}</div> : null}</div>
-            <Ladder t={p.tier} />
+            <div><h3>{p.name}</h3>{p.aka?.length ? <div className="aka">{p.aka.slice(0, 2).join(', ')}</div> : null}</div>
+            <div className="marks"><Ladder t={p.tier} /><Dots p={p} /></div>
             <p className="sum">{p.summary}</p>
             <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /></div>
           </a>

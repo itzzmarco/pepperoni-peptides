@@ -1,5 +1,7 @@
-/* In Solution. The top of every screen is a cobalt "field" (the liquid): it carries the headline and the one
-   live graphic, and its lower edge is a slow wave. Changing screens drains and refills it. Below the field,
+/* In Solution, tidal. The top of every screen is a cobalt "field" (the water): it carries the headline and the
+   one live graphic over bands of deeper water, and its lower edge is foam washing in and out. On Today that
+   edge is a tide gauge: high when a dose goes in, ebbing until the next. Changing screens drains and refills
+   the field. Below it,
    quiet white cells sit on pale paper. Color inside a cell is an accent with one job: mint = adherence and
    evidence, lilac = weight and dose math, peach = side effects, sky = sites and schedule, lemon = learning,
    teal = storage. Residue colors (--aa-*) belong to amino-acid chemistry and nothing else.
@@ -101,6 +103,10 @@
     --ink-4: light-dark(oklch(from var(--dye) .529 calc(c * .25) h), oklch(from var(--dye) .677 calc(c * .3) h));
     --bar: light-dark(oklch(from var(--dye) .211 calc(c * .33) h), oklch(from var(--dye) .271 calc(c * .36) h));
     --on-tone: light-dark(#fff, oklch(from var(--dye) .163 calc(c * .215) h));
+    --sky: light-dark(oklch(from var(--dye) .913 calc(c * .161) h), oklch(from var(--dye) .302 calc(c * .509) h));
+    --sky-ink: var(--accent);
+    --sky-deep: light-dark(var(--field-deep), oklch(from var(--dye) .845 calc(c * .293) h));
+    --sky-dot: light-dark(oklch(from var(--dye) .821 calc(c * .284) h), oklch(from var(--dye) .44 calc(c * .603) h));
   }
 }
 @supports not ((color: oklch(from red l c h)) and (color: light-dark(red, blue))) { .look .spread, .dyes { display: none; } }
@@ -115,7 +121,7 @@ body {
   font-family: var(--f-body); font-size: var(--fs-md); line-height: 1.5; font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
 }
-body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--field); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--field-deep); }
 h1, h2, h3, h4 { line-height: 1.1; margin: 0; text-wrap: balance; font-weight: 700; font-stretch: 85%; letter-spacing: -.012em; }
 h1 { font-size: clamp(2.75rem, 12.5vw, 5rem); font-weight: 800; font-stretch: 75%; line-height: .93; letter-spacing: -.025em; overflow-wrap: anywhere; }
 h2 { font-size: 1.625rem; }
@@ -141,10 +147,10 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .row-wrap { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 .spread { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 
-/* Top bar: brand, where data lives, theme. It is the top of the field. */
-.topbar { background: var(--field); color: var(--on-field); padding-top: calc(env(safe-area-inset-top, 0px) + 12px); padding-bottom: 2px; }
+/* Top bar: brand, where data lives, theme. It is the top of the field, where the water is deepest. */
+.topbar { background: var(--field-deep); color: var(--on-field); padding-top: calc(env(safe-area-inset-top, 0px) + 12px); padding-bottom: 2px; }
 .topbar .row { display: flex; align-items: center; gap: 8px; }
-.brand { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--on-field); margin-right: auto; font-weight: 800; font-stretch: 75%; font-size: 1.5rem; line-height: 1; letter-spacing: .01em; }
+.brand { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--on-field); margin-right: auto; font-weight: 800; font-stretch: 75%; font-size: 1.5625rem; line-height: 1; letter-spacing: -.02em; }
 .brand svg { flex: none; }
 .sync { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--on-field-2); background: var(--glass); border-radius: 999px; padding: 6px 12px 6px 10px; white-space: nowrap; min-height: 32px; }
 .sync i { width: 7px; height: 7px; border-radius: 50%; background: var(--go); display: inline-block; }
@@ -167,26 +173,69 @@ button.sync:hover { background: rgba(255,255,255,.2); }
 .notice b { color: var(--on-field); font-weight: 600; }
 
 main { padding-block: 0 40px; }
-.view { display: grid; gap: 16px; }
+.view { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
 .head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .section-title { padding: 8px 4px 0; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 
 /* The field: full-bleed color behind a wrap-width column, so its content lines up with the cells below.
    The column is pinned with minmax(0, 1fr): the strand's SVG carries a measured width, and letting it size the
    column would leave the whole masthead stuck wide after the window narrows. */
-.mast { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-content: start; min-width: 0; padding: 20px 0 62px; margin-bottom: 2px; background: var(--field); color: var(--on-field); box-shadow: 0 0 0 100vmax var(--field); clip-path: inset(-2px -100vmax 0); }
+.mast { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-content: start; min-width: 0; padding: 20px 0 22px; background: var(--field); color: var(--on-field); box-shadow: 0 0 0 100vmax var(--field); clip-path: inset(0 -100vmax 0); }
 .mast > p { color: var(--on-field-2); max-width: 62ch; }
 .mast .when { display: flex; gap: 6px 14px; flex-wrap: wrap; align-items: baseline; font-weight: 600; color: var(--on-field-3); }
 .mast .when b { color: var(--on-field); font-weight: 600; }
 .kin .kw { display: inline-block; overflow: hidden; vertical-align: bottom; padding: .08em 0 .14em; margin: -.08em 0 -.14em; }
 .kin .kw > span { display: inline-block; }
 .kin .soft { color: var(--on-field-3); }
-.wave { position: absolute; left: 50%; bottom: -1px; width: 100vw; margin-left: -50vw; height: 26px; overflow: hidden; pointer-events: none; }
-.wave i { --tile: 280px; position: absolute; inset: 0 calc(-1 * var(--tile)) 0 0; background: var(--bg);
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 24' preserveAspectRatio='none'%3E%3Cpath d='M0 12Q60 -8 120 12T240 12V24H0Z'/%3E%3C/svg%3E") repeat-x 0 0 / var(--tile) 100%;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 24' preserveAspectRatio='none'%3E%3Cpath d='M0 12Q60 -8 120 12T240 12V24H0Z'/%3E%3C/svg%3E") repeat-x 0 0 / var(--tile) 100%; }
-.wave i:first-child { --tile: 410px; opacity: .35; }
-.wave::after { content: ""; position: absolute; inset: auto 0 0; height: 3px; background: var(--bg); }
+
+/* Tidal. Depth: three bands of deeper water behind everything in the field, darkest at the top where it meets the
+   top bar. They sit at fixed shares of the field's height, so the bottom of any field is plain field color. */
+.depth { position: absolute; z-index: -1; top: 0; left: 50%; width: 100vw; margin-left: -50vw; height: 100%; overflow: hidden; pointer-events: none; }
+.depth path { stroke: #fff; stroke-opacity: .1; stroke-width: 1.5; }
+.depth .d1 { fill: color-mix(in srgb, var(--field), var(--field-deep) 33%); }
+.depth .d2 { fill: color-mix(in srgb, var(--field), var(--field-deep) 67%); }
+.depth .d3 { fill: var(--field-deep); }
+
+/* Tide: the field's lower edge, full width, tucked 1px under the field so no seam shows. Shallow water, then foam with
+   a bright lip, washing in and out over a strip of wet sand. As a gauge (Today) the sand is wider the longer since a
+   dose, with the line the last high water left. The surge is one tall wave that runs down over the page when a dose
+   is logged. */
+.tide { --foam: color-mix(in srgb, var(--field), #fff 36%); position: relative; z-index: 3; width: 100vw; height: 56px; margin: -17px 0 -8px calc(50% - 50vw); pointer-events: none; }
+.tide.gauge { height: 76px; margin-bottom: 0; }
+.tide svg { display: block; overflow: hidden; }
+.tide .sand { fill: var(--surface-3); }
+.tide .mark { fill: none; stroke: #fff; stroke-width: 1.5; stroke-linecap: round; opacity: .7; }
+.tide .foam { fill: var(--foam); stroke: #fff; stroke-width: 2.5; stroke-opacity: .92; }
+.tide pattern circle { fill: #fff; }
+.tide .shallow { fill: color-mix(in srgb, var(--field), #fff 16%); }
+.tide .deep { fill: var(--field); }
+.surge { position: absolute; inset: 0 0 auto; height: 440px; overflow: hidden; display: none; }
+.surge .foam { stroke-width: 3; stroke-opacity: .95; }
+.tide-note { margin: -22px 4px 0; font-size: var(--fs-xs); color: var(--ink-3); }
+.tide-note b { color: var(--ink); font-weight: 600; }
+
+/* Weeks: a row per week on its own swell, a bead per day. The rows slide and the beads bob in step with them. This
+   runs for everyone and is only paused for reduced motion, so a still bead is frozen sitting on its line. */
+.weeks { min-width: 0; }
+.weeks svg { display: block; overflow: hidden; }
+.weeks text { fill: var(--on-field-3); font-family: var(--f-body); font-size: 11px; font-weight: 600; text-anchor: middle; }
+.weeks .row { fill: none; stroke: rgba(255,255,255,.3); stroke-width: 2; stroke-linecap: round; animation: roll 9s linear infinite; }
+.weeks .b, .swell .b { --bob: 4px; animation: bob 9s linear infinite; }
+.weeks circle { transform-box: fill-box; transform-origin: center; }
+.weeks .off { fill: var(--field); stroke: rgba(255,255,255,.6); stroke-width: 1.5; }
+.weeks .on { fill: var(--go); }
+.weeks .now { stroke: var(--on-field); stroke-width: 2.5; }
+.weeks .ping { fill: none; stroke: var(--on-field); stroke-width: 1.5; opacity: 0; }
+@keyframes roll { to { transform: translateX(var(--w)); } }
+/* One rise and fall, eased like a sine: down, back, up, back. */
+@keyframes bob {
+  0% { transform: translateY(0); animation-timing-function: cubic-bezier(.39,.575,.565,1); }
+  25% { transform: translateY(var(--bob)); animation-timing-function: cubic-bezier(.47,0,.745,.715); }
+  50% { transform: translateY(0); animation-timing-function: cubic-bezier(.39,.575,.565,1); }
+  75% { transform: translateY(calc(-1 * var(--bob))); animation-timing-function: cubic-bezier(.47,0,.745,.715); }
+  100% { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) { .weeks .row, .weeks .b, .swell .b { animation-play-state: paused; } }
 
 /* On the field (the masthead and field-colored cells): white type, white primary button, glass controls. */
 :is(.mast, .tile.dark) :focus-visible { outline-color: var(--on-field); }
@@ -332,16 +381,12 @@ input:focus, select:focus, textarea:focus { outline: 2.5px solid var(--accent); 
 .dots { display: flex; gap: 3px; flex-wrap: wrap; }
 .dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--aa); box-shadow: inset 0 0 0 1px rgba(12,17,64,.16); display: block; }
 
-/* Strand: beads on a folded chain. On Today each bead is a day; on a peptide page each bead is an amino acid. */
+/* Strand: beads on a folded chain. On a peptide page each bead is an amino acid. */
 .strand-box { min-width: 0; }
 .strand { display: block; overflow: visible; touch-action: pan-y; }
 .strand .bond { fill: none; stroke: var(--field-line); stroke-width: 2; stroke-linecap: round; }
 .strand .bead { transform-box: fill-box; transform-origin: center; }
 .strand circle, .strand rect { fill: var(--aa, var(--field)); }
-.strand .off { stroke: rgba(255,255,255,.55); stroke-width: 1.5; }
-.strand .on { fill: var(--go); }
-.strand .now { stroke: var(--on-field); stroke-width: 2.5; }
-.strand .ping { fill: none; stroke: var(--on-field); stroke-width: 1.5; transform-box: fill-box; transform-origin: center; opacity: 0; }
 .strand text { fill: var(--aa-ink); font-family: var(--f-body); font-weight: 700; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
 .strand .hit { cursor: pointer; }
 .strand .picked circle, .strand .picked rect { stroke: var(--on-field); stroke-width: 3; }
@@ -393,11 +438,19 @@ input:focus, select:focus, textarea:focus { outline: 2.5px solid var(--accent); 
 .progress { display: flex; gap: 4px; }
 .progress i { width: 28px; height: 6px; border-radius: 3px; background: var(--field-line); display: block; }
 .progress i.on { background: var(--go); }
-.dots7 { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-top: auto; }
-.dots7 i { aspect-ratio: 1; border-radius: 50%; box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--mint-ink) 35%, transparent); display: block; }
-.dots7 i.on { background: var(--mint-ink); box-shadow: none; }
-.dots7 i.today { box-shadow: inset 0 0 0 2px var(--mint-ink); }
+/* Adherence: water along the bottom of the cell with a bead afloat per week. */
+.tile.afloat { position: relative; overflow: hidden; padding-bottom: 78px; }
+.swell { position: absolute; left: 0; bottom: 0; display: block; overflow: hidden; }
+.swell .b { animation-duration: 8s; }
+.swell .on { fill: var(--mint-ink); }
+.swell .off { fill: var(--surface); stroke: var(--mint-ink); stroke-width: 2; }
+.swell .back { fill: color-mix(in srgb, var(--mint), var(--mint-ink) 12%); }
+.swell .front { fill: var(--mint); }
+.tile.checkin { display: flex; align-items: center; gap: 14px; padding: 16px 20px; }
+.checkin .badge { width: 44px; height: 44px; border-radius: 22px; display: grid; place-items: center; background: var(--mint); color: var(--mint-ink); flex: none; }
+.checkin > .sub { white-space: nowrap; }
 .spark { width: 100%; height: 28px; display: block; }
+.spark polygon { fill: var(--lilac); }
 .spark polyline { fill: none; stroke: var(--lilac-line); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .miniclock { flex: none; }
 .miniclock .face { fill: var(--sky); }
@@ -700,8 +753,9 @@ footer.foot { padding-block: 8px 0; font-size: var(--fs-xs); color: var(--ink-3)
 footer.foot .wrap { display: grid; gap: 6px; padding: 0 4px; }
 footer.foot p { max-width: 90ch; }
 
-/* Motion. One sequence per screen: the headline rises word by word, the strand is built bead by bead, the
-   cells follow. Two things keep moving after that, the wave and the strand. Everything is off for reduced motion. */
+/* Motion. One sequence per screen: the headline rises word by word, the beads pop in one by one, the cells
+   follow. The water keeps moving after that: depth bands, foam, the weeks and the strand. For reduced motion
+   everything here is off (the weeks are paused in place instead, see "Weeks"). */
 @media (prefers-reduced-motion: no-preference) {
   .kin .kw > span { animation: word .8s var(--ease) both; animation-delay: calc(var(--i, 0) * 60ms + 60ms); }
   @keyframes word { from { transform: translateY(112%) rotate(5deg); } }
@@ -713,11 +767,17 @@ footer.foot p { max-width: 90ch; }
   @keyframes pop { from { transform: scale(0); } }
   .grow { animation: grow .8s var(--ease) both; animation-delay: calc(var(--i, 0) * 60ms + 280ms); transform-origin: left; }
   @keyframes grow { from { transform: scaleX(0); } }
-  .wave i { animation: drift 11s linear infinite; }
-  .wave i:first-child { animation-duration: 17s; animation-direction: reverse; }
+  /* A wave layer slides one wavelength (--tile) and repeats; each sets its own duration and direction inline. */
+  .drift { animation: drift linear infinite; }
   @keyframes drift { to { transform: translateX(calc(-1 * var(--tile))); } }
-  .strand .ping { animation: ping 2.4s ease-out infinite; }
-  @keyframes ping { from { transform: scale(1); opacity: .8; } to { transform: scale(2.6); opacity: 0; } }
+  .tide .swash { animation: swash 6.5s ease-in-out infinite; }
+  @keyframes swash { 50% { transform: translateY(8px); } }
+  .tide .sand, .tide .mark { transition: transform 1.4s var(--ease); }
+  .surge { display: block; }
+  .surge svg { animation: surge 2.6s cubic-bezier(.3, 0, .3, 1) both; }
+  @keyframes surge { 0% { transform: translateY(-100%); } 34% { transform: translateY(-12%); } 50% { transform: translateY(-19%); } 100% { transform: translateY(-100%); } }
+  .weeks .ping { animation: ping 2.4s ease-out infinite; }
+  @keyframes ping { from { transform: scale(1); opacity: .8; } to { transform: scale(2.1); opacity: 0; } }
   .wall .track { animation: marquee var(--dur, 80s) linear infinite; }
   .wall .track:nth-child(even) { animation-direction: reverse; }
   @keyframes marquee { to { transform: translateX(-50%); } }

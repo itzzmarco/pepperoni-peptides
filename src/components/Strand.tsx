@@ -1,10 +1,11 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Peptide } from '../lib/types';
+import { useWidth } from './Motion';
 
 export interface Bead {
-  /** Text inside the bead (an amino-acid letter); none for a day. */
+  /** Text inside the bead (an amino-acid letter). */
   t?: string;
-  /** CSS classes: a residue class (aa-*) or a day state (on / off / now). */
+  /** CSS class: a residue class (aa-*). */
   c: string;
   title?: string;
 }
@@ -42,41 +43,23 @@ const still = () => !!window.matchMedia?.('(prefers-reduced-motion: reduce)').ma
 /**
  * Beads on a chain that folds back and forth to fit its container. The chain is built bead by bead on first
  * paint, then drifts as if floating; beads lean away from the pointer. Motion stops when off screen and for
- * reduced motion. `perRow` fixes the fold (14 = two weeks per row); without it the row fills the width.
+ * reduced motion.
  */
-export function Strand({ beads, perRow, label, picked, onPick }: {
+export function Strand({ beads, label, picked, onPick }: {
   beads: Bead[];
-  perRow?: number;
   label: string;
   picked?: number | null;
   onPick?: (i: number) => void;
 }) {
-  const box = useRef<HTMLDivElement>(null);
+  const [box, W] = useWidth<HTMLDivElement>();
   const svg = useRef<SVGSVGElement>(null);
-  const [W, setW] = useState(320);
-  useLayoutEffect(() => {
-    const el = box.current;
-    if (!el) return;
-    const measure = () => setW(Math.max(200, Math.round(el.clientWidth)));
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
 
   // Layout. A bead is as wide as its longest label needs; rows are 1.25 pitches apart and joined by a half-circle turn.
   const longest = Math.max(1, ...beads.map(b => b.t?.length ?? 0));
   const n = beads.length;
-  let pitch: number, d: number, per: number;
-  if (perRow) {
-    per = perRow;
-    pitch = Math.min(40, (W - 4) / (per + 0.25));
-    d = pitch * 0.62;
-  } else {
-    d = longest > 2 ? longest * 8 + 14 : 27;
-    pitch = d + 7;
-    per = Math.max(2, Math.floor((W - 4) / pitch - 0.25));
-  }
+  const d = longest > 2 ? longest * 8 + 14 : 27;
+  const pitch = d + 7;
+  const per = Math.max(2, Math.floor((W - 4) / pitch - 0.25));
   const rows = Math.ceil(n / per);
   const rowH = pitch * 1.25, amp = Math.min(5, pitch * 0.16);
   const padX = rows > 1 ? rowH / 2 + 2 : d / 2 + 2, padY = d / 2 + amp + 4;
@@ -141,15 +124,13 @@ export function Strand({ beads, perRow, label, picked, onPick }: {
       <svg className="strand" ref={svg} width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
         <path className="bond draw" pathLength={1} d={path(base)} />
         {beads.map((b, i) => {
-          const now = b.c.includes('now');
-          const r = (Math.min(d, 27) / 2) * (now ? 1.3 : 1);
+          const r = Math.min(d, 27) / 2;
           const wide = (b.t?.length ?? 0) > 2;
           return (
             <g key={i} className="at" transform={`translate(${base[i].x.toFixed(2)} ${base[i].y.toFixed(2)})`}>
               <g className={`bead pop ${b.c}${picked === i ? ' picked' : ''}${onPick ? ' hit' : ''}`} style={{ ['--i' as string]: i }}
                 onPointerEnter={onPick && (() => onPick(i))} onClick={onPick && (() => onPick(i))}>
                 {b.title && <title>{b.title}</title>}
-                {now && <circle className="ping" r={r} />}
                 {wide ? <rect x={-d / 2} y={-13.5} width={d} height={27} rx={13.5} /> : <circle className={b.c} r={r} />}
                 {b.t && <text style={{ fontSize: wide ? 11 : 13 }}>{b.t}</text>}
               </g>

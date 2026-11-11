@@ -104,7 +104,7 @@ export function App() {
         <div className="wrap">
           <div className="row">
             <a className="brand" href="#today" aria-label="Peptidal, today">
-              <svg width="48" height="26.4" viewBox="0 0 40 22" fill="none" aria-hidden="true">
+              <svg width="40" height="22" viewBox="0 0 40 22" fill="none" aria-hidden="true">
                 <path d="M5.5 11C7.92 7.33 10.33 4 12.75 4S17.58 7.33 20 11s4.83 7 7.25 7 4.83-3.33 7.25-7" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" opacity=".6" />
                 <circle cx="5.5" cy="11" r="4.5" fill="var(--go)" />
                 <circle cx="20" cy="11" r="4.5" fill="currentColor" />

@@ -1,12 +1,19 @@
-import type { ReactNode } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
+import { Depth, Tide } from './Tidal';
 
-/** The field at the top of a screen: headline, the screen's live graphic, and a wave along its lower edge. */
-export function Mast({ children }: { children: ReactNode }) {
+/**
+ * The field at the top of a screen: headline and the screen's live graphic over bands of deeper water, with
+ * foam along its lower edge. Today passes `tide` to make that edge a gauge of how long since the last dose.
+ */
+export function Mast({ children, tide }: { children: ReactNode; tide?: ComponentProps<typeof Tide> }) {
   return (
-    <header className="mast">
-      {children}
-      <span className="wave" aria-hidden="true"><i /><i /></span>
-    </header>
+    <>
+      <header className="mast">
+        <Depth />
+        {children}
+      </header>
+      <Tide {...tide} />
+    </>
   );
 }
 

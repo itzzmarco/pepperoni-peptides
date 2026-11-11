@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { flushSync } from 'react-dom';
-import { DYES, readable } from '../lib/dye';
+import { DYES, deep, readable } from '../lib/dye';
 
 type Theme = 'system' | 'light' | 'dark';
 interface LookState { theme: Theme; dye: string }
@@ -23,7 +23,7 @@ function paint({ theme, dye }: LookState) {
   else root.setAttribute('data-theme', theme);
   if (dye === COBALT) { root.removeAttribute('data-dye'); root.style.removeProperty('--dye'); }
   else { root.setAttribute('data-dye', ''); root.style.setProperty('--dye', dye); }
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dye); // the browser's own toolbar
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', deep(dye)); // the browser's own toolbar meets the top bar
 }
 
 // Painted before the first render, so a saved look doesn't flash cobalt.

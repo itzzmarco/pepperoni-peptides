@@ -1,9 +1,11 @@
+import { useRef } from 'react';
 import type { Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { upcoming, type RegimenStatus } from '../lib/schedule';
+import { tideOf } from '../lib/tide';
 import { drugAmount, isVolumeUnit } from '../lib/doseMath';
 import { checkRegimen } from '../lib/vial';
-import { DAY, dayKey, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
+import { DAY, dayKey, daysBetween, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
 import { adherence, doseDays, topEffects, usualMinutes } from '../lib/insights';
 import { nextSite, siteLabel, type NextSite } from '../lib/sites';
 import { PEP } from '../data/peptides';
@@ -14,7 +16,7 @@ import { DeviceLogPrompt } from '../sheets/AccountSheet';
 import { SiteFigure, doseText, whenNext } from '../components/NextShot';
 import { useCountUp } from '../components/Motion';
 import { Kinetic, Mast } from '../components/Mast';
-import { Strand } from '../components/Strand';
+import { Swell, WeekGrid } from '../components/Tidal';
 import { Glp1Alert, regName, type Actions } from './PeptidesView';
 
 const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
@@ -103,14 +105,25 @@ export function TodayView(actions: Actions) {
 
   const adh = adherence(regimens, doses, now);
   const pct = useCountUp(adh.pct == null ? 0 : Math.round(adh.pct * 100));
-  // The last 28 days, oldest first: the chain in the field, and its last week in the adherence cell.
+  // The last 28 days, oldest first: four rows of a week each in the field.
   const logged = doseDays(doses);
   const chain = Array.from({ length: 28 }, (_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 27 + i);
     return { d, on: logged.has(dayKey(d)), today: i === 27 };
   });
   const chainOn = chain.filter(c => c.on).length;
-  const week = chain.slice(-7);
+  // The same four weeks in the adherence cell, oldest first: did every expected dose go in? Past weeks run to the end of their last day.
+  const fullWeeks = [3, 2, 1, 0].map(k => {
+    const a = adherence(regimens, doses, k ? new Date(startOfDay(now).getTime() - (k * 7 - 1) * DAY - 1) : now, 7);
+    return a.expected > 0 && a.logged >= a.expected;
+  });
+  const nFull = fullWeeks.filter(Boolean).length;
+
+  // The tide: high on a day a dose went in, otherwise as far out as the next dose is close. A dose logged while this screen is open sends a wave down it.
+  const lastToday = loggedToday[0];
+  const opened = useRef(loggedToday.length);
+  const tide = lastToday ? { day: 0, of: 1, ebb: 0 } : next ? tideOf(next.r, next.st, now) : null;
+  const dueDay = next?.st.due && (daysBetween(now, next.st.due) === 1 ? 'tomorrow' : next.st.due.toLocaleDateString(undefined, { weekday: 'long' }));
 
   const weights = checkins.filter(c => c.weight && new Date(c.at).getTime() >= now.getTime() - 90 * DAY).slice().reverse();
   const wNow = weights[weights.length - 1], wFirst = weights[0];
@@ -150,7 +163,7 @@ export function TodayView(actions: Actions) {
 
   return (
     <section className="view">
-      <Mast>
+      <Mast tide={{ ebb: tide?.ebb, surge: Math.max(0, loggedToday.length - opened.current) }}>
         <p className="when rise"><b>{fmtDay(now)}</b><span>{hello}</span></p>
         <Kinetic a={line1} b={line2} />
 
@@ -185,14 +198,22 @@ export function TodayView(actions: Actions) {
         )}
 
         <div className="rise" style={rise(4)}>
-          <Strand perRow={14} label={`Last 4 weeks: a dose was logged on ${chainOn} of 28 days`}
-            beads={chain.map(c => ({ c: `${c.on ? 'on' : 'off'}${c.today ? ' now' : ''}`, title: `${fmtDay(c.d)}${c.on ? ': dose logged' : ''}` }))} />
+          <WeekGrid days={chain} label={`Last 4 weeks, one row per week: a dose was logged on ${chainOn} of 28 days`} />
           <p className="strand-ends">
-            <span>Each bead is a day, ending today. Filled means a dose was logged.</span>
+            <span>Each row is a week, ending today. Filled means a dose was logged.</span>
             <span className="num">{chainOn} of 28</span>
           </p>
         </div>
       </Mast>
+
+      {tide && next && (
+        <p className="tide-note">
+          {lastToday ? <><b>High tide.</b> Dose logged {now.getTime() - new Date(lastToday.at).getTime() < 2 * 6e4 ? 'just now' : `at ${fmtTime(new Date(lastToday.at))}`}.</>
+            : next.st.s === 'late' ? <><b>Low tide.</b> {regName(next.r)} was due {next.st.due ? fmtDay(next.st.due) : 'earlier'}.</>
+            : next.st.s === 'due' ? <><b>{tide.of > 1 ? `Day ${tide.day} of ${tide.of}.` : 'Low tide.'}</b> Today's dose brings the tide back in.</>
+            : <><b>Day {tide.day} of {tide.of}.</b> The tide ebbs until {dueDay ? `${dueDay}'s` : 'the next'} dose.</>}
+        </p>
+      )}
 
       {!store.persistent && (
         <div className="alert warn"><b>This browser isn't saving your log.</b><span>Private browsing or blocked site storage stops saving. Entries will disappear when you close the tab, so export before you leave.</span></div>
@@ -202,13 +223,11 @@ export function TodayView(actions: Actions) {
 
       {hasLog && (
         <div className="bento">
-          <a href="#trends" className="tile mint row-2 rise" style={rise(5)}>
+          <a href="#trends" className="tile mint row-2 afloat rise" style={rise(5)}>
             <span className="label">Adherence</span>
             <span className="big">{adh.pct == null ? '–' : `${Math.round(pct)}%`}</span>
             <span className="sub">{adh.expected ? `${adh.logged} of ${adh.expected} doses in 4 weeks` : 'Log a few doses to see this.'}</span>
-            <span className="dots7" role="img" aria-label={`Last 7 days: dose logged on ${week.filter(w => w.on).length}`}>
-              {week.map((w, i) => <i key={i} className={`pop${w.on ? ' on' : ''}${w.today && !w.on ? ' today' : ''}`} style={rise(i)} title={fmtDay(w.d)} />)}
-            </span>
+            <Swell weeks={fullWeeks} label={nFull === 4 ? 'Last 4 weeks: every expected dose was logged' : `Last 4 weeks: every expected dose was logged in ${nFull} of them`} />
           </a>
 
           <a href="#trends" className="tile lilac rise" style={{ ...rise(6), gap: 6 }}>
@@ -216,7 +235,7 @@ export function TodayView(actions: Actions) {
             {wNow ? (
               <>
                 <span className="mid">{wShown.toFixed(1)}<small> {wNow.weightUnit}</small></span>
-                {weights.length > 1 && <svg className="spark" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true"><polyline className="draw" pathLength={1} points={spark} /></svg>}
+                {weights.length > 1 && <svg className="spark" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true"><polygon points={`0,28 ${spark} 120,28`} /><polyline className="draw" pathLength={1} points={spark} /></svg>}
                 <span className="sub">{wChange != null ? `${wChange > 0 ? '+' : '−'}${Math.abs(wChange).toFixed(1)} since ${fmtShort(new Date(wFirst.at))}` : 'Add more check-ins for a trend.'}</span>
               </>
             ) : <span className="sub">Add your weight in a daily check-in.</span>}
@@ -259,19 +278,15 @@ export function TodayView(actions: Actions) {
             </button>
           ))}
 
-          <button type="button" className="tile mint rise" style={{ ...rise(9), gap: 6 }} onClick={actions.checkin}>
-            <span className="label">Check-in</span>
-            {checkedIn ? (
-              <>
-                <span className="lead">Done today</span>
-                <span className="sub">{checkedIn.overall ? `Feeling ${checkedIn.overall}/5 at ` : ''}{fmtTime(new Date(checkedIn.at))}</span>
-              </>
-            ) : (
-              <>
-                <span className="lead">How do you feel?</span>
-                <span className="sub">Takes 30 seconds</span>
-              </>
-            )}
+          <button type="button" className="tile mint span-2 checkin rise" style={rise(9)} onClick={actions.checkin}>
+            <span className="badge" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d={checkedIn ? 'M5 12.5l4.5 4.5L19 7.5' : 'M12 5v14M5 12h14'} /></svg>
+            </span>
+            <span className="stack" style={{ gap: 2, flex: 1, minWidth: 0 }}>
+              <span className="label">Check-in</span>
+              <span className="lead">{checkedIn ? 'Done today' : 'How do you feel?'}</span>
+            </span>
+            <span className="sub num">{checkedIn ? `${checkedIn.overall ? `Feeling ${checkedIn.overall}/5 · ` : ''}${fmtTime(new Date(checkedIn.at))}` : '30 seconds'}</span>
           </button>
 
           {comingUp?.st.due && (
@@ -282,7 +297,7 @@ export function TodayView(actions: Actions) {
             </a>
           )}
 
-          <a href={learnP ? `#${learnP.id}` : '#calculator'} className={`tile lemon go rise ${comingUp?.st.due ? 'span-2' : ''}`} style={rise(11)}>
+          <a href={learnP ? `#${learnP.id}` : '#calculator'} className={`tile lemon go rise ${comingUp?.st.due ? '' : 'span-2'}`} style={rise(11)}>
             <span className="stack" style={{ gap: 6, flex: 1 }}>
               <span className="label">{learnP ? `Evidence tier ${learnP.tier}, ${TIERS[learnP.tier].label.toLowerCase()}` : 'Guide'}</span>
               <span className="lead">{learnP ? `What the research says about ${learnP.name}` : 'Dose math, step by step'}</span>

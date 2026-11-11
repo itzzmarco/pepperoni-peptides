@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DYES, readable } from '../dye';
+import { DYES, deep, readable } from '../dye';
 
 const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
 const lum = (rgb: number[]) => 0.2126 * lin(rgb[0]) + 0.7152 * lin(rgb[1]) + 0.0722 * lin(rgb[2]);
@@ -25,5 +25,17 @@ describe('readable', () => {
   it('darkens without changing the hue', () => {
     expect(readable('#ffff00')).toMatch(/^#([0-9A-F]{2})\1(00)$/);
     expect(readable('#ffffff')).toMatch(/^#([0-9A-F]{2})\1\1$/);
+  });
+});
+
+describe('deep', () => {
+  it("gives cobalt the stylesheet's deep field color, to within a step per channel", () => {
+    const got = deep('#2430E8'), want = '#1A23B8';
+    for (const i of [1, 3, 5]) expect(Math.abs(parseInt(got.slice(i, i + 2), 16) - parseInt(want.slice(i, i + 2), 16)), got).toBeLessThanOrEqual(1);
+  });
+
+  it('is darker than the field and keeps its hue', () => {
+    for (const d of DYES) expect(lum([1, 3, 5].map(i => parseInt(deep(d.hex).slice(i, i + 2), 16) / 255)), d.name).toBeLessThan(lum([1, 3, 5].map(i => parseInt(d.hex.slice(i, i + 2), 16) / 255)));
+    expect(deep('#808080')).toMatch(/^#([0-9A-F]{2})\1\1$/);
   });
 });

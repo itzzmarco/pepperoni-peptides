@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 /** Reduced motion, or a background tab where animation frames don't run: jump straight to the end. */
 const still = () =>
@@ -23,4 +23,20 @@ export function useCountUp(target: number, from = 0, ms = 900) {
     return () => cancelAnimationFrame(raf);
   }, [target, ms]);
   return v;
+}
+
+/** An element's width in pixels, kept current as it resizes. Attach the returned ref to the element. */
+export function useWidth<T extends HTMLElement>(initial = 320) {
+  const ref = useRef<T>(null);
+  const [w, setW] = useState(initial);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => setW(Math.max(200, Math.round(el.clientWidth)));
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return [ref, w] as const;
 }

@@ -104,13 +104,13 @@ export function App() {
         <div className="wrap">
           <div className="row">
             <a className="brand" href="#today" aria-label="Peptidal, today">
-              <svg width="34" height="22" viewBox="0 0 34 22" fill="none" aria-hidden="true">
-                <path d="M6 15 17 6l11 9" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" opacity=".55" />
-                <circle cx="6" cy="15" r="5" fill="var(--go)" />
-                <circle cx="17" cy="6" r="5" fill="currentColor" />
-                <circle cx="28" cy="15" r="5" fill="var(--aa-ne)" />
+              <svg width="48" height="26.4" viewBox="0 0 40 22" fill="none" aria-hidden="true">
+                <path d="M5.5 11C7.92 7.33 10.33 4 12.75 4S17.58 7.33 20 11s4.83 7 7.25 7 4.83-3.33 7.25-7" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" opacity=".6" />
+                <circle cx="5.5" cy="11" r="4.5" fill="var(--go)" />
+                <circle cx="20" cy="11" r="4.5" fill="currentColor" />
+                <circle cx="34.5" cy="11" r="4.5" fill="currentColor" />
               </svg>
-              Peptidal
+              peptidal
             </a>
             <AccountButton onOpen={() => setSheet({ kind: 'account' })} />
             <Look />

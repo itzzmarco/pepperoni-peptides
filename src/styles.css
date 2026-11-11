@@ -144,7 +144,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* Top bar: brand, where data lives, theme. It is the top of the field. */
 .topbar { background: var(--field); color: var(--on-field); padding-top: calc(env(safe-area-inset-top, 0px) + 12px); padding-bottom: 2px; }
 .topbar .row { display: flex; align-items: center; gap: 8px; }
-.brand { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--on-field); margin-right: auto; font-weight: 700; font-stretch: 85%; font-size: 1.125rem; letter-spacing: -.01em; }
+.brand { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--on-field); margin-right: auto; font-weight: 800; font-stretch: 75%; font-size: 1.5rem; line-height: 1; letter-spacing: .01em; }
 .brand svg { flex: none; }
 .sync { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--on-field-2); background: var(--glass); border-radius: 999px; padding: 6px 12px 6px 10px; white-space: nowrap; min-height: 32px; }
 .sync i { width: 7px; height: 7px; border-radius: 50%; background: var(--go); display: inline-block; }

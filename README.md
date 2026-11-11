@@ -1,8 +1,8 @@
-# Peptide Ledger
+# Peptidal
 
 Learn what the evidence actually says about trending peptides, and keep a private log of what your clinician prescribed.
 
-Peptide Ledger is a static web app (React + TypeScript + Vite), laid out like a phone health app: a floating tab bar with **Today**, **Trends**, a center **Log** button, **Learn** and **Peptides**.
+Peptidal is a static web app (React + TypeScript + Vite), laid out like a phone health app: a floating tab bar with **Today**, **Trends**, a center **Log** button, **Learn** and **Peptides**.
 
 - **Today**: what's due next with a timeline of today's doses, adherence over the last 4 weeks, weight, recent side effects, where to inject next, and a daily check-in. Emergency symptoms in a check-in trigger a "get care now" message.
 - **Log** (center button): log a dose of whatever is due first, with the draw in syringe units when vial details are saved, and the injection site on a body map or a **belly clock** (12 spots around the navel; move one hour clockwise each dose). Each peptide keeps its own site rotation: the next spot for that peptide is already picked when the sheet opens, and Today and Peptides show each injected peptide's next day, amount and spot on a small figure.
@@ -66,7 +66,7 @@ To set it up from scratch:
 2. In the SQL editor, run [`supabase/migrations/20261030000000_ledger_items.sql`](supabase/migrations/20261030000000_ledger_items.sql). It creates the `ledger_items` table and its row-level security policies. Then run [`supabase/migrations/20261101000000_partners.sql`](supabase/migrations/20261101000000_partners.sql), which adds partner linking (the invite codes, the links, and the read-only policy that lets a linked partner see the log). Until it's run, the partner section in the account sheet says it isn't set up yet, and nothing else changes.
 3. In Authentication > URL Configuration, set **Site URL** to the app's address (for example `https://pepperoni-peptides.vercel.app`). To try sign-in on Vercel preview links too, add `https://pepperoni-peptides-*-itzzmarcos-projects.vercel.app/**` under **Redirect URLs**.
 4. **Google sign-in** (recommended; no passwords or emails to manage). The "Continue with Google" button appears once this is on:
-   1. In [Google Cloud Console](https://console.cloud.google.com/), create a project, open **Google Auth Platform**, and click **Get started**: app name "Peptide Ledger", your email, audience **External**.
+   1. In [Google Cloud Console](https://console.cloud.google.com/), create a project, open **Google Auth Platform**, and click **Get started**: app name "Peptidal", your email, audience **External**.
    2. Under **Audience**, add each person's Gmail address as a test user (or click **Publish app**; the app only asks for name and email, so Google doesn't need to review it).
    3. Under **Clients**, create a **Web application** client. Authorized JavaScript origins: the app's address. Authorized redirect URIs: `https://<project-ref>.supabase.co/auth/v1/callback`. Copy the client ID and client secret.
    4. In Supabase, Authentication > Sign In / Providers > **Google**: turn it on, paste the client ID and secret, and save.
@@ -118,4 +118,4 @@ supabase/migrations/   the accounts table, partner links, and their row-level se
 
 ## Disclaimer
 
-Peptide Ledger is for education and personal record-keeping. It is not medical advice, diagnosis or treatment, and it does not recommend any product or dose. Many compounds in the library are not approved for human use and are not legal to compound in the US. Talk to a licensed clinician before starting, changing or stopping anything. In an emergency call 911. Poison Control (US): 1-800-222-1222. Suicide & Crisis Lifeline: 988.
+Peptidal is for education and personal record-keeping. It is not medical advice, diagnosis or treatment, and it does not recommend any product or dose. Many compounds in the library are not approved for human use and are not legal to compound in the US. Talk to a licensed clinician before starting, changing or stopping anything. In an emergency call 911. Poison Control (US): 1-800-222-1222. Suicide & Crisis Lifeline: 988.

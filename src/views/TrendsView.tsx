@@ -43,7 +43,7 @@ function ExportPanel({ ledger }: { ledger: Ledger }) {
     if (!f) return;
     try {
       const added = store.importBackup(JSON.parse(await f.text()));
-      toast(added == null ? "That file isn't a Peptide Ledger backup." : `Restored ${added} item${added === 1 ? '' : 's'}.`);
+      toast(added == null ? "That file isn't a Peptidal backup." : `Restored ${added} item${added === 1 ? '' : 's'}.`);
     } catch {
       toast("Couldn't read that file. Choose a .json backup exported from this app.");
     }
@@ -61,7 +61,7 @@ function ExportPanel({ ledger }: { ledger: Ledger }) {
         <p className="small muted">{signedIn ? 'Your log syncs to your account.' : 'Your log lives only in this browser.'} Export a CSV of doses, sites, side effects and weight for an appointment, or a backup you can restore on another device.</p>
         <div className="row-wrap">
           <button className="btn sm" disabled={empty} onClick={() => download(`peptide-log-${stamp}.csv`, ledgerToCsv(ledger, id => PEP[id]?.name), 'text/csv')}>Export CSV</button>
-          <button className="btn ghost sm" disabled={empty} onClick={() => download(`peptide-ledger-backup-${stamp}.json`, JSON.stringify(ledger, null, 2), 'application/json')}>Download backup</button>
+          <button className="btn ghost sm" disabled={empty} onClick={() => download(`peptidal-backup-${stamp}.json`, JSON.stringify(ledger, null, 2), 'application/json')}>Download backup</button>
           <button className="btn quiet sm" onClick={() => file.current?.click()}>Restore backup</button>
           <input ref={file} type="file" accept="application/json,.json" hidden onChange={e => onImport(e.target.files?.[0])} />
         </div>

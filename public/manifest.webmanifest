@@ -1,6 +1,6 @@
 {
-  "name": "Peptide Ledger",
-  "short_name": "Peptides",
+  "name": "Peptidal",
+  "short_name": "Peptidal",
   "description": "Learn what the evidence says about trending peptides and keep a private log of what you take.",
   "start_url": "./#log",
   "scope": "./",
@@ -8,8 +8,8 @@
   "background_color": "#2430E8",
   "theme_color": "#2430E8",
   "icons": [
-    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
     { "src": "./favicon.svg", "sizes": "any", "type": "image/svg+xml" }
   ]
 }

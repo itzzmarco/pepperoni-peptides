@@ -67,7 +67,7 @@ describe('calendar files and links', () => {
     expect(ics.endsWith('END:VCALENDAR\r\n')).toBe(true);
     // Every line fits 75 octets; longer ones are folded with a leading space.
     for (const line of ics.split('\r\n')) expect(new TextEncoder().encode(line).length).toBeLessThanOrEqual(75);
-    expect(ics.replace(/\r\n /g, '')).toContain('DESCRIPTION:Log it in Peptide Ledger: https://pepperoni-peptides.vercel.app/#today');
+    expect(ics.replace(/\r\n /g, '')).toContain('DESCRIPTION:Log it in Peptidal: https://pepperoni-peptides.vercel.app/#today');
   });
 
   it('escapes commas and semicolons', () => {

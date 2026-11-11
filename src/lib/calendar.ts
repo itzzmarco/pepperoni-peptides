@@ -79,7 +79,7 @@ export interface Reminder {
 
 /** An .ics file with one repeating event per daily reminder, each alerting at its start time. */
 export function icsFile(rem: Reminder, now = new Date()): string {
-  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Peptide Ledger//Reminders//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Peptidal//Reminders//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
   rem.starts.forEach((start, i) => {
     lines.push(
       'BEGIN:VEVENT',
@@ -89,7 +89,7 @@ export function icsFile(rem: Reminder, now = new Date()): string {
       `DTEND:${stamp(later(start, 15))}`,
       `RRULE:${rem.rule}`,
       `SUMMARY:${esc(rem.title)}`,
-      `DESCRIPTION:${esc(`Log it in Peptide Ledger: ${rem.url}`)}`,
+      `DESCRIPTION:${esc(`Log it in Peptidal: ${rem.url}`)}`,
       `URL:${rem.url}`,
       'BEGIN:VALARM',
       'ACTION:DISPLAY',
@@ -111,7 +111,7 @@ export function googleLink(rem: Reminder, i = 0): string {
     text: rem.title,
     dates: `${stamp(start)}/${stamp(later(start, 15))}`,
     recur: `RRULE:${rem.rule}`,
-    details: `Log it in Peptide Ledger: ${rem.url}`,
+    details: `Log it in Peptidal: ${rem.url}`,
   });
   return `https://calendar.google.com/calendar/render?${q}`;
 }

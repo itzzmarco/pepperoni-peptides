@@ -272,7 +272,7 @@ function PartnerSection({ onClose }: { onClose: () => void }) {
         <div className="inset stack" style={{ gap: 8 }}>
           <span className="xsmall muted">Your code</span>
           <button type="button" className="code" onClick={copy} aria-label={`Your code is ${code.split('').join(' ')}. Tap to copy.`}>{showCode(code)}</button>
-          <p className="small">On your partner's phone: sign in to Peptide Ledger, open the account menu, tap <b>Enter a code</b> and type this in. It works once and lasts 2 days.</p>
+          <p className="small">On your partner's phone: sign in to Peptidal, open the account menu, tap <b>Enter a code</b> and type this in. It works once and lasts 2 days.</p>
           <p className="xsmall muted" role="status">Waiting for them to enter it…</p>
           <div><button className="btn quiet sm" onClick={() => { setMode('idle'); setCode(''); }}>Done</button></div>
         </div>

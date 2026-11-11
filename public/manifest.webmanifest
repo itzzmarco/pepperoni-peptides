@@ -1,6 +1,6 @@
 {
-  "name": "Peptide Ledger",
-  "short_name": "Peptides",
+  "name": "Peptidal",
+  "short_name": "Peptidal",
   "description": "Learn what the evidence says about trending peptides and keep a private log of what you take.",
   "start_url": "./#log",
   "scope": "./",

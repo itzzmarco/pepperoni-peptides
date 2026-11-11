@@ -103,14 +103,14 @@ export function App() {
       <header className="topbar gutter" inert={bg}>
         <div className="wrap">
           <div className="row">
-            <a className="brand" href="#today" aria-label="Peptide Ledger, today">
+            <a className="brand" href="#today" aria-label="Peptidal, today">
               <svg width="34" height="22" viewBox="0 0 34 22" fill="none" aria-hidden="true">
                 <path d="M6 15 17 6l11 9" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" opacity=".55" />
                 <circle cx="6" cy="15" r="5" fill="var(--go)" />
                 <circle cx="17" cy="6" r="5" fill="currentColor" />
                 <circle cx="28" cy="15" r="5" fill="var(--aa-ne)" />
               </svg>
-              Peptide Ledger
+              Peptidal
             </a>
             <AccountButton onOpen={() => setSheet({ kind: 'account' })} />
             <Look />
@@ -126,7 +126,7 @@ export function App() {
       </main>
       <footer className="foot gutter" inert={bg}>
         <div className="wrap">
-          <p><b>Peptide Ledger</b> is an educational reference and personal journal. It does not diagnose, treat, or recommend doses, and it does not sell or endorse any product. Information reflects sources reviewed through {AS_OF}; rules and evidence change, so check the linked sources and ask your clinician or pharmacist.</p>
+          <p><b>Peptidal</b> is an educational reference and personal journal. It does not diagnose, treat, or recommend doses, and it does not sell or endorse any product. Information reflects sources reviewed through {AS_OF}; rules and evidence change, so check the linked sources and ask your clinician or pharmacist.</p>
           <p>US Poison Control: 1-800-222-1222 · Emergency: 911 · Suicide &amp; Crisis Lifeline: 988</p>
         </div>
       </footer>

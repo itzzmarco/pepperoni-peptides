@@ -64,7 +64,7 @@ To set it up from scratch:
 
 1. Create a Supabase project.
 2. In the SQL editor, run [`supabase/migrations/20261030000000_ledger_items.sql`](supabase/migrations/20261030000000_ledger_items.sql). It creates the `ledger_items` table and its row-level security policies. Then run [`supabase/migrations/20261101000000_partners.sql`](supabase/migrations/20261101000000_partners.sql), which adds partner linking (the invite codes, the links, and the read-only policy that lets a linked partner see the log). Until it's run, the partner section in the account sheet says it isn't set up yet, and nothing else changes.
-3. In Authentication > URL Configuration, set **Site URL** to the app's address (for example `https://pepperoni-peptides.vercel.app`). To try sign-in on Vercel preview links too, add `https://pepperoni-peptides-*-itzzmarcos-projects.vercel.app/**` under **Redirect URLs**.
+3. In Authentication > URL Configuration, set **Site URL** to the app's address (`https://peptidal.pro`). Under **Redirect URLs**, add `https://peptidal.pro/**` and, while the old address still serves the app, `https://pepperoni-peptides.vercel.app/**`. To try sign-in on Vercel preview links too, also add `https://pepperoni-peptides-*-itzzmarcos-projects.vercel.app/**`.
 4. **Google sign-in** (recommended; no passwords or emails to manage). The "Continue with Google" button appears once this is on:
    1. In [Google Cloud Console](https://console.cloud.google.com/), create a project, open **Google Auth Platform**, and click **Get started**: app name "Peptidal", your email, audience **External**.
    2. Under **Audience**, add each person's Gmail address as a test user (or click **Publish app**; the app only asks for name and email, so Google doesn't need to review it).

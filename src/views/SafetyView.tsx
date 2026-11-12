@@ -27,7 +27,7 @@ export function SafetyView() {
         <p className="rise" style={rise(5)}>What to watch for, how to handle vials safely, and the state of US rules as of {AS_OF}.</p>
       </Mast>
 
-      <section className="tile emerg rise" style={{ ...rise(2), background: 'var(--danger-bg)' }}>
+      <section className="tile emerg rise" style={rise(2)}>
         <h2 style={{ color: 'var(--danger)' }}>Get emergency help now if you have</h2>
         <ul>{RED_FLAGS.map(f => <li key={f}>{f}</li>)}</ul>
         <div className="callout-nums">
@@ -50,8 +50,9 @@ export function SafetyView() {
       </div>
 
       <section className="tile">
-        <h2>How US rules sort these compounds</h2>
-        <p className="small muted" style={{ maxWidth: '75ch' }}>{SAFETY.legalIntro}</p>
+        <span className="label">US status</span>
+        <h2 className="lead">How US rules sort these compounds</h2>
+        <p className="sub" style={{ maxWidth: '75ch' }}>{SAFETY.legalIntro}</p>
         <div className="table-wrap stack-sm">
           <table>
             <thead><tr><th>Status</th><th>What it means</th><th>Examples in the library</th></tr></thead>
@@ -73,7 +74,8 @@ export function SafetyView() {
       </section>
 
       <section className="tile sky">
-        <h2>Timeline of US peptide rules</h2>
+        <span className="label">Timeline</span>
+        <h2 className="lead">US peptide rules, year by year</h2>
         <div className="timeline-v">
           {TIMELINE.map(t => (
             <div className="tv" data-k={t.k ?? ''} key={t.date + t.title}>
@@ -81,18 +83,19 @@ export function SafetyView() {
             </div>
           ))}
         </div>
-        <p className="xsmall muted">Red ring: access tightened. Green ring: access widened. Dashed ring: scheduled or pending.</p>
+        <p className="sub">Red ring: access tightened. Green ring: access widened. Dashed ring: scheduled or pending.</p>
         <Sources list={TIMELINE_SOURCES} />
       </section>
 
       <section className="tile lemon">
-        <h2>Questions to ask your clinician</h2>
-        <ul className="small" style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 6 }}>{SAFETY.questions.map(q => <li key={q}>{q}</li>)}</ul>
+        <span className="label">Before an appointment</span>
+        <h2 className="lead">Questions to ask your clinician</h2>
+        <ul className="notes">{SAFETY.questions.map(q => <li key={q}>{q}</li>)}</ul>
       </section>
 
       <section className="tile">
-        <h3>About this information</h3>
-        <p className="small muted" style={{ maxWidth: '75ch' }}>{SAFETY.about}</p>
+        <h2 className="label">About this information</h2>
+        <p className="sub" style={{ maxWidth: '75ch' }}>{SAFETY.about}</p>
       </section>
     </section>
   );

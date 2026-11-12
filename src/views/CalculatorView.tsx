@@ -24,7 +24,7 @@ export function CalculatorView() {
       </Mast>
 
       <form className="tile lilac rise" onSubmit={e => e.preventDefault()} autoComplete="off" style={rise(2)}>
-        <div className="spread"><h2 className="label">Your vial</h2><span className="xsmall muted">Example values filled in</span></div>
+        <div className="spread"><h2 className="label">Your vial</h2><span className="sub">Example values filled in</span></div>
         <div className="grid-2">
           <label className="field"><span>Powder in the vial <small>mg</small></span>
             <input type="number" id="c-vial" min="0" step="any" inputMode="decimal" value={c.vial} onChange={set('vial')} />
@@ -53,19 +53,19 @@ export function CalculatorView() {
         </div>
       </form>
 
-      <section className="tile dark rise" aria-live="polite" style={rise(3)}>
+      <section className="tile lilac rise" aria-live="polite" style={rise(3)}>
         {!m ? (
-          <><span className="eyebrow">Result</span><p className="sub">Enter the vial amount, the water added, and your dose.</p></>
+          <><span className="label">Result</span><p className="sub">Enter the vial amount, the water added, and your dose.</p></>
         ) : (
           <>
-            <div className="spread"><span className="eyebrow">Draw to</span><span className="sub xsmall">Math only, not dosing advice</span></div>
-            <div className="result-big"><span className="n">{fmtNum(units, 1)}</span><span className="u">units</span><span className="sub">= {fmtNum(m.vol, 3)} mL</span></div>
-            <div className="white-inset syringe-wrap"><Syringe units={m.units} cap={cap} /></div>
-            <dl className="kv">
-              <div><dt>Concentration</dt><dd>{fmtNum(m.conc, 3)} mg/mL</dd></div>
-              <div><dt>Each unit holds</dt><dd>{fmtNum(m.mcgPerUnit, 2)} mcg</dd></div>
-              <div><dt>Doses per vial</dt><dd>{fmtNum(Math.floor(m.perVial * 10) / 10, 1)}</dd></div>
-              <div><dt>Your dose</dt><dd>{fmtNum(m.doseMg * 1000, 1)} mcg</dd></div>
+            <div className="spread"><span className="label">Draw to</span><span className="sub">Math only, not dosing advice</span></div>
+            <div className="result-big"><span className="big">{fmtNum(units, 1)}</span><span className="u">units</span><span className="sub">= {fmtNum(m.vol, 3)} mL</span></div>
+            <div className="syringe-wrap"><Syringe units={m.units} cap={cap} /></div>
+            <dl className="stats four">
+              <div><dt className="sub">Concentration</dt><dd className="num">{fmtNum(m.conc, 3)} mg/mL</dd></div>
+              <div><dt className="sub">Each unit holds</dt><dd className="num">{fmtNum(m.mcgPerUnit, 2)} mcg</dd></div>
+              <div><dt className="sub">Doses per vial</dt><dd className="num">{fmtNum(Math.floor(m.perVial * 10) / 10, 1)}</dd></div>
+              <div><dt className="sub">Your dose</dt><dd className="num">{fmtNum(m.doseMg * 1000, 1)} mcg</dd></div>
             </dl>
             {calcAlerts(m, Number(c.vial), Number(c.ml), cap).map(a => (
               <div key={a.title} className={`alert ${a.tone === 'warn' ? 'warn' : a.tone}`}><b>{a.title}</b><span>{a.body}</span></div>
@@ -75,8 +75,8 @@ export function CalculatorView() {
       </section>
 
       {m && (
-        <section className="tile rise" style={rise(4)}>
-          <h2 className="label" style={{ color: 'var(--lilac-ink)' }}>Double-check a draw</h2>
+        <section className="tile lilac rise" style={rise(4)}>
+          <h2 className="label">Double-check a draw</h2>
           <label className="field"><span>I drew this many units</span>
             <input type="number" id="c-drawn" min="0" step="any" inputMode="decimal" placeholder="e.g. 10" value={c.drawn} onChange={set('drawn')} />
             <small>Shows the dose that amount actually contains</small>
@@ -96,13 +96,13 @@ export function CalculatorView() {
       )}
 
       <section className="tile rise" style={rise(5)}>
-        <h3>How the math works</h3>
+        <h2 className="label">How the math works</h2>
         <ol className="howto small">
           <li><b>Concentration</b> = mg in vial ÷ mL of water. 10 mg ÷ 2 mL = 5 mg/mL.</li>
           <li><b>Volume to draw</b> = dose ÷ concentration. 0.5 mg ÷ 5 mg/mL = 0.1 mL.</li>
           <li><b>Units</b> on a U-100 syringe = mL × 100. 0.1 mL = 10 units.</li>
         </ol>
-        <p className="small muted">Common mistakes: mixing up mcg and mg (a 1,000× error), reading a U-40 or tuberculin syringe as if it were U-100, and grabbing the wrong vial when you keep several. Label every vial with what it is, its concentration, and the date you mixed it.</p>
+        <p className="sub">Common mistakes: mixing up mcg and mg (a 1,000× error), reading a U-40 or tuberculin syringe as if it were U-100, and grabbing the wrong vial when you keep several. Label every vial with what it is, its concentration, and the date you mixed it.</p>
       </section>
     </section>
   );

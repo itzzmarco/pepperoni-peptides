@@ -115,11 +115,11 @@ export function DoseSheet({ r: initial, edit, onClose, onFix }: { r: Regimen; ed
           </div>
         )}
 
-        <section className="tile dark" aria-label="Prescribed dose">
-          <div className="spread"><span className="eyebrow">Prescribed</span><span className="sub">{freqText(r)}</span></div>
-          <span style={{ fontSize: '2.25rem', fontWeight: 600, letterSpacing: '-.02em', lineHeight: 1 }}>{fmtNum(Number(r.dose), 3)} <span className="sub" style={{ fontSize: '1.125rem' }}>{r.unit}</span></span>
+        <section className="tile lilac" aria-label="Prescribed dose">
+          <div className="spread"><span className="label">Prescribed</span><span className="sub">{freqText(r)}</span></div>
+          <span className="mid">{fmtNum(Number(r.dose), 3)}<small> {r.unit}</small></span>
           {math && injectable && (
-            <div className="white-inset stack" style={{ gap: 8 }}>
+            <div className="stack" style={{ gap: 8 }}>
               {isVolumeUnit(d.unit)
                 ? <p className="small">That's <b className="mono" style={{ color: 'var(--lilac-ink)' }}>{drugAmount(math.doseMg, PEP[r.compoundId]?.defaultUnit)}</b> ({fmtNum(math.vol, 2)} mL) from a vial with {fmtNum(Number(r.vialMg))} mg in {fmtNum(Number(r.diluentMl))} mL.</p>
                 : <p className="small">Draw to <b className="mono" style={{ color: 'var(--lilac-ink)' }}>{fmtNum(math.units, 1)} units</b> ({fmtNum(math.vol, 2)} mL) on a U-100 syringe. {fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL water.</p>}
@@ -170,7 +170,7 @@ export function DoseSheet({ r: initial, edit, onClose, onFix }: { r: Regimen; ed
                 <div className="site-legend" style={{ justifyContent: 'flex-start' }}>
                   <span><i style={{ background: 'var(--sky-ink)' }} />Selected</span>
                   <span><i style={{ boxShadow: 'inset 0 0 0 2px var(--sky-ink)', background: 'var(--surface)' }} />Next clockwise</span>
-                  <span><i style={{ background: '#F9C9AE' }} />Used recently</span>
+                  <span><i style={{ background: 'color-mix(in srgb, var(--peach-bar) 36%, var(--surface))' }} />Used recently</span>
                 </div>
                 {bellyDoses.length > 0 && (
                   <div className="recent"><span className="xsmall" style={{ background: 'none', padding: 0, color: 'var(--ink-2)' }}>Recent</span>

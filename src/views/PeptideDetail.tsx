@@ -3,8 +3,9 @@ import { AS_OF_SHORT, FAMILIES, LEGAL, TIERS } from '../data/reference';
 import { Ladder, LegalChip, TierChip, WadaChip } from '../components/Chips';
 import { BackToLearn, Kinetic, Mast } from '../components/Mast';
 import { SeqStrand } from '../components/Strand';
+import { TideChart } from '../components/Tidal';
 import { useLedger } from '../lib/store';
-import { freqText, regimenStatus } from '../lib/schedule';
+import { freqText, intervalDays, regimenStatus } from '../lib/schedule';
 import { fmtNum } from '../lib/format';
 import { Glp1Alert, Strip } from './PeptidesView';
 
@@ -50,30 +51,34 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
         {p.seq
           ? <div className="rise" style={rise(4)}><SeqStrand key={p.id} p={p} /></div>
           : p.seqNote && <p className="sub">{p.seqNote}</p>}
-        <div className="head-actions rise" style={rise(5)}>
-          <button className="btn" onClick={() => onTrack(p.id)}>{mine.length ? 'Track another regimen' : 'Track this in my log'}</button>
+        {mine.map(r => {
+          const st = regimenStatus(r, doses);
+          const every = intervalDays(r);
+          const times = doses.filter(d => d.rid === r.id).map(d => new Date(d.at).getTime());
+          return (
+            <section key={r.id} className="nextup rise" aria-label={`${p.name} in your log`} style={rise(5)}>
+              <div className="spread"><span className="label">In your log</span><span className="sub num">{st.text}</span></div>
+              <div className="stack" style={{ gap: 6 }}>
+                <span className="name">{fmtNum(Number(r.dose), 3)} {r.unit} <span>{freqText(r).toLowerCase()}</span></span>
+                <span className="sub" style={{ fontSize: '.9375rem' }}>{[r.route, r.prescriber && `prescribed by ${r.prescriber}`, r.paused && 'paused'].filter(Boolean).join(' · ')}</span>
+              </div>
+              {every && times.length
+                ? <TideChart times={times} every={every} days={28} label={`Last 4 weeks: ${times.length} dose${times.length === 1 ? '' : 's'} logged. The water is high after each dose and lies flat while one is overdue.`} />
+                : <Strip rid={r.id} doses={doses} />}
+              <div className="row-wrap">
+                {!r.paused && <button className="btn sm" onClick={() => onLog(r)}>Log a dose</button>}
+                <a className="btn glass sm" href="#trends">See trends</a>
+              </div>
+            </section>
+          );
+        })}
+        <div className="head-actions rise" style={rise(6)}>
+          <button className={`btn${mine.length ? ' glass' : ''}`} onClick={() => onTrack(p.id)}>{mine.length ? 'Track another regimen' : 'Track this in my log'}</button>
           <a className="btn ghost" href="#calculator">Dose math</a>
         </div>
       </Mast>
 
       {mine.length > 0 && <Glp1Alert regimens={regimens} />}
-      {mine.map(r => {
-        const st = regimenStatus(r, doses);
-        return (
-          <section key={r.id} className="tile dark rise" aria-label={`${p.name} in your log`} style={rise(3)}>
-            <div className="spread"><span className="eyebrow">In your log</span><span className="sub">{st.text}</span></div>
-            <div className="stack" style={{ gap: 4 }}>
-              <span className="lead">{fmtNum(Number(r.dose), 3)} {r.unit}, {freqText(r).toLowerCase()}</span>
-              <span className="sub">{[r.route, r.prescriber && `prescribed by ${r.prescriber}`, r.paused && 'paused'].filter(Boolean).join(', ')}</span>
-            </div>
-            <Strip rid={r.id} doses={doses} />
-            <div className="row-wrap">
-              {!r.paused && <button className="btn sm" onClick={() => onLog(r)}>Log a dose</button>}
-              <a className="btn glass sm" href="#trends">See trends</a>
-            </div>
-          </section>
-        );
-      })}
 
       {banner && (
         <div className={`alert ${banner.tone} rise`} style={rise(4)}>
@@ -86,16 +91,17 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
       )}
 
       <section className="tile rise" aria-labelledby="ev-h" style={rise(5)}>
-        <h2 id="ev-h" className="eyebrow">Evidence strength</h2>
+        <h2 id="ev-h" className="label">Evidence strength</h2>
         <div className="stack" style={{ gap: 6 }}>
           <Ladder t={p.tier} wide />
           <div className="spread xsmall muted"><span>Weaker</span><span>Stronger</span></div>
         </div>
-        <p><b>Tier {p.tier} · {TIERS[p.tier].label}.</b> <span className="muted">{TIERS[p.tier].long}.</span></p>
+        <p className="lead">Tier {p.tier} · {TIERS[p.tier].label}</p>
+        <p className="sub">{TIERS[p.tier].long}.</p>
       </section>
 
       <section className="tile rise" aria-labelledby="glance-h" style={rise(6)}>
-        <h2 id="glance-h" className="eyebrow">At a glance</h2>
+        <h2 id="glance-h" className="label">At a glance</h2>
         <dl className="rows">
           <div><dt>US status ({AS_OF_SHORT})</dt><dd>{p.status ?? LEGAL[p.legal]?.long}</dd></div>
           {p.halfLife && <div><dt>Half-life</dt><dd>{p.halfLife}</dd></div>}
@@ -107,9 +113,9 @@ export function PeptideDetail({ p, onTrack, onLog }: { p: Peptide; onTrack: (id:
 
       {(p.claim || p.shows) && (
         <section className="stack" aria-label="What's claimed vs what's shown">
-          <h2 className="section-title">What's claimed vs what's shown</h2>
+          <h2 className="section-title lead">What's claimed vs what's shown</h2>
           <div className="facts-hype">
-            {p.claim && <div className="tile" style={{ background: 'var(--surface-2)' }}><span className="label">Online claim</span><p>{p.claim}</p></div>}
+            {p.claim && <div className="tile peach"><span className="label">Online claim</span><p>{p.claim}</p></div>}
             {p.shows && <div className="tile mint"><span className="label">What the evidence shows</span><p>{p.shows}</p></div>}
           </div>
         </section>

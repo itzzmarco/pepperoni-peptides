@@ -1,3 +1,4 @@
+import { Icon } from '../components/Icon';
 import { useState } from 'react';
 import type { DoseEntry, Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
@@ -123,25 +124,25 @@ function RegimenCard({ r, doses, actions, example, i = 0 }: { r: Regimen; doses:
   return (
     <article className={`tile regimen rise${r.paused ? ' paused' : ''}${example ? ' example' : ''}`} style={{ ['--i' as string]: i + 2 }} aria-hidden={example || undefined}>
       <div className="top">
-        <div className="stack" style={{ gap: 4 }}>
-          <h3>{regName(r)}</h3>
-          <div className="dose">{fmtNum(Number(r.dose), 3)} {r.unit} · {freqText(r)} · {r.route}</div>
-        </div>
+        <span className="label">{freqText(r)} · {r.route}</span>
         <span className="due" data-s={st.s}>{st.text}</span>
       </div>
-      {math && (
-        <div className="inset small" style={{ background: 'var(--lilac)' }}>
-          {isVolumeUnit(r.unit)
-            ? <>Each dose is about <b className="mono">{drugAmount(math.doseMg, p?.defaultUnit)}</b> ({fmtNum(Number(r.vialMg))} mg in {fmtNum(Number(r.diluentMl))} mL). Confirm with your pharmacist.</>
-            : <>Draw <b className="mono">{fmtNum(math.units, 1)} units</b> on a U-100 syringe ({fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL). Confirm with your pharmacist.</>}
-        </div>
-      )}
+      <div className="stack" style={{ gap: 6 }}>
+        <h3 className="name">{regName(r)} <span>{fmtNum(Number(r.dose), 3)} {r.unit}</span></h3>
+        {math && (
+          <p className="sub">
+            {isVolumeUnit(r.unit)
+              ? <>Each dose is about <b>{drugAmount(math.doseMg, p?.defaultUnit)}</b> ({fmtNum(Number(r.vialMg))} mg in {fmtNum(Number(r.diluentMl))} mL). Confirm with your pharmacist.</>
+              : <>Draw <b>{fmtNum(math.units, 1)} units</b> on a U-100 syringe ({fmtNum(Number(r.vialMg))} mg vial + {fmtNum(Number(r.diluentMl))} mL). Confirm with your pharmacist.</>}
+          </p>
+        )}
+      </div>
       {checks.length > 0 && (
         <div className="alert danger"><b>The dose and vial numbers don't add up.</b><span>{checks[0].title} Tap Edit to check them.</span></div>
       )}
       {!example && <NextShot r={r} doses={doses} />}
       {p && <div className="row-wrap"><TierChip t={p.tier} /><LegalChip k={p.legal} /></div>}
-      {r.prescriber && <div className="small muted">Prescribed by {r.prescriber}</div>}
+      {r.prescriber && <div className="sub">Prescribed by {r.prescriber}</div>}
       {r.source === UNREGULATED_SOURCE && (
         <div className="alert warn"><b>Unregulated source.</b><span>Products sold online as "research use only" aren't checked for identity, dose, sterility, or endotoxin. See Safety for testing data.</span></div>
       )}
@@ -182,12 +183,13 @@ export function PeptidesView(actions: Actions) {
   return (
     <section className="view">
       <Mast>
+        <p className="when rise"><b>Peptides</b><span>{paused.length ? `${paused.length} paused` : 'What you take, and when'}</span></p>
         {regimens.length
           ? <Kinetic a={`${active.length} being tracked.`} b={due ? `${due} due today.` : 'Nothing due today.'} />
           : <Kinetic a="Nothing tracked yet." b="Add what you were prescribed." />}
         <div className="head-actions rise" style={{ ['--i' as string]: 3 }}>
           <button className="btn" onClick={actions.addRegimen}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+            <Icon name="add" size={20} />
             Add a peptide
           </button>
           <a className="btn ghost" href="#learn">Browse the library</a>
@@ -198,11 +200,17 @@ export function PeptidesView(actions: Actions) {
 
       {!(introHidden && regimens.length) && (
         <section className="tile lemon rise" aria-label="About this log" style={{ ['--i' as string]: 2 }}>
-          <div className="spread">
-            <h3>Before you start</h3>
+          <div className="rowhead">
+            <span className="badge" aria-hidden="true">
+              <Icon name="notice" />
+            </span>
+            <span className="stack" style={{ gap: 2, flex: 1, minWidth: 0 }}>
+              <span className="label">Before you start</span>
+              <h2 className="lead">Four things to know</h2>
+            </span>
             {regimens.length > 0 && <button className="btn quiet sm" onClick={() => { lsSet('pl-intro-hidden', '1'); setIntroHidden(true); }}>Hide</button>}
           </div>
-          <ul className="small" style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 6 }}>
+          <ul className="notes">
             <li>This is a journal for doses and symptoms, built to share with your clinician. It never suggests a dose; enter the one you were prescribed.</li>
             <li>{signedIn
               ? 'Your log syncs to your account, so it follows you to any device you sign in on. Only you can see it. Use Export on Trends to keep a copy.'
@@ -218,8 +226,8 @@ export function PeptidesView(actions: Actions) {
       {regimens.length === 0 ? (
         <>
           <div className="empty">
-            <h3>Nothing tracked yet</h3>
-            <p className="muted small">Add a peptide or medication you've been prescribed. You'll get a due-date status, a 4-week history strip, and injection-site rotation.</p>
+            <h2 className="lead">Nothing tracked yet</h2>
+            <p className="sub">Add a peptide or medication you've been prescribed. You'll get a due-date status, its tide over the last 4 weeks, and injection-site rotation.</p>
             <button className="btn" onClick={actions.addRegimen}>Add a peptide</button>
           </div>
           <RegimenCard r={example} doses={[]} example />
@@ -229,7 +237,7 @@ export function PeptidesView(actions: Actions) {
           {active.map((r, i) => <RegimenCard key={r.id} r={r} doses={doses} actions={actions} i={i} />)}
           {paused.length > 0 && (
             <details className="tile">
-              <summary className="spread"><b>Paused ({paused.length})</b><span className="chev" aria-hidden="true">›</span></summary>
+              <summary className="spread"><span className="label">Paused ({paused.length})</span><span className="chev" aria-hidden="true">›</span></summary>
               <div className="stack">{paused.map(r => <RegimenCard key={r.id} r={r} doses={doses} actions={actions} />)}</div>
             </details>
           )}

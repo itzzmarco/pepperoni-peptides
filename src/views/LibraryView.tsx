@@ -1,3 +1,4 @@
+import { Icon } from '../components/Icon';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import type { FamilyKey, LegalKey, Peptide, Tier } from '../lib/types';
 import { PEPTIDES } from '../data/peptides';
@@ -6,6 +7,7 @@ import { fmtNum } from '../lib/format';
 import { Ladder, LegalChip, TierChip } from '../components/Chips';
 import { Kinetic, Mast } from '../components/Mast';
 import { Dots, seqBeads } from '../components/Strand';
+import { Level } from '../components/Tidal';
 
 const TIER_LIST: Tier[] = [1, 2, 3, 4, 5];
 
@@ -35,40 +37,27 @@ export function matches(p: Peptide, f: Filters) {
 function TopChart() {
   const top = PEPTIDES.filter(p => p.popularity).sort((a, b) => b.popularity! - a.popularity!).slice(0, 10);
   if (!top.length) return null;
-  const step = 5000;
-  const ticksMax = Math.ceil(Math.max(...top.map(p => p.popularity!)) / step) * step;
-  const ticks: number[] = [];
-  for (let t = 0; t <= ticksMax; t += step) ticks.push(t);
-  const pct = (v: number) => (v / ticksMax) * 100;
+  const max = Math.max(...top.map(p => p.popularity!));
   return (
     <section className="tile rise" style={{ ['--i' as string]: 4 }}>
       <div className="stack" style={{ gap: 4 }}>
-        <span className="eyebrow">Hype vs evidence</span>
-        <h3>The most-discussed peptides mostly have the weakest evidence</h3>
-        <p className="small muted">
+        <span className="label">Hype vs evidence</span>
+        <h2 className="lead">The most-discussed peptides mostly have the weakest evidence</h2>
+        <p className="sub">
           30-day engagement on Reddit and YouTube as of October 2026 (from the source overview, via humanpeptides.fyi), colored by evidence tier.
         </p>
       </div>
       <div className="legend">
-        {TIER_LIST.map(t => <span key={t}><i style={{ background: `var(--t${t})` }} />T{t} {TIERS[t].label}</span>)}
+        {TIER_LIST.map(t => <span key={t}><i className="bead" style={{ background: `var(--t${t})` }} />T{t} {TIERS[t].label}</span>)}
       </div>
-      <div className="hbar" role="list" aria-label="Top 10 peptides by engagement, with evidence tier" style={{ gridTemplateRows: `repeat(${top.length}, auto) auto` }}>
-        <div className="hbar-grid" aria-hidden="true" style={{ gridRow: `1 / ${top.length + 1}` }}>
-          {ticks.map(t => <span key={t} style={{ left: `${pct(t)}%` }} />)}
-        </div>
+      <div className="bars" role="list" aria-label="Top 10 peptides by engagement, with evidence tier">
         {top.map((p, i) => (
-          <a key={p.id} className="hbar-row" role="listitem" href={`#${p.id}`} style={{ gridRow: i + 1 }}
+          <a key={p.id} role="listitem" href={`#${p.id}`} style={{ ['--tone' as string]: `var(--t${p.tier})` }}
             title={`${p.name}: ${fmtNum(p.popularity!, 0)} engagement points, Tier ${p.tier} (${TIERS[p.tier].label})`}>
-            <span className="hbar-label">{p.name}</span>
-            <span className="hbar-track">
-              <span className="hbar-fill grow" style={{ width: `max(${pct(p.popularity!)}%, 4px)`, background: `var(--t${p.tier})`, ['--i' as string]: i }} />
-              <span className="hbar-val" style={{ left: `max(${pct(p.popularity!)}%, 4px)` }}>{fmtNum(p.popularity!, 0)} · T{p.tier}</span>
-            </span>
+            <div className="spread"><span>{p.name}</span><b className="num">{fmtNum(p.popularity!, 0)} · T{p.tier}</b></div>
+            <Level f={p.popularity! / max} i={i} />
           </a>
         ))}
-        <div className="hbar-axis" aria-hidden="true" style={{ gridRow: top.length + 1 }}>
-          {ticks.map(t => <span key={t} style={{ left: `${pct(t)}%` }}>{t ? `${t / 1000}K` : '0'}</span>)}
-        </div>
       </div>
     </section>
   );
@@ -106,9 +95,9 @@ function Wall() {
 }
 
 const GUIDES = [
-  { href: '#calculator', tone: 'lilac', title: 'Dose math, step by step', sub: 'Vial, water and syringe units', icon: 'M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5V2M8.5 2h7M14.5 16h-5' },
-  { href: '#safety', tone: 'peach', title: 'Safety & law', sub: 'Warning signs and US rules', icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
-];
+  { href: '#calculator', tone: 'lilac', title: 'Dose math, step by step', sub: 'Vial, water and syringe units', icon: 'dose' },
+  { href: '#safety', tone: 'peach', title: 'Safety & law', sub: 'Warning signs and US rules', icon: 'safety' },
+] as const;
 
 export function LibraryView() {
   const [f, setF] = useState<Filters>(loadFilters);
@@ -130,11 +119,12 @@ export function LibraryView() {
   return (
     <section className="view">
       <Mast>
+        <p className="when rise"><b>Library</b><span>Updated {AS_OF}</span></p>
         <Kinetic a="What the evidence says." b={`${PEPTIDES.length} peptides, graded.`} />
-        <p className="rise" style={{ ['--i' as string]: 5 }}>Compounds that trend online, with what studies show, how they're regulated in the US, and the warning signs to know. Updated {AS_OF}.</p>
+        <p className="rise" style={{ ['--i' as string]: 5 }}>Compounds that trend online, with what studies show, how they're regulated in the US, and the warning signs to know.</p>
         <div className="search rise" style={{ ['--i' as string]: 6 }}>
           <label className="sr-only" htmlFor="lib-q">Search peptides</label>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+          <Icon name="search" size={20} />
           <input type="search" id="lib-q" value={f.q} onChange={e => setF({ ...f, q: e.target.value })} placeholder="Search name, nickname or goal" autoComplete="off" />
         </div>
         <Wall />
@@ -143,8 +133,8 @@ export function LibraryView() {
       <div className="bento rise" style={{ ['--i' as string]: 7 }}>
         {GUIDES.map(g => (
           <a key={g.href} href={g.href} className={`tile ${g.tone}`} style={{ gap: 10 }}>
-            <span className="badge-icon" style={{ width: 44, height: 44, background: `var(--${g.tone})`, color: `var(--${g.tone}-ink)` }} aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={g.icon} /></svg>
+            <span className="badge" aria-hidden="true">
+              <Icon name={g.icon} />
             </span>
             <span className="lead">{g.title}</span>
             <span className="sub">{g.sub}</span>
@@ -180,8 +170,8 @@ export function LibraryView() {
           </a>
         )) : (
           <div className="empty" style={{ gridColumn: '1 / -1' }}>
-            <h3>No matches</h3>
-            <p className="small muted">Try a different word or clear a filter.</p>
+            <h3 className="lead">No matches</h3>
+            <p className="sub">Try a different word or clear a filter.</p>
             <button className="btn ghost sm" onClick={() => setF({ q: '', fam: 'all', tier: 'all', legal: 'all' })}>Clear filters</button>
           </div>
         )}

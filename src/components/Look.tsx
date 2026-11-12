@@ -1,3 +1,4 @@
+import { Icon } from './Icon';
 import { useState } from 'react';
 import { flushSync } from 'react-dom';
 import { DYES, deep, readable } from '../lib/dye';
@@ -56,10 +57,7 @@ export function Look() {
   return (
     <>
       <button className="icon-btn" popoverTarget="look" aria-label="Appearance: theme and color" title="Appearance">
-        <svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true">
-          <path d="M8 1.6c2.6 3 4.5 5.6 4.5 8.3a4.5 4.5 0 0 1-9 0c0-2.7 1.9-5.3 4.5-8.3z" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-          <path d="M3.5 9.9h9a4.5 4.5 0 0 1-9 0z" fill="currentColor" />
-        </svg>
+        <Icon name="look" size={22} />
       </button>
       <div id="look" className="look" popover="auto" role="dialog" aria-label="Appearance">
         <span className="label">Theme</span>

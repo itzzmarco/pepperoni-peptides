@@ -8,7 +8,8 @@ export interface Pt {
 }
 
 /**
- * Line with area wash, end label, and a hover tooltip per point. The panel title names the series.
+ * A level over time, drawn like the tide: water under the line, a bead at each reading, the latest one largest,
+ * with an end label and a hover tooltip per point. The panel title names the series.
  * An optional second series (`points2`) draws as a second line in another color, without the wash.
  */
 export function LineChart({ points, points2 = [], y0, y1, ticks, x0, x1, label, fmt = String }: {
@@ -53,7 +54,7 @@ export function LineChart({ points, points2 = [], y0, y1, ticks, x0, x1, label, 
     const isLast = i === ps.length - 1;
     return (
       <g key={`${cls}${i}`}>
-        {(isLast || ps.length < 12) && <circle className={`pt ${cls}`} cx={cx} cy={cy} r={isLast ? 5 : 4} />}
+        {(isLast || ps.length < 12) && <circle className={`pt pop ${cls}${isLast ? ' last' : ''}`} cx={cx} cy={cy} r={isLast ? 6 : 4} style={{ ['--i' as string]: i * 2 }} />}
         <circle cx={cx} cy={cy} r={11} fill="transparent" onMouseEnter={() => setHover({ left: (cx / W) * 100, top: (cy / H) * 100, text: p.tip })} />
       </g>
     );

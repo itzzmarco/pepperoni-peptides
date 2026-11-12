@@ -1,3 +1,4 @@
+import { Icon } from '../components/Icon';
 import { useRef, useState } from 'react';
 import type { DoseEntry, Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
@@ -17,7 +18,7 @@ import { DeviceLogPrompt } from '../sheets/AccountSheet';
 import { SiteFigure, doseText, whenNext } from '../components/NextShot';
 import { useCountUp } from '../components/Motion';
 import { Kinetic, Mast } from '../components/Mast';
-import { Steps, Swell, WeekGrid } from '../components/Tidal';
+import { Spark, Steps, Swell, WeekGrid } from '../components/Tidal';
 import { useToast } from '../components/Toast';
 import { Glp1Alert, regName, type Actions } from './PeptidesView';
 
@@ -77,7 +78,7 @@ function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now, site, on
           <span className="row-wrap">
             <span className="logged">
               <button className="btn" onClick={onUndo}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+                <Icon name="check" size={20} />
                 Logged. Tap to undo
               </button>
             </span>
@@ -85,7 +86,7 @@ function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now, site, on
           </span>
         ) : (
           <button className="btn" onClick={onLog}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+            <Icon name="add" size={20} />
             Log now
           </button>
         )}
@@ -165,8 +166,6 @@ export function TodayView(actions: Actions) {
   const wNow = weights[weights.length - 1], wFirst = weights[0];
   const wShown = useCountUp(wNow?.weight ?? 0, wFirst?.weight ?? 0, 1100);
   const wChange = wNow && wFirst && wNow !== wFirst ? wNow.weight! - wFirst.weight! : null;
-  const wMin = Math.min(...weights.map(w => w.weight!)), wMax = Math.max(...weights.map(w => w.weight!));
-  const spark = weights.slice(-12).map((w, i, a) => `${(i / Math.max(1, a.length - 1)) * 120},${4 + (1 - (w.weight! - wMin) / Math.max(0.1, wMax - wMin)) * 20}`).join(' ');
 
   const effects = topEffects(checkins, startOfDay(now).getTime() - 6 * DAY);
   const checkedIn = checkins.find(c => dayKey(new Date(c.at)) === today);
@@ -271,7 +270,7 @@ export function TodayView(actions: Actions) {
               <span className="label">Library</span>
               <span className="lead">What the evidence says about {Object.keys(PEP).length} peptides</span>
             </span>
-            <span className="arrow" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+            <span className="arrow" aria-hidden="true"><Icon name="arrow" /></span>
           </a>
           <a href="#calculator" className="tile lilac rise" style={{ ...rise(6), gap: 6 }}>
             <span className="label">Dose math</span>
@@ -300,7 +299,7 @@ export function TodayView(actions: Actions) {
             {wNow ? (
               <>
                 <span className="mid">{wShown.toFixed(1)}<small> {wNow.weightUnit}</small></span>
-                {weights.length > 1 && <svg className="spark" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true"><polygon points={`0,28 ${spark} 120,28`} /><polyline className="draw" pathLength={1} points={spark} /></svg>}
+                {weights.length > 1 && <Spark values={weights.slice(-12).map(w => w.weight!)} />}
                 <span className="sub">{wChange != null ? `${wChange > 0 ? '+' : '−'}${Math.abs(wChange).toFixed(1)} since ${fmtShort(new Date(wFirst.at))}` : 'Add more check-ins for a trend.'}</span>
               </>
             ) : <span className="sub">Add your weight in a daily check-in.</span>}
@@ -326,7 +325,7 @@ export function TodayView(actions: Actions) {
                 </span>
                 {pNext && <span className="sub">{regName(pNext.r)} · {pNext.st.text}</span>}
               </span>
-              <span className="arrow" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+              <span className="arrow" aria-hidden="true"><Icon name="arrow" /></span>
             </a>
           )}
 
@@ -345,7 +344,7 @@ export function TodayView(actions: Actions) {
 
           <button type="button" className="tile mint span-2 checkin rise" style={rise(9)} onClick={actions.checkin}>
             <span className="badge" aria-hidden="true">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d={checkedIn ? 'M5 12.5l4.5 4.5L19 7.5' : 'M12 5v14M5 12h14'} /></svg>
+              <Icon name={checkedIn ? 'check' : 'add'} />
             </span>
             <span className="stack" style={{ gap: 2, flex: 1, minWidth: 0 }}>
               <span className="label">Check-in</span>
@@ -367,7 +366,7 @@ export function TodayView(actions: Actions) {
               <span className="label">{learnP ? `Evidence tier ${learnP.tier}, ${TIERS[learnP.tier].label.toLowerCase()}` : 'Guide'}</span>
               <span className="lead">{learnP ? `What the research says about ${learnP.name}` : 'Dose math, step by step'}</span>
             </span>
-            <span className="arrow" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+            <span className="arrow" aria-hidden="true"><Icon name="arrow" /></span>
           </a>
         </div>
       )}

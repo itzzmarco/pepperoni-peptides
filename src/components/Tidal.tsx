@@ -81,7 +81,8 @@ export function Tide({ ebb, surge = 0 }: { ebb?: number | null; surge?: number }
   );
 }
 
-export interface GridDay { d: Date; on: boolean; today: boolean }
+/** `flag` marks a second thing that happened that day (a side effect), `future` a day that hasn't come yet. */
+export interface GridDay { d: Date; on: boolean; today: boolean; flag?: boolean; future?: boolean }
 
 const TURN = 2 * Math.PI;
 /** Seconds for a row's swell to travel the width of the grid. Must match `.weeks .row` and `.weeks .b` in styles.css. */
@@ -89,11 +90,14 @@ const ROLL = 9;
 
 /**
  * The last few weeks, one row each and ending today: a bead per day, filled when a dose was logged. Each row
- * rides its own swell, and each bead rises and falls as the swell passes under it.
+ * rides its own swell, and each bead rises and falls as the swell passes under it. White on the field; inside
+ * a cell it takes the cell's tone. Past six rows it is drawn tighter and holds still, so a quarter of beads
+ * doesn't cost a quarter of animations.
  */
-export function WeekGrid({ days, label }: { days: GridDay[]; label: string }) {
+export function WeekGrid({ days, label, on = 'dose logged', flag = 'side effect logged' }: { days: GridDay[]; label: string; on?: string; flag?: string }) {
   const [box, W] = useWidth<HTMLDivElement>(380);
-  const TOP = 34, GAP = 25, AMP = 4;
+  const dense = days.length > 42;
+  const TOP = 34, GAP = dense ? 20 : 25, AMP = 4, R = dense ? 6 : 8, NOW = dense ? 8 : 10.5;
   const rows = Math.ceil(days.length / 7);
   const x = (col: number) => ((col + 0.5) * W) / 7;
   // A row's line is y = AMP * sin(phase - 2πx / W), drawn from -W so it can slide right by one width and repeat.
@@ -106,7 +110,7 @@ export function WeekGrid({ days, label }: { days: GridDay[]; label: string }) {
   // How far into its rise and fall a bead already is, so it sits on the line as the line slides.
   const lead = (row: number, col: number) => (((phase(row) / TURN - (col + 0.5) / 7) % 1) + 1) % 1 * ROLL;
   return (
-    <div className="weeks" ref={box}>
+    <div className={`weeks${dense ? ' dense' : ''}`} ref={box}>
       <svg width={W} height={TOP + (rows - 1) * GAP + 29} role="img" aria-label={label}>
         {days.slice(0, 7).map((c, i) => <text key={i} x={x(i)} y="11" aria-hidden="true">{c.d.toLocaleDateString(undefined, { weekday: 'narrow' })}</text>)}
         {Array.from({ length: rows }, (_, r) => <path key={r} className="row" d={line(r)} style={{ ['--w' as string]: `${W}px` }} />)}
@@ -114,11 +118,12 @@ export function WeekGrid({ days, label }: { days: GridDay[]; label: string }) {
           const row = Math.floor(i / 7), col = i % 7;
           return (
             <g key={i} className="b" style={{ animationDelay: `${-lead(row, col).toFixed(2)}s` }}>
-              <title>{`${fmtDay(c.d)}${c.on ? ': dose logged' : ''}`}</title>
-              {c.today && <circle className="ping" cx={x(col)} cy={TOP + row * GAP} r="10.5" />}
+              <title>{`${fmtDay(c.d)}${[c.on && on, c.flag && flag].filter(Boolean).map((t, k) => `${k ? ', ' : ': '}${t}`).join('')}`}</title>
+              {c.today && <circle className="ping" cx={x(col)} cy={TOP + row * GAP} r={NOW} />}
               {/* Keyed by state, so today's bead pops again the moment its dose is logged. */}
-              <circle key={String(c.on)} className={`pop ${c.on ? 'on' : 'off'}${c.today ? ' now' : ''}`} cx={x(col)} cy={TOP + row * GAP} r={c.today ? 10.5 : 8}
-                style={{ ['--i' as string]: c.today && c.on ? 0 : i }} />
+              <circle key={String(c.on)} className={`pop ${c.on ? 'on' : c.flag ? 'fx' : 'off'}${c.today ? ' now' : ''}${c.future ? ' future' : ''}`} cx={x(col)} cy={TOP + row * GAP} r={c.today ? NOW : R}
+                style={{ ['--i' as string]: c.today && c.on ? 0 : dense ? i / 3 : i }} />
+              {c.on && c.flag && <circle className="ring pop" cx={x(col)} cy={TOP + row * GAP} r={(c.today ? NOW : R) + 4} style={{ ['--i' as string]: i }} />}
             </g>
           );
         })}
@@ -212,4 +217,19 @@ export function Mark() {
       {[5.5, 20, 34.5].map((x, i) => <circle key={x} className="b" cx={x} cy="11" r="4.5" style={{ animationDelay: i === 1 ? '-3s' : undefined }} />)}
     </svg>
   );
+}
+
+/** A bead on a line: how far along `f` (0 to 1) is. The app's bar. It takes the cell's tone. */
+export function Level({ f, i = 0 }: { f: number; i?: number }) {
+  return (
+    <span className="level" aria-hidden="true" style={{ ['--f' as string]: Math.max(0, Math.min(1, f)), ['--i' as string]: i }}>
+      <i className="grow" /><b className="pop" />
+    </span>
+  );
+}
+
+/** A small filled trend, oldest value first: the line with water under it. Scaled to its own range unless `lo` and `hi` fix one. */
+export function Spark({ values, lo = Math.min(...values), hi = Math.max(...values) }: { values: number[]; lo?: number; hi?: number }) {
+  const pts = values.map((v, i, a) => `${(i / Math.max(1, a.length - 1)) * 120},${4 + (1 - (v - lo) / Math.max(0.1, hi - lo)) * 20}`).join(' ');
+  return <svg className="spark" viewBox="0 0 120 28" preserveAspectRatio="none" aria-hidden="true"><polygon points={`0,28 ${pts} 120,28`} /><polyline className="draw" pathLength={1} points={pts} /></svg>;
 }

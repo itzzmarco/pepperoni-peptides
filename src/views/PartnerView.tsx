@@ -9,7 +9,7 @@ import { adherence } from '../lib/insights';
 import { DAY, dayKey, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
 import { LineChart } from '../components/LineChart';
 import { Kinetic, Mast } from '../components/Mast';
-import { TideChart } from '../components/Tidal';
+import { Level, TideChart } from '../components/Tidal';
 import { regName } from './PeptidesView';
 
 const RANGES = [[30, 'Month'], [90, '3 months'], [0, 'Since start']] as const;
@@ -135,27 +135,27 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
       <section className="tile lilac rise" aria-labelledby="p-wt-h" style={rise(2)}>
         <div className="spread"><h2 id="p-wt-h" className="label">Weight change, together</h2><span className="count">{unit}</span></div>
         <div className="together">
-          <div className="inset">
-            <div className="xsmall muted">{name}</div>
-            <b className="num" style={{ color: 'var(--peach-ink)' }}>{theirs && theirs.count > 1 ? signed(theirs.change, unit) : '–'}</b>
-            <div className="xsmall muted">{theirs ? `${fmtNum(theirs.last.w, 1)} ${unit} now` : 'No weigh-ins'}</div>
+          <div>
+            <span className="sub">{name}</span>
+            <span className="mid" style={{ color: 'var(--peach-ink)' }}>{theirs && theirs.count > 1 ? signed(theirs.change, '') : '–'}</span>
+            <span className="sub">{theirs ? `${fmtNum(theirs.last.w, 1)} ${unit} now` : 'No weigh-ins'}</span>
           </div>
-          <div className="inset">
-            <div className="xsmall muted">You</div>
-            <b className="num" style={{ color: 'var(--lilac-ink)' }}>{yours && yours.count > 1 ? signed(yours.change, unit) : '–'}</b>
-            <div className="xsmall muted">{yours ? `${fmtNum(yours.last.w, 1)} ${unit} now` : 'No weigh-ins'}</div>
+          <div>
+            <span className="sub">You</span>
+            <span className="mid">{yours && yours.count > 1 ? signed(yours.change, '') : '–'}</span>
+            <span className="sub">{yours ? `${fmtNum(yours.last.w, 1)} ${unit} now` : 'No weigh-ins'}</span>
           </div>
         </div>
         {sT.length + sY.length >= 2 && (sY.length || sT.length) ? (
           <>
             <LineChart points={sY.length ? sY : sT} points2={sY.length ? sT : []} y0={lo} y1={hi} ticks={ticks}
               x0={x0} x1={now.getTime()} label={`Weight change since the start of the range: you and ${name}`} fmt={v => (v > 0 ? `+${fmtNum(v, 1)}` : fmtNum(v, 1))} />
-            <div className="legend" style={{ color: 'var(--ink-2)' }}>
-              {sY.length > 0 && <span><i style={{ background: 'var(--chart-line)' }} />You</span>}
-              {sT.length > 0 && <span><i className={sY.length ? 'two' : ''} style={sY.length ? undefined : { background: 'var(--chart-line)' }} />{name}</span>}
+            <div className="legend">
+              {sY.length > 0 && <span><i className="bead" style={{ background: 'var(--chart-line)' }} />You</span>}
+              {sT.length > 0 && <span><i className={`bead${sY.length ? ' two' : ''}`} style={sY.length ? undefined : { background: 'var(--chart-line)' }} />{name}</span>}
             </div>
           </>
-        ) : <p className="small muted">Weigh-ins from either of you show up here as a line, starting from zero so you can compare.</p>}
+        ) : <p className="sub">Weigh-ins from either of you show up here as a line, starting from zero so you can compare.</p>}
       </section>
 
       {tideRows.length > 0 && (
@@ -175,7 +175,7 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
               </div>
             );
           })}
-          <p className="xsmall" style={{ color: 'var(--mint-2)' }}>High water after each dose, ebbing until the next is due. Flat water means a dose is overdue.</p>
+          <p className="sub">High water after each dose, ebbing until the next is due. Flat water means a dose is overdue.</p>
         </section>
       )}
 
@@ -187,17 +187,18 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
           return (
             <div key={r.id} className="stack" style={{ gap: 8 }}>
               <div className="spread">
-                <b>{regName(r)} · {fmtNum(Number(r.dose), 3)} {r.unit}</b>
-                <span className="sub" style={{ color: 'var(--mint-2)' }}>{freqText(r)}</span>
+                <span className="lead">{regName(r)} <span className="sub">{fmtNum(Number(r.dose), 3)} {r.unit}</span></span>
+                <span className="sub">{freqText(r)}</span>
               </div>
-              <div className="spread" style={{ color: 'var(--mint-2)' }}>
-                <span className="small">{st.last ? `Last ${fmtDay(st.last)}` : 'Not logged yet'}</span>
+              <div className="spread">
+                <span className="sub">{st.last ? `Last ${fmtDay(st.last)}` : 'Not logged yet'}</span>
                 <span className="small" style={{ fontWeight: 600, color: st.s === 'late' ? 'var(--danger)' : 'var(--mint-ink)' }}>{st.text}</span>
               </div>
-              {adh.expected > 0 && <span className="xsmall" style={{ color: 'var(--mint-2)' }}>{adh.logged} of {adh.expected} due doses logged in 4 weeks</span>}
+              {adh.expected > 0 && <Level f={adh.logged / adh.expected} />}
+              {adh.expected > 0 && <span className="sub">{adh.logged} of {adh.expected} due doses logged in 4 weeks</span>}
             </div>
           );
-        }) : <p className="small" style={{ color: 'var(--mint-2)' }}>{name} isn't tracking a peptide yet.</p>}
+        }) : <p className="sub">{name} isn't tracking a peptide yet.</p>}
       </section>
 
       <Recent log={log} name={name} />

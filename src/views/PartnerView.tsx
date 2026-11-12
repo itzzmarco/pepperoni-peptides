@@ -3,11 +3,13 @@ import type { Checkin, DoseEntry, Ledger } from '../lib/types';
 import { useLedger } from '../lib/store';
 import { useAccount } from '../lib/account';
 import { firstName, refreshPartners, usePartners, weighIns, weightChange } from '../lib/partner';
-import { adherenceDays, freqText, regimenStatus } from '../lib/schedule';
+import { freqText, intervalDays, regimenStatus } from '../lib/schedule';
+import { tideOf, tideText } from '../lib/tide';
 import { adherence } from '../lib/insights';
 import { DAY, dayKey, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
 import { LineChart } from '../components/LineChart';
 import { Kinetic, Mast } from '../components/Mast';
+import { TideChart } from '../components/Tidal';
 import { regName } from './PeptidesView';
 
 const RANGES = [[30, 'Month'], [90, '3 months'], [0, 'Since start']] as const;
@@ -105,6 +107,11 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
   const startDay = theirs ? fmtShort(theirs.first.at) : '';
 
   const active = log.regimens.filter(r => !r.paused);
+  // Their scheduled peptides and yours, as tides one above the other: whose water is out is who is due.
+  const tideRows = [
+    ...active.map(r => ({ who: name, r, doses: log.doses })),
+    ...mine.regimens.filter(r => !r.paused).map(r => ({ who: 'You', r, doses: mine.doses })),
+  ].filter(x => intervalDays(x.r) && x.doses.some(d => d.rid === x.r.id));
   const line2 = theirs && theirs.count > 1
     ? `${theirs.change < 0 ? 'Down' : theirs.change > 0 ? 'Up' : 'Even'}${theirs.change ? ` ${Math.abs(theirs.change).toFixed(1)} ${unit}` : ''} since ${startDay}.`
     : 'No weight trend yet.';
@@ -151,12 +158,32 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
         ) : <p className="small muted">Weigh-ins from either of you show up here as a line, starting from zero so you can compare.</p>}
       </section>
 
+      {tideRows.length > 0 && (
+        <section className="tile mint rise" aria-labelledby="p-tide-h" style={rise(3)}>
+          <div className="spread"><h2 id="p-tide-h" className="label">Tides, together</h2><span className="count">Last 4 weeks</span></div>
+          {tideRows.map(({ who, r, doses }) => {
+            const st = regimenStatus(r, doses, now);
+            const text = tideText(tideOf(r, st, now), st);
+            return (
+              <div key={who + r.id} className="stack" style={{ gap: 6 }}>
+                <div className="spread">
+                  <b>{who} · {regName(r)}</b>
+                  <span className="small" style={{ fontWeight: 600, color: st.s === 'late' ? 'var(--danger)' : 'var(--mint-ink)' }}>{text}</span>
+                </div>
+                <TideChart times={doses.filter(d => d.rid === r.id).map(d => new Date(d.at).getTime())} every={intervalDays(r)!} days={28} now={now}
+                  label={`${who === 'You' ? 'Your' : `${who}'s`} ${regName(r)} over the last 4 weeks, ${text.toLowerCase()}. The water is high after each dose and lies flat while one is overdue.`} />
+              </div>
+            );
+          })}
+          <p className="xsmall" style={{ color: 'var(--mint-2)' }}>High water after each dose, ebbing until the next is due. Flat water means a dose is overdue.</p>
+        </section>
+      )}
+
       <section className="tile mint rise" aria-labelledby="p-shots-h" style={rise(3)}>
         <h2 id="p-shots-h" className="label">{name}'s shots</h2>
         {active.length ? active.map(r => {
           const st = regimenStatus(r, log.doses, now);
           const adh = adherence([r], log.doses, now, 28);
-          const strip = adherenceDays(r.id, log.doses, 28, now);
           return (
             <div key={r.id} className="stack" style={{ gap: 8 }}>
               <div className="spread">
@@ -167,9 +194,6 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
                 <span className="small">{st.last ? `Last ${fmtDay(st.last)}` : 'Not logged yet'}</span>
                 <span className="small" style={{ fontWeight: 600, color: st.s === 'late' ? 'var(--danger)' : 'var(--mint-ink)' }}>{st.text}</span>
               </div>
-              <span className="strip28" role="img" aria-label={`Last 4 weeks: ${name} logged ${r.name || regName(r)} on ${strip.filter(d => d.on).length} days`}>
-                {strip.map((d, i) => <i key={i} className={`${d.on ? 'on' : ''}${d.today ? ' today' : ''}`} title={fmtDay(d.date)} />)}
-              </span>
               {adh.expected > 0 && <span className="xsmall" style={{ color: 'var(--mint-2)' }}>{adh.logged} of {adh.expected} due doses logged in 4 weeks</span>}
             </div>
           );

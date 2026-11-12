@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { Regimen } from '../lib/types';
+import type { DoseEntry, Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { freqText } from '../lib/schedule';
 import { drugAmount, isVolumeUnit } from '../lib/doseMath';
@@ -22,21 +22,21 @@ const ago = (t: Date) => {
   return d <= 0 ? 'today' : d === 1 ? 'yesterday' : `${d} days ago`;
 };
 
-/** `onFix` opens the regimen's settings, for vial details that don't add up. */
-export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose: () => void; onFix?: (r: Regimen) => void }) {
+/** `onFix` opens the regimen's settings, for vial details that don't add up. With `edit`, the sheet changes that logged dose instead of adding one. */
+export function DoseSheet({ r: initial, edit, onClose, onFix }: { r: Regimen; edit?: DoseEntry; onClose: () => void; onFix?: (r: Regimen) => void }) {
   const toast = useToast();
   const { doses, regimens } = useLedger();
   const active = regimens.filter(x => !x.paused);
   const [r, setR] = useState(initial);
   // This peptide's next spot in its own rotation starts out picked. `auto` stays true until the person taps a spot.
   const [first] = useState(() => nextSite(initial, doses));
-  const [d, setD] = useState(() => blank(initial, first?.site));
-  const [auto, setAuto] = useState(!!first);
+  const [d, setD] = useState(() => (edit ? { amount: edit.amount, unit: edit.unit, at: toLocalInput(new Date(edit.at)), route: edit.route, site: edit.site, notes: edit.notes } : blank(initial, first?.site)));
+  const [auto, setAuto] = useState(!edit && !!first);
   const last = useMemo(() => lastUsedBySite(doses), [doses]);
   // This regimen's belly-clock history, newest first.
   const bellyDoses = useMemo(() => doses.filter(x => x.rid === r.id && bellyHour(x.site)).slice(0, 3), [doses, r.id]);
   const recent = bellyDoses.map(x => bellyHour(x.site)!);
-  const [view, setView] = useState<'clock' | 'body'>(first?.hour ? 'clock' : 'body');
+  const [view, setView] = useState<'clock' | 'body'>((edit ? bellyHour(edit.site) : first?.hour) ? 'clock' : 'body');
   const next = nextBellyHour(recent[0] ?? null, last);
 
   const set = (k: keyof typeof d) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setD({ ...d, [k]: e.target.value });
@@ -77,8 +77,9 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
     const at = new Date(d.at || Date.now());
     if (isNaN(at.getTime())) { toast('Enter a valid date and time.'); return; }
     if (!(amt > 0)) { toast('Enter the amount you took.'); return; }
-    store.addDose({ id: newId(), rid: r.id, name: regName(r), at: at.toISOString(), amount: d.amount, unit: d.unit, route: d.route, site: injectable && siteFits ? d.site : '', notes: d.notes.trim() });
-    toast(`Logged ${regName(r)} at ${fmtTime(at)}.`);
+    // Saving under the same id replaces the dose being edited.
+    store.applyBatch({ doses: [{ id: edit?.id ?? newId(), rid: r.id, name: regName(r), at: at.toISOString(), amount: d.amount, unit: d.unit, route: d.route, site: injectable && siteFits ? d.site : '', notes: d.notes.trim() }] });
+    toast(edit ? 'Dose updated.' : `Logged ${regName(r)} at ${fmtTime(at)}.`);
     onClose();
   };
 
@@ -96,11 +97,11 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
   }
 
   return (
-    <Sheet onClose={onClose} label={`Log ${regName(r)}`}>
+    <Sheet onClose={onClose} label={`${edit ? 'Edit' : 'Log'} ${regName(r)}`}>
       <form className="stack" style={{ gap: 14 }} onSubmit={submit} noValidate>
         <div className="sheet-head">
           <div className="stack" style={{ gap: 4 }}>
-            <span className="eyebrow">Log a dose</span>
+            <span className="eyebrow">{edit ? 'Edit this dose' : 'Log a dose'}</span>
             <h2 style={{ fontSize: '1.75rem' }}>{regName(r)}</h2>
           </div>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
@@ -108,7 +109,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
           </button>
         </div>
 
-        {active.length > 1 && (
+        {active.length > 1 && !edit && (
           <div className="pick" role="group" aria-label="Peptide" style={{ margin: '0 -16px', padding: '0 16px 2px' }}>
             {active.map(x => <button key={x.id} type="button" className="fchip" aria-pressed={x.id === r.id} onClick={() => x.id !== r.id && switchTo(x)}>{regName(x)}</button>)}
           </div>
@@ -194,7 +195,7 @@ export function DoseSheet({ r: initial, onClose, onFix }: { r: Regimen; onClose:
         <label className="field tile" style={{ gap: 8 }}><span>Notes <small>(optional)</small></span><input type="text" id="d-notes" maxLength={200} placeholder="e.g. new vial, mild sting" value={d.notes} onChange={set('notes')} /></label>
         <div className="sheet-foot">
           <button type="button" className="btn ghost" onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn">Save dose</button>
+          <button type="submit" className="btn">{edit ? 'Save changes' : 'Save dose'}</button>
         </div>
       </form>
     </Sheet>

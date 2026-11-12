@@ -1,5 +1,6 @@
 import { useId } from 'react';
-import { fmtDay } from '../lib/format';
+import { DAY, fmtDay, startOfDay } from '../lib/format';
+import { tideLevels } from '../lib/tide';
 import { useWidth } from './Motion';
 
 /* The tidal graphics: depth bands behind the field, foam along its lower edge, weeks of days riding their own
@@ -135,6 +136,80 @@ export function Swell({ weeks, label }: { weeks: boolean[]; label: string }) {
       ))}
       <path className="back drift" d={fill(35, 46, 3, -92, false)} style={drift(184, 13, true)} />
       <path className="front drift" d={fill(30, 92, 4, -184, false)} style={drift(184, 8)} />
+    </svg>
+  );
+}
+
+/**
+ * One regimen's tide over the last `days` days: the water is high after each dose (a bead marks it), eases
+ * out until the next is due, and lies flat for as long as a dose is overdue. `times` are all its dose times
+ * in ms, so a dose from before the range still sets where the water starts.
+ */
+export function TideChart({ times, every, days, now = new Date(), label, height = 64 }: {
+  times: number[]; every: number; days: number; now?: Date; label: string; height?: number;
+}) {
+  const [box, W] = useWidth<HTMLDivElement>();
+  const to = now.getTime(), from = startOfDay(now).getTime() - (days - 1) * DAY;
+  const top = 8, base = height - 2;
+  const x = (t: number) => ((t - from) / (to - from)) * W;
+  // Beads shrink when doses sit close together (a daily dose over three months), so they stay separate dots.
+  const bead = Math.max(1.5, Math.min(4, (x(from + every * DAY) - x(from)) / 3));
+  const line = tideLevels(times, every, from, to, Math.min((to - from) / 120, (every * DAY) / 4))
+    .map((p, i) => `${i ? 'L' : 'M'}${x(p.t).toFixed(1)} ${(base - p.level * (base - top)).toFixed(1)}`).join('');
+  return (
+    <div className="tidechart" ref={box}>
+      <svg width={W} height={height} role="img" aria-label={label}>
+        <path className="water" d={`${line}V${height}H0Z`} />
+        <path className="crest draw" pathLength={1} d={line} />
+        {times.filter(t => t >= from && t <= to).map((t, i) => <circle key={t} className="pop" cx={x(t)} cy={top} r={bead} style={{ ['--i' as string]: i }} />)}
+      </svg>
+    </div>
+  );
+}
+
+/** First visit: the mark's three beads on their wave, numbered as the steps to get going. */
+export function Steps({ steps }: { steps: string[] }) {
+  const [box, W] = useWidth<HTMLDivElement>(380);
+  const gap = W / steps.length, cy = 30;
+  const x = (i: number) => (i + 0.5) * gap;
+  // As in the mark, the wave crosses its middle line at each bead: up between the first pair, down between the next.
+  const d = `M${x(0)} ${cy}${steps.slice(1).map((_, i) => `Q${x(i) + gap / 2} ${cy + (i % 2 ? 26 : -26)} ${x(i + 1)} ${cy}`).join('')}`;
+  return (
+    <div className="steps" ref={box}>
+      <svg width={W} height="60" aria-hidden="true">
+        <path className="draw" pathLength={1} d={d} />
+        {steps.map((_, i) => (
+          <g key={i} className="b" style={{ animationDelay: `${-i * 3}s` }}>
+            <circle className="pop" cx={x(i)} cy={cy} r="15" style={{ ['--i' as string]: i * 6 }} />
+            <text x={x(i)} y={cy}>{i + 1}</text>
+          </g>
+        ))}
+      </svg>
+      <ol>{steps.map(s => <li key={s}>{s}</li>)}</ol>
+    </div>
+  );
+}
+
+/** The mark's wave: one wavelength is the gap between every other bead. Drawn a wavelength early so it can travel right and repeat. */
+const MARK_WAVE = 29;
+const markLine = (amp: number) => Array.from({ length: 2 * MARK_WAVE + 1 }, (_, i) => {
+  const x = 5.5 - MARK_WAVE + i;
+  return `${i ? 'L' : 'M'}${x} ${(11 - amp * Math.sin((TURN * (x - 5.5)) / MARK_WAVE)).toFixed(2)}`;
+}).join('');
+
+/**
+ * The Peptidal mark, afloat: three beads threaded on a wave. The wave travels and each bead rides it, the
+ * middle one opposite the outer two, as on the brand sheet. The moving wave is shallower than the printed
+ * one (4 against 7), as the sheet's afloat mark is, so the three beads stay readable as a row. For reduced
+ * motion it is the printed mark, still. The 4 here is `--bob` on `.mark .b` in styles.css.
+ */
+export function Mark() {
+  const id = useId();
+  return (
+    <svg className="mark" width="40" height="22" viewBox="0 0 40 22" aria-hidden="true">
+      <clipPath id={id}><rect x="5.5" y="-8" width="29" height="38" /></clipPath>
+      <g clipPath={`url(#${id})`}><path className="still" d={markLine(7)} /><path className="roll" d={markLine(4)} /></g>
+      {[5.5, 20, 34.5].map((x, i) => <circle key={x} className="b" cx={x} cy="11" r="4.5" style={{ animationDelay: i === 1 ? '-3s' : undefined }} />)}
     </svg>
   );
 }

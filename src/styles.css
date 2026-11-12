@@ -152,6 +152,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .topbar .row { display: flex; align-items: center; gap: 8px; }
 .brand { display: flex; align-items: center; gap: 9px; text-decoration: none; color: var(--on-field); margin-right: auto; font-weight: 800; font-stretch: 75%; font-size: 1.5625rem; line-height: 1; letter-spacing: -.02em; }
 .brand svg { flex: none; }
+/* The mark: beads on a wave. In motion the wave travels and the beads ride it (see Motion). */
+.mark { overflow: visible; }
+.mark path { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; opacity: .6; }
+.mark .roll { display: none; }
+.mark circle { fill: currentColor; }
+.mark circle:first-of-type { fill: var(--go); }
 .sync { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-xs); color: var(--on-field-2); background: var(--glass); border-radius: 999px; padding: 6px 12px 6px 10px; white-space: nowrap; min-height: 32px; }
 .sync i { width: 7px; height: 7px; border-radius: 50%; background: var(--go); display: inline-block; }
 .or { display: flex; align-items: center; gap: 12px; color: var(--ink-3); font-size: var(--fs-xs); }
@@ -236,6 +242,32 @@ main { padding-block: 0 40px; }
   100% { transform: translateY(0); }
 }
 @media (prefers-reduced-motion: reduce) { .weeks .row, .weeks .b, .swell .b { animation-play-state: paused; } }
+
+/* Tide chart: one regimen's water level over time. High after each dose (a bead), easing out until the next is due,
+   flat while one is overdue. It takes the cell's tone, or white on the field. */
+.tidechart { min-width: 0; }
+.tidechart svg { display: block; overflow: visible; }
+.tidechart .water { fill: color-mix(in srgb, var(--tone, var(--accent)) 16%, transparent); }
+.tidechart .crest { fill: none; stroke: var(--tone, var(--accent)); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.tidechart circle { fill: var(--tone, var(--accent)); transform-box: fill-box; transform-origin: center; }
+.regimen .tidechart { --tone: var(--mint-ink); }
+.mast .tidechart .water { fill: rgba(255,255,255,.18); }
+.mast .tidechart .crest { stroke: rgba(255,255,255,.85); }
+.mast .tidechart circle { fill: var(--go); }
+
+/* First visit: the mark's three beads on their wave, numbered as the steps to get going. */
+.steps { min-width: 0; }
+.steps svg { display: block; overflow: visible; }
+.steps path { fill: none; stroke: rgba(255,255,255,.6); stroke-width: 4; stroke-linecap: round; }
+.steps circle { fill: var(--on-field); transform-box: fill-box; transform-origin: center; }
+.steps g:first-of-type circle { fill: var(--go); }
+.steps text { fill: var(--field-ink); font-family: var(--f-body); font-size: 15px; font-weight: 800; text-anchor: middle; dominant-baseline: central; }
+.steps ol { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); text-align: center; font-size: var(--fs-sm); font-weight: 600; color: var(--on-field-2); }
+
+/* A dose just logged with one tap: two rings leave the button. */
+.logged { position: relative; display: inline-flex; }
+.logged::before, .logged::after { content: ""; position: absolute; inset: 0; border-radius: 999px; box-shadow: 0 0 0 2px var(--go); opacity: 0; pointer-events: none; }
+.logged::after { box-shadow: 0 0 0 2px var(--on-field); }
 
 /* On the field (the masthead and field-colored cells): white type, white primary button, glass controls. */
 :is(.mast, .tile.dark) :focus-visible { outline-color: var(--on-field); }
@@ -731,10 +763,6 @@ input.code-input { font-family: var(--f-mono); font-size: 1.375rem; letter-spaci
 .legend i.two { background: var(--chart-line-2); }
 .together { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .together .num { font-size: 1.375rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-.strip28 { display: grid; grid-template-columns: repeat(28, minmax(0, 1fr)); gap: 2px; }
-.strip28 i { height: 14px; border-radius: 3px; background: color-mix(in srgb, var(--mint-ink) 14%, transparent); }
-.strip28 i.on { background: var(--mint-ink); }
-.strip28 i.today { box-shadow: inset 0 0 0 1.5px var(--mint-ink); }
 .partner-tile { display: flex; align-items: center; gap: 14px; }
 
 /* Tab bar: an ink pill; a field-colored bead slides to the current tab. */
@@ -776,6 +804,13 @@ footer.foot p { max-width: 90ch; }
   .surge { display: block; }
   .surge svg { animation: surge 2.6s cubic-bezier(.3, 0, .3, 1) both; }
   @keyframes surge { 0% { transform: translateY(-100%); } 34% { transform: translateY(-12%); } 50% { transform: translateY(-19%); } 100% { transform: translateY(-100%); } }
+  .steps .b { --bob: 3px; animation: bob 9s linear infinite; }
+  .mark .still { display: none; }
+  .mark .roll { display: inline; --w: 29px; animation: roll 6s linear infinite; }
+  .mark .b { --bob: 4px; animation: bob 6s linear infinite; }
+  .logged::before { animation: ring .9s ease-out; }
+  .logged::after { animation: ring .9s .18s ease-out; }
+  @keyframes ring { from { transform: scale(1); opacity: .9; } to { transform: scale(1.7); opacity: 0; } }
   .weeks .ping { animation: ping 2.4s ease-out infinite; }
   @keyframes ping { from { transform: scale(1); opacity: .8; } to { transform: scale(2.1); opacity: 0; } }
   .wall .track { animation: marquee var(--dur, 80s) linear infinite; }

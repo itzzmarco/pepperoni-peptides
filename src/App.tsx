@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
-import type { Regimen } from './lib/types';
+import type { DoseEntry, Regimen } from './lib/types';
 import { PEP } from './data/peptides';
 import { AS_OF } from './data/reference';
 import { useLedger } from './lib/store';
@@ -22,6 +22,7 @@ import { useAccount } from './lib/account';
 import { AccountButton } from './components/AccountButton';
 import { Look } from './components/Look';
 import { TabBar } from './components/TabBar';
+import { Mark } from './components/Tidal';
 
 const ROUTES = ['today', 'trends', 'learn', 'peptides', 'calculator', 'safety', 'partner'] as const;
 export type Route = (typeof ROUTES)[number];
@@ -39,7 +40,7 @@ function parseHash(): { tab: Route; id: string | null } {
 type SheetState =
   // `back` reopens that regimen's dose sheet when the edit started there.
   | { kind: 'regimen'; r: Regimen; isNew: boolean; back?: boolean }
-  | { kind: 'dose'; r: Regimen }
+  | { kind: 'dose'; r: Regimen; edit?: DoseEntry }
   | { kind: 'checkin' }
   | { kind: 'backfill' }
   | { kind: 'account' }
@@ -74,6 +75,7 @@ export function App() {
     addRegimen: () => setSheet({ kind: 'regimen', r: blankRegimen(), isNew: true }),
     editRegimen: (r: Regimen) => setSheet({ kind: 'regimen', r, isNew: false }),
     logDose: (r: Regimen) => setSheet({ kind: 'dose', r }),
+    editDose: (r: Regimen, edit: DoseEntry) => setSheet({ kind: 'dose', r, edit }),
     checkin: () => setSheet({ kind: 'checkin' }),
     signIn: () => setSheet({ kind: 'account' }),
   };
@@ -104,12 +106,7 @@ export function App() {
         <div className="wrap">
           <div className="row">
             <a className="brand" href="#today" aria-label="Peptidal, today">
-              <svg width="40" height="22" viewBox="0 0 40 22" fill="none" aria-hidden="true">
-                <path d="M5.5 11C7.92 7.33 10.33 4 12.75 4S17.58 7.33 20 11s4.83 7 7.25 7 4.83-3.33 7.25-7" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" opacity=".6" />
-                <circle cx="5.5" cy="11" r="4.5" fill="var(--go)" />
-                <circle cx="20" cy="11" r="4.5" fill="currentColor" />
-                <circle cx="34.5" cy="11" r="4.5" fill="currentColor" />
-              </svg>
+              <Mark />
               peptidal
             </a>
             <AccountButton onOpen={() => setSheet({ kind: 'account' })} />
@@ -135,7 +132,7 @@ export function App() {
       {sheet?.kind === 'regimen' && (sheet.back
         ? <RegimenSheet initial={sheet.r} isNew={false} onClose={() => setSheet({ kind: 'dose', r: sheet.r })} onSaved={x => setSheet(x ? { kind: 'dose', r: x } : null)} />
         : <RegimenSheet initial={sheet.r} isNew={sheet.isNew} onClose={close} onSaved={goPeptides} onLog={actions.logDose} onSignIn={actions.signIn} />)}
-      {sheet?.kind === 'dose' && <DoseSheet r={sheet.r} onClose={close} onFix={r => setSheet({ kind: 'regimen', r, isNew: false, back: true })} />}
+      {sheet?.kind === 'dose' && <DoseSheet r={sheet.r} edit={sheet.edit} onClose={close} onFix={r => setSheet({ kind: 'regimen', r, isNew: false, back: true })} />}
       {sheet?.kind === 'checkin' && <CheckinSheet onClose={close} onBackfill={() => setSheet({ kind: 'backfill' })} />}
       {sheet?.kind === 'backfill' && <BackfillSheet onClose={close} />}
       {sheet?.kind === 'account' && <AccountSheet onClose={close} />}

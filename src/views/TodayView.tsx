@@ -1,22 +1,24 @@
-import { useRef } from 'react';
-import type { Regimen } from '../lib/types';
+import { useRef, useState } from 'react';
+import type { DoseEntry, Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { upcoming, type RegimenStatus } from '../lib/schedule';
 import { tideOf } from '../lib/tide';
 import { drugAmount, isVolumeUnit } from '../lib/doseMath';
 import { checkRegimen } from '../lib/vial';
-import { DAY, dayKey, daysBetween, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
+import { DAY, dayKey, daysBetween, fmtDay, fmtNum, fmtShort, fmtTime, newId, startOfDay } from '../lib/format';
 import { adherence, doseDays, topEffects, usualMinutes } from '../lib/insights';
 import { nextSite, siteLabel, type NextSite } from '../lib/sites';
 import { PEP } from '../data/peptides';
 import { TIERS } from '../data/reference';
+import { INJECTABLE } from '../data/options';
 import { configured, useAccount } from '../lib/account';
 import { firstName, usePartners, weightChange } from '../lib/partner';
 import { DeviceLogPrompt } from '../sheets/AccountSheet';
 import { SiteFigure, doseText, whenNext } from '../components/NextShot';
 import { useCountUp } from '../components/Motion';
 import { Kinetic, Mast } from '../components/Mast';
-import { Swell, WeekGrid } from '../components/Tidal';
+import { Steps, Swell, WeekGrid } from '../components/Tidal';
+import { useToast } from '../components/Toast';
 import { Glp1Alert, regName, type Actions } from './PeptidesView';
 
 const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
@@ -49,8 +51,10 @@ function DayBar({ done, todo, now }: { done: Date[]; todo: Date[]; now: Date }) 
   );
 }
 
-function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now, site }: {
+/** `logged` is this regimen's dose that was just logged with one tap: the button then offers to undo it or open it in the form. */
+function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now, site, onLog, logged, onUndo }: {
   r: Regimen; st: RegimenStatus; actions: Actions; doneToday: number; dueToday: number; todo: Date[]; done: Date[]; now: Date; site: NextSite | null;
+  onLog: () => void; logged?: DoseEntry; onUndo: () => void;
 }) {
   const { math, checks } = checkRegimen(r);
   const usual = todo[0];
@@ -69,11 +73,23 @@ function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now, site }: 
       </div>
       {(done.length > 0 || todo.length > 0) && <DayBar done={done} todo={todo} now={now} />}
       <div className="spread" style={{ alignItems: 'center' }}>
-        <button className="btn" onClick={() => actions.logDose(r)}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-          Log now
-        </button>
-        {total > 0 && (
+        {logged ? (
+          <span className="row-wrap">
+            <span className="logged">
+              <button className="btn" onClick={onUndo}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>
+                Logged. Tap to undo
+              </button>
+            </span>
+            <button className="btn glass" onClick={() => actions.editDose(r, logged)}>Edit</button>
+          </span>
+        ) : (
+          <button className="btn" onClick={onLog}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+            Log now
+          </button>
+        )}
+        {total > 0 && !logged && (
           <span className="stack" style={{ gap: 6, justifyItems: 'end' }}>
             <span className="progress" aria-hidden="true">{Array.from({ length: Math.min(total, 6) }, (_, i) => <i key={i} className={i < doneToday ? 'on' : ''} />)}</span>
             <span className="sub">{doneToday} of {total} today</span>
@@ -86,6 +102,26 @@ function NextUp({ r, st, actions, doneToday, dueToday, todo, done, now, site }: 
 
 export function TodayView(actions: Actions) {
   const { regimens, doses, checkins } = useLedger();
+  const toast = useToast();
+  // The dose just logged with one tap, while it is still in the log.
+  const [quickId, setQuickId] = useState<string | null>(null);
+  const quick = quickId ? doses.find(d => d.id === quickId) : undefined;
+  /**
+   * One tap logs the planned dose, at the spot the card shows, when it is due and its numbers add up.
+   * A dose that isn't due yet, or whose vial details don't add up, goes through the form instead.
+   */
+  const logNow = (r: Regimen, st: RegimenStatus, site: NextSite | null) => {
+    if ((st.s !== 'due' && st.s !== 'late') || !(Number(r.dose) > 0) || checkRegimen(r).checks.length) return actions.logDose(r);
+    const id = newId(), at = new Date();
+    store.addDose({ id, rid: r.id, name: regName(r), at: at.toISOString(), amount: r.dose, unit: r.unit, route: r.route, site: INJECTABLE.has(r.route) ? site?.site ?? '' : '', notes: '' });
+    setQuickId(id);
+    toast(`Logged ${regName(r)} at ${fmtTime(at)}.`);
+  };
+  const undo = () => {
+    if (quickId) store.deleteDose(quickId);
+    setQuickId(null);
+    toast('Dose removed.');
+  };
   const acct = useAccount();
   const signedIn = !!acct.user;
   const seenHere = acct.seenHere;
@@ -155,6 +191,8 @@ export function TodayView(actions: Actions) {
   const hasLog = regimens.length > 0 || doses.length > 0 || checkins.length > 0;
   // Signed out on a site with accounts, an empty log usually means "sign in", not "start over".
   const offerSignIn = configured && !signedIn && !regimens.length;
+  // A first visit: nothing logged, and no account's log waiting behind a sign-in.
+  const firstRun = !hasLog && !(offerSignIn && seenHere);
   if (!regimens.length && offerSignIn && seenHere) { line1 = "You're signed out."; line2 = 'Sign in to see your log.'; }
   else if (!regimens.length) { line1 = hasLog ? 'Nothing to take yet.' : 'Welcome.'; line2 = 'Add what you were prescribed to start.'; }
   else if (late) { line1 = `${plural(late, 'dose')} overdue.`; line2 = 'Log it when you take it.'; }
@@ -176,6 +214,7 @@ export function TodayView(actions: Actions) {
 
         {next ? (
           <NextUp r={next.r} st={next.st} actions={actions} now={now} done={done} todo={todo} site={shots.find(x => x.r === next.r)?.s ?? null}
+            onLog={() => logNow(next.r, next.st, shots.find(x => x.r === next.r)?.s ?? null)} logged={quick?.rid === next.r.id ? quick : undefined} onUndo={undo}
             doneToday={loggedToday.length} dueToday={list.filter(x => x.st.s === 'due' || x.st.s === 'late').length} />
         ) : offerSignIn && seenHere ? (
           <section className="nextup rise" style={rise(3)}>
@@ -197,18 +236,22 @@ export function TodayView(actions: Actions) {
           </section>
         )}
 
-        <div className="rise" style={rise(4)}>
-          <WeekGrid days={chain} label={`Last 4 weeks, one row per week: a dose was logged on ${chainOn} of 28 days`} />
-          <p className="strand-ends">
-            <span>Each row is a week, ending today. Filled means a dose was logged.</span>
-            <span className="num">{chainOn} of 28</span>
-          </p>
-        </div>
+        {firstRun ? (
+          <div className="rise" style={rise(4)}><Steps steps={['Add a peptide', 'Log each dose', 'Watch the tide']} /></div>
+        ) : (
+          <div className="rise" style={rise(4)}>
+            <WeekGrid days={chain} label={`Last 4 weeks, one row per week: a dose was logged on ${chainOn} of 28 days`} />
+            <p className="strand-ends">
+              <span>Each row is a week, ending today. Filled means a dose was logged.</span>
+              <span className="num">{chainOn} of 28</span>
+            </p>
+          </div>
+        )}
       </Mast>
 
       {tide && next && (
         <p className="tide-note">
-          {lastToday ? <><b>High tide.</b> Dose logged {now.getTime() - new Date(lastToday.at).getTime() < 2 * 6e4 ? 'just now' : `at ${fmtTime(new Date(lastToday.at))}`}.</>
+          {lastToday ? <><b>High tide.</b> Dose logged {now.getTime() - new Date(lastToday.at).getTime() < 2 * 6e4 ? 'just now' : `at ${fmtTime(new Date(lastToday.at))}`}.{quick && quick.rid !== next.r.id && <> <button type="button" className="linkish" onClick={undo}>Undo</button></>}</>
             : next.st.s === 'late' ? <><b>Low tide.</b> {regName(next.r)} was due {next.st.due ? fmtDay(next.st.due) : 'earlier'}.</>
             : next.st.s === 'due' ? <><b>{tide.of > 1 ? `Day ${tide.day} of ${tide.of}.` : 'Low tide.'}</b> Today's dose brings the tide back in.</>
             : <><b>Day {tide.day} of {tide.of}.</b> The tide ebbs until {dueDay ? `${dueDay}'s` : 'the next'} dose.</>}
@@ -220,6 +263,28 @@ export function TodayView(actions: Actions) {
       )}
       <DeviceLogPrompt onToday />
       <Glp1Alert regimens={regimens} />
+
+      {firstRun && (
+        <div className="bento">
+          <a href="#learn" className="tile lemon go span-2 rise" style={rise(5)}>
+            <span className="stack" style={{ gap: 6, flex: 1 }}>
+              <span className="label">Library</span>
+              <span className="lead">What the evidence says about {Object.keys(PEP).length} peptides</span>
+            </span>
+            <span className="arrow" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span>
+          </a>
+          <a href="#calculator" className="tile lilac rise" style={{ ...rise(6), gap: 6 }}>
+            <span className="label">Dose math</span>
+            <span className="lead">Vial, water and syringe units</span>
+            <span className="sub">Step by step</span>
+          </a>
+          <a href="#safety" className="tile peach rise" style={{ ...rise(7), gap: 6 }}>
+            <span className="label">Safety &amp; law</span>
+            <span className="lead">Warning signs to know</span>
+            <span className="sub">And where US rules stand</span>
+          </a>
+        </div>
+      )}
 
       {hasLog && (
         <div className="bento">

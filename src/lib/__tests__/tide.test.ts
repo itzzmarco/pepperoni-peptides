@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { tideOf } from '../tide';
+import { tideLevels, tideOf, tideText } from '../tide';
 
 const NOW = new Date(2026, 10, 10, 19, 0);
 const ago = (days: number, hour = 8) => new Date(2026, 10, 10 - days, hour);
@@ -28,5 +28,46 @@ describe('tideOf', () => {
   it('has no tide for as-needed regimens or before the first dose', () => {
     expect(tideOf({ freq: 'prn', everyDays: '' }, { last: ago(1) }, NOW)).toBeNull();
     expect(tideOf(weekly, {}, NOW)).toBeNull();
+  });
+});
+
+describe('tideText', () => {
+  it('names the day between doses, and high tide on a dose day', () => {
+    expect(tideText({ day: 3, of: 7, ebb: 3 / 7 }, { s: 'ok', text: 'Next: Sat, Nov 14' })).toBe('Day 3 of 7');
+    expect(tideText({ day: 0, of: 7, ebb: 0 }, { s: 'ok', text: 'Next: Tue, Nov 17' })).toBe('High tide');
+  });
+
+  it("uses the schedule's own words once a dose is due, overdue, or has no tide", () => {
+    expect(tideText({ day: 7, of: 7, ebb: 1 }, { s: 'due', text: 'Due today' })).toBe('Due today');
+    expect(tideText({ day: 9, of: 7, ebb: 1 }, { s: 'late', text: 'Due 2 days ago' })).toBe('Due 2 days ago');
+    expect(tideText(null, { s: 'prn', text: 'As needed' })).toBe('As needed');
+  });
+});
+
+describe('tideLevels', () => {
+  const D = 864e5;
+  const t0 = new Date(2026, 10, 1).getTime();
+  const at = (levels: { t: number; level: number }[], day: number) => levels.find(p => p.t === t0 + day * D)!.level;
+
+  it('is high at a dose, half out midway, and out once the next is due', () => {
+    const l = tideLevels([t0], 7, t0, t0 + 10 * D, D / 2);
+    expect(at(l, 0)).toBe(1);
+    expect(at(l, 3.5)).toBeCloseTo(0.5);
+    expect(at(l, 7)).toBe(0);
+    expect(at(l, 9)).toBe(0);
+  });
+
+  it('comes back in with the next dose and has no water before the first', () => {
+    const l = tideLevels([t0 + 2 * D, t0 + 9 * D], 7, t0, t0 + 10 * D, D / 2);
+    expect(at(l, 1)).toBe(0);
+    expect(at(l, 2)).toBe(1);
+    expect(at(l, 8.5)).toBeLessThan(0.1);
+    expect(at(l, 9)).toBe(1);
+  });
+
+  it('counts a dose from before the range, and always ends on the last moment asked for', () => {
+    const l = tideLevels([t0 - D], 2, t0, t0 + 1.3 * D, D / 2);
+    expect(at(l, 0)).toBeCloseTo(0.5);
+    expect(l[l.length - 1].t).toBe(t0 + 1.3 * D);
   });
 });

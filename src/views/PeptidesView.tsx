@@ -2,7 +2,8 @@ import { useState } from 'react';
 import type { DoseEntry, Regimen } from '../lib/types';
 import { store, useLedger } from '../lib/store';
 import { configured, useAccount } from '../lib/account';
-import { adherenceDays, freqText, regimenStatus } from '../lib/schedule';
+import { adherenceDays, freqText, intervalDays, regimenStatus, type RegimenStatus } from '../lib/schedule';
+import { tideOf, tideText } from '../lib/tide';
 import { firstReminder, googleLink, icsFile, rrule, timesPerDay, type Reminder } from '../lib/calendar';
 import { download } from '../lib/download';
 import { drugAmount, isVolumeUnit } from '../lib/doseMath';
@@ -15,6 +16,7 @@ import { LegalChip, TierChip } from '../components/Chips';
 import { Kinetic, Mast } from '../components/Mast';
 import { useToast } from '../components/Toast';
 import { NextShot } from '../components/NextShot';
+import { TideChart } from '../components/Tidal';
 
 export const regName = (r: Pick<Regimen, 'compoundId' | 'name'>) => PEP[r.compoundId]?.name ?? (r.name || 'Unnamed');
 
@@ -22,6 +24,8 @@ export type Actions = {
   addRegimen: () => void;
   editRegimen: (r: Regimen) => void;
   logDose: (r: Regimen) => void;
+  /** Opens the dose form on a dose that is already logged. */
+  editDose: (r: Regimen, d: DoseEntry) => void;
   checkin: () => void;
   /** Opens sign-in. */
   signIn: () => void;
@@ -111,8 +115,11 @@ function RegimenCard({ r, doses, actions, example, i = 0 }: { r: Regimen; doses:
   const toast = useToast();
   const [remind, setRemind] = useState(false);
   const p = PEP[r.compoundId];
-  const st = example ? { s: 'due', text: 'Due today' } : regimenStatus(r, doses);
+  const st: RegimenStatus = example ? { s: 'due', text: 'Due today' } : regimenStatus(r, doses);
   const { math, checks } = checkRegimen(r);
+  // Scheduled regimens show their tide; as-needed ones keep the row of days.
+  const every = intervalDays(r);
+  const mine = doses.filter(d => d.rid === r.id).map(d => new Date(d.at).getTime());
   return (
     <article className={`tile regimen rise${r.paused ? ' paused' : ''}${example ? ' example' : ''}`} style={{ ['--i' as string]: i + 2 }} aria-hidden={example || undefined}>
       <div className="top">
@@ -138,7 +145,12 @@ function RegimenCard({ r, doses, actions, example, i = 0 }: { r: Regimen; doses:
       {r.source === UNREGULATED_SOURCE && (
         <div className="alert warn"><b>Unregulated source.</b><span>Products sold online as "research use only" aren't checked for identity, dose, sterility, or endotoxin. See Safety for testing data.</span></div>
       )}
-      <Strip rid={r.id} doses={example ? [] : doses} />
+      {every && !example && mine.length ? (
+        <div className="stack" style={{ gap: 6 }}>
+          <TideChart times={mine} every={every} days={28} label={`Last 4 weeks: ${mine.length} dose${mine.length === 1 ? '' : 's'} logged. The water is high after each dose and lies flat while one is overdue.`} />
+          <div className="strip-legend"><span>4 weeks ago</span><span>{tideText(tideOf(r, st), st)}</span></div>
+        </div>
+      ) : <Strip rid={r.id} doses={example ? [] : doses} />}
       {remind && !example && <Reminders r={r} doses={doses} />}
       {!example && actions && (
         <div className="row-wrap">

@@ -12,6 +12,7 @@ import { PEP } from '../data/peptides';
 import { LineChart } from '../components/LineChart';
 import { useCountUp } from '../components/Motion';
 import { Kinetic, Mast } from '../components/Mast';
+import { TideChart } from '../components/Tidal';
 import { useToast } from '../components/Toast';
 import { regName } from './PeptidesView';
 
@@ -239,6 +240,10 @@ export function TrendsView({ onBackfill }: { onBackfill: () => void }) {
   const sites = siteCounts(doses, since).slice(0, 6);
   const missed = adh.expected - adh.logged;
 
+  // Up to three scheduled regimens with doses in the log, each drawn as its own tide in the field.
+  const tides = regimens.filter(r => !r.paused && intervalDays(r)).map(r => ({ r, times: doses.filter(d => d.rid === r.id).map(d => new Date(d.at).getTime()) })).filter(x => x.times.length).slice(0, 3);
+  const span = days === 7 ? 'week' : days === 30 ? 'month' : '3 months';
+
   const line1 = adh.pct == null ? 'Your trends.' : adh.pct >= 0.9 ? `A steady ${days === 7 ? 'week' : days === 30 ? 'month' : 'quarter'}.` : adh.pct >= 0.7 ? 'Mostly on schedule.' : 'Some doses slipped.';
   const line2 = [
     change != null && Math.abs(change) >= 0.1 ? `${change < 0 ? 'Down' : 'Up'} ${Math.abs(change).toFixed(1)} ${wUnit}` : '',
@@ -252,6 +257,17 @@ export function TrendsView({ onBackfill }: { onBackfill: () => void }) {
         <div className="seg rise" role="group" aria-label="Time range" style={rise(2)}>
           {RANGES.map(([d, l]) => <button key={d} type="button" aria-pressed={days === d} onClick={() => setDays(d)}>{l}</button>)}
         </div>
+        {tides.map(({ r, times }, i) => {
+          const n = times.filter(t => t >= since).length;
+          return (
+            <div key={r.id} className="stack rise" style={{ gap: 6, ...rise(3 + i) }}>
+              <div className="spread"><span className="label">{regName(r)}</span><span className="sub num">{n} dose{n === 1 ? '' : 's'} this {span}</span></div>
+              <TideChart key={days} times={times} every={intervalDays(r)!} days={days} now={now} height={72}
+                label={`${regName(r)} over the last ${span}: ${n} dose${n === 1 ? '' : 's'} logged. The water is high after each dose and lies flat while one is overdue.`} />
+            </div>
+          );
+        })}
+        {tides.length > 0 && <p className="strand-ends rise" style={rise(6)}><span>Each crest is a logged dose. Flat water means one was due and didn't go in.</span></p>}
       </Mast>
 
       <section className="tile mint rise" aria-labelledby="adh-h" style={rise(3)}>

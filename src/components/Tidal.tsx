@@ -159,13 +159,16 @@ export function TideChart({ times, every, days, now = new Date(), label, height 
   const x = (t: number) => ((t - from) / (to - from)) * W;
   // Beads shrink when doses sit close together (a daily dose over three months), so they stay separate dots.
   const bead = Math.max(1.5, Math.min(4, (x(from + every * DAY) - x(from)) / 3));
-  const line = tideLevels(times, every, from, to, Math.min((to - from) / 120, (every * DAY) / 4))
-    .map((p, i) => `${i ? 'L' : 'M'}${x(p.t).toFixed(1)} ${(base - p.level * (base - top)).toFixed(1)}`).join('');
+  // The chart keeps its full span, but the water only starts at the first dose: nothing was due before it.
+  const pts = tideLevels(times, every, from, to, Math.min((to - from) / 120, (every * DAY) / 4));
+  const at = (t: number, level: number) => `${x(t).toFixed(1)} ${(base - level * (base - top)).toFixed(1)}`;
+  // A first dose inside the span rises from the baseline, as every later dose does.
+  const line = pts.length ? `M${at(pts[0].t, pts[0].t > from ? 0 : pts[0].level)}${pts.map(p => `L${at(p.t, p.level)}`).join('')}` : '';
   return (
     <div className="tidechart" ref={box}>
       <svg width={W} height={height} role="img" aria-label={label}>
-        <path className="water" d={`${line}V${height}H0Z`} />
-        <path className="crest draw" pathLength={1} d={line} />
+        {pts.length > 0 && <path className="water" d={`${line}V${height}H${x(pts[0].t).toFixed(1)}Z`} />}
+        {pts.length > 0 && <path className="crest draw" pathLength={1} d={line} />}
         {times.filter(t => t >= from && t <= to).map((t, i) => <circle key={t} className="pop" cx={x(t)} cy={top} r={bead} style={{ ['--i' as string]: i }} />)}
       </svg>
     </div>

@@ -57,10 +57,9 @@ describe('tideLevels', () => {
     expect(at(l, 9)).toBe(0);
   });
 
-  it('comes back in with the next dose and has no water before the first', () => {
+  it('starts at the first dose and comes back in with the next', () => {
     const l = tideLevels([t0 + 2 * D, t0 + 9 * D], 7, t0, t0 + 10 * D, D / 2);
-    expect(at(l, 1)).toBe(0);
-    expect(at(l, 2)).toBe(1);
+    expect(l[0]).toEqual({ t: t0 + 2 * D, level: 1 });
     expect(at(l, 8.5)).toBeLessThan(0.1);
     expect(at(l, 9)).toBe(1);
   });
@@ -69,5 +68,10 @@ describe('tideLevels', () => {
     const l = tideLevels([t0 - D], 2, t0, t0 + 1.3 * D, D / 2);
     expect(at(l, 0)).toBeCloseTo(0.5);
     expect(l[l.length - 1].t).toBe(t0 + 1.3 * D);
+  });
+
+  it('is empty until a dose has gone in', () => {
+    expect(tideLevels([], 7, t0, t0 + 10 * D)).toEqual([]);
+    expect(tideLevels([t0 + 11 * D], 7, t0, t0 + 10 * D)).toEqual([]);
   });
 });

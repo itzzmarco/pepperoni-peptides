@@ -30,15 +30,17 @@ export const tideText = (t: Tide | null, st: Pick<RegimenStatus, 's' | 'text'>) 
 /**
  * The water level over time for one regimen, from 0 (out) to 1 (high), sampled every `step` ms from `from`
  * to `to`. It is high at each dose, eases out until the next one is due `everyDays` later, and stays out
- * for as long as that dose is overdue. Before the first dose there is no water.
+ * for as long as that dose is overdue. Nothing was due before the first dose, so the samples start there
+ * when it falls inside the range, and there are none if no dose has gone in by `to`.
  */
 export function tideLevels(doseTimes: number[], everyDays: number, from: number, to: number, step = DAY / 4) {
   const times = doseTimes.slice().sort((a, b) => a - b);
   const out: { t: number; level: number }[] = [];
-  let i = -1;
-  for (let t = from; ; t = Math.min(t + step, to)) {
+  if (!times.length || times[0] > to) return out;
+  let i = 0;
+  for (let t = Math.max(from, times[0]); ; t = Math.min(t + step, to)) {
     while (i + 1 < times.length && times[i + 1] <= t) i++;
-    const gone = i < 0 ? 1 : (t - times[i]) / (everyDays * DAY);
+    const gone = (t - times[i]) / (everyDays * DAY);
     out.push({ t, level: gone >= 1 ? 0 : (1 + Math.cos(Math.PI * gone)) / 2 });
     if (t >= to) break;
   }

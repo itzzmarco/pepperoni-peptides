@@ -1,6 +1,6 @@
 import type { FamilyKey, LegalKey, SafetyCard, Source, Tier, TimelineEvent } from '../lib/types';
 
-export const AS_OF = 'November 10, 2026';
+export const AS_OF = 'November 14, 2026';
 export const AS_OF_SHORT = 'Nov 2026';
 
 export const TIERS: Record<Tier, { label: string; long: string }> = {
@@ -99,7 +99,7 @@ export const TIMELINE: TimelineEvent[] = [
   { date: 'Aug 27, 2026', k: 'tighten', title: 'Endotoxin reactions from compounded IV glutathione', body: 'FDA reported at least 30 patients with fever, chills, dizziness and shock-like symptoms after glutathione made from a supplement-grade ingredient. Two Texas pharmacies recalled product. The same day, a federal appeals court upheld FDA\'s GLP-1 shortage decisions.' },
   { date: 'Oct 14, 2026', k: '', title: 'Interim peptide access policy goes to the White House', body: 'HHS sent an "Interim Access Policy for Compounding Using Certain Peptides" for White House review. Its text was not public until it was issued two weeks later.' },
   { date: 'Oct 28, 2026', k: 'loosen', title: 'HHS lets pharmacies compound six peptides for now', body: 'In a draft policy, HHS said it will not act against licensed pharmacies or doctors who compound BPC-157, TB-500, KPV, MOTS-c, Semax or Epitalon for one patient\'s prescription. The ingredient must come from an FDA-registered maker with a test certificate, each product may contain only one of these peptides, and only listed routes are allowed (for example, KPV only as a cream or by mouth, Semax only in the nose). It is not FDA approval, does not cover "research" products sold online, and lasts until FDA decides on its 503A list. It does not bind state pharmacy boards. FDA staff had opposed all six.' },
-  { date: 'Nov 13, 2026', k: 'next', title: 'Comments close on the HHS peptide policy', body: 'The public can comment on the draft policy until two weeks after its Oct 30 Federal Register notice. HHS can change it afterward, or at any time if a safety or quality problem appears.' },
+  { date: 'Nov 13, 2026', k: '', title: 'Comments closed on the HHS peptide policy', body: 'The public comment period on the draft policy ended two weeks after its Oct 30 Federal Register notice. HHS can still change the policy, or withdraw it at any time if a safety or quality problem appears.' },
   { date: 'Jan 1, 2027', k: 'next', title: 'WADA 2027 Prohibited List takes effect', body: 'Peptides stay banned at all times for tested athletes. The status of GLP-1 drugs is unchanged.' },
   { date: 'By end of Feb 2027', k: 'next', title: 'Second advisory committee meeting', body: 'Scheduled to review LL-37, injectable GHK-Cu, dihexa, Melanotan II and PEG-MGF. No date set yet.' },
 ];

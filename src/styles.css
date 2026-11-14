@@ -799,6 +799,7 @@ input.code-input { font-family: var(--f-mono); font-size: 1.375rem; letter-spaci
 /* Tab bar: an ink pill; a field-colored bead slides to the current tab. */
 .tabbar { --at: 0; position: fixed; z-index: 40; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: min(440px, calc(100% - 32px)); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; padding: 6px; border-radius: 34px; background: var(--bar); box-shadow: var(--shadow-float); view-transition-name: tabbar; }
 .tabbar .at { position: absolute; left: 6px; top: 6px; bottom: 6px; width: calc((100% - 12px) / 5); border-radius: 28px; background: var(--field); transform: translateX(calc(var(--at) * 100%)); }
+.tabbar:not(:has([aria-current])) .at { opacity: 0; }
 .tabbar a { position: relative; color: var(--bar-ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 56px; font-size: 11px; font-weight: 500; text-decoration: none; border-radius: 28px; }
 .tabbar a:hover { color: #fff; }
 .tabbar a[aria-current="page"] { color: #fff; font-weight: 700; }
@@ -854,7 +855,9 @@ footer.foot p { max-width: 90ch; }
   @keyframes marquee { to { transform: translateX(-50%); } }
   .card, .btn, .fchip, .tile, .icon-btn, .seg button, .scale button, .checks label { transition: box-shadow .2s, background-color .2s, color .2s, filter .2s, transform .25s var(--ease); }
   .btn:active, .fchip:active, .icon-btn:active, .scale button:active, a.tile:active, button.tile:active, .card:active { transform: scale(.96); }
-  .tabbar .at { transition: transform .65s var(--spring); }
+  .tabbar .at { transition: transform .65s var(--spring), opacity .25s; }
+  /* With no current tab the bead fades where it stands, and only then moves. */
+  .tabbar:not(:has([aria-current])) .at { transition: opacity .25s, transform 0s .25s; }
   .tabbar .log { transition: transform .3s var(--ease); }
   .tabbar .log:active { transform: scale(.9); }
   .tabbar .log.due::after { animation: beat 2s ease-out infinite; }

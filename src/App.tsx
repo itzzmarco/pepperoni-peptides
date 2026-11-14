@@ -99,7 +99,8 @@ export function App() {
 
   // While a sheet is open, the page behind it is inert: not focusable and hidden from screen readers.
   const bg = sheet ? true : undefined;
-  const tab = route.tab === 'calculator' || route.tab === 'safety' ? 'learn' : route.tab === 'partner' ? 'today' : route.tab;
+  // Partner has no tab of its own, so the bar highlights none there.
+  const tab = route.tab === 'calculator' || route.tab === 'safety' ? 'learn' : route.tab;
   return (
     <>
       <header className="topbar gutter" inert={bg}>

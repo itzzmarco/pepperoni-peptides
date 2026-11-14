@@ -14,7 +14,7 @@ function Tab({ k, label, current }: { k: 'today' | 'trends' | 'learn' | 'peptide
   );
 }
 
-/** Floating bottom tab bar. A bead slides to the current tab; the white button in the middle logs the next dose and beats while one is due. */
+/** Floating bottom tab bar. A bead slides to the current tab, and fades out on a screen that has none (Partner); the white button in the middle logs the next dose and beats while one is due. */
 export function TabBar({ current, onLog, due, inert }: { current: Route; onLog: () => void; due?: boolean; inert?: boolean }) {
   return (
     <nav className="tabbar" aria-label="Main" inert={inert} style={{ ['--at' as string]: SLOT[current] ?? 0 }}>

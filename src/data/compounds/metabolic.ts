@@ -1,7 +1,7 @@
 import type { Peptide } from '../../lib/types';
 
 /**
- * Weight and metabolic compounds, plus lipotropic shots. US status as of Nov 4, 2026.
+ * Weight and metabolic compounds, plus lipotropic shots. US status as of Nov 15, 2026.
  * Built from research_notes/metabolic_peptides.md and regulation_and_safety.md. See AUTHORING.md.
  */
 export const METABOLIC: Peptide[] = [
@@ -24,6 +24,7 @@ export const METABOLIC: Peptide[] = [
       'OASIS 4: 64 weeks, 307 participants. Wegovy tablets 25 mg gave 16.6% weight loss on treatment vs 2.7% on placebo. The tablets were approved in December 2025.',
       'FDA had 990 adverse event reports for compounded semaglutide by May 31, 2026, some needing hospital care after dosing errors. Pharmacies do not have to report, so the true number is likely higher.',
       'FDA says semaglutide sodium and semaglutide acetate, salt forms used by some compounders, are different active ingredients from the approved drugs, with unknown equivalence.',
+      'FDA review (Nov 2026) of 126 trials with 134,253 people: NAION, a rare sudden vision loss in one eye, occurred at 6.4 vs 3.8 cases per 100,000 person-years. Labels must now warn of it.',
     ],
     halfLife: 'About 1 week (label). It stays in the body for about 5 to 7 weeks after the last dose.',
     routes: 'Weekly injection under the skin (Ozempic, Wegovy) or a daily tablet (Wegovy tablets, Rybelsus, Ozempic tablets). Wegovy tablets are taken in the morning on an empty stomach with up to 4 oz of water, at least 30 minutes before food, drink or other pills. Never share pens.',
@@ -39,8 +40,8 @@ export const METABOLIC: Peptide[] = [
       'Altered skin sensation (dysesthesia): 22% on 7.2 mg vs 6% on 2.4 mg',
     ],
     redFlags: [
-      'Severe belly pain that will not go away, sometimes spreading to your back (possible pancreatitis)',
-      'Pain in the upper right belly, fever, or yellow skin or eyes (possible gallbladder disease)',
+      'Severe belly pain that will not go away, sometimes spreading to your back (possible pancreatitis), or upper right belly pain with fever or yellow skin or eyes (possible gallbladder disease)',
+      'Sudden, painless vision loss in one eye, often noticed on waking, or new blind spots, tunnel vision, dull colors or blurry central vision (possible NAION, an optic nerve problem)',
       'Vomiting or diarrhea so bad you cannot keep fluids down, or urinating much less than usual (dehydration can cause kidney injury)',
       'Swelling of the face, lips or throat, or trouble breathing (serious allergic reaction)',
       'A lump or swelling in your neck, trouble swallowing, or hoarseness. The boxed warning notes thyroid C-cell tumors in rodents; whether this happens in people is unknown.',
@@ -52,7 +53,7 @@ export const METABOLIC: Peptide[] = [
       'You are pregnant or planning a pregnancy. The Wegovy label says to stop when pregnancy is recognized, and at least 2 months before a planned pregnancy.',
       'You are breastfeeding and would take Wegovy tablets (not recommended)',
       'You have severe gastroparesis (very slow stomach emptying); use is not recommended',
-      'You have type 2 diabetes with eye disease (retinopathy). The label warns of complications, so report any new vision changes.',
+      'You have had NAION, a sudden optic nerve vision loss that FDA says can recur, or have diabetic eye disease (retinopathy), which the label also warns about. Report any vision change.',
     ],
     interactions: [
       'Insulin or sulfonylureas: higher risk of low blood sugar. The label says to consider lowering their dose.',
@@ -75,6 +76,7 @@ export const METABOLIC: Peptide[] = [
       { t: 'FDA: policies as GLP-1 supply stabilizes', u: 'https://www.fda.gov/drugs/drug-alerts-and-statements/fda-clarifies-policies-compounders-national-glp-1-supply-begins-stabilize' },
       { t: 'HCPLive: Wegovy 7.2 mg approval and STEP UP trial', u: 'https://www.hcplive.com/view/fda-approves-higher-dose-semaglutide-wegovy-hd-injection-7-2-mg-for-obesity' },
       { t: 'Healio: Wegovy pill approval and OASIS 4 trial', u: 'https://www.healio.com/news/endocrinology/20260213/fda-approves-wegovy-pill-the-first-oral-glp1-to-treat-obesity' },
+      { t: 'FDA Drug Safety Communication: NAION warning for GLP-1 drugs (Nov 9, 2026)', u: 'https://www.fda.gov/drugs/drug-safety-communications/fda-requires-safety-labeling-changes-glucagon-peptide-1-receptor-agonists-glp-1-ras-due-potential' },
       { t: 'WADA 2026 Monitoring Program', u: 'https://www.tennisireland.ie/wp-content/uploads/2025/11/2026-Monitoring-Programme.pdf' },
     ],
   },
@@ -97,6 +99,7 @@ export const METABOLIC: Peptide[] = [
       'REDEFINE 4 (reported Feb 2026): 84 weeks, 809 participants, open-label. Tirzepatide 15 mg gave 25.5% weight loss vs 23.0% on CagriSema.',
       'A 2026 preprint of voluntary lab tests on grey-market vials (not peer-reviewed) found only 13.8% of tirzepatide samples met manufacturing-style standards for amount and purity.',
       'FDA had more than 730 adverse event reports for compounded tirzepatide by May 31, 2026. Pharmacies do not have to report, so the true number is likely higher.',
+      'FDA review (Nov 2026) of 126 trials with 134,253 people: NAION, a rare sudden vision loss in one eye, occurred at 6.4 vs 3.8 cases per 100,000 person-years. Labels must now warn of it.',
     ],
     halfLife: 'About 5 days (label); about 5 to 6 days in people with overweight or obesity',
     routes: 'Weekly injection under the skin of the belly or thigh, or the upper arm if someone else gives it. Comes as single-dose pens or vials, a multi-dose vial, or a 4-dose KwikPen. Never share a KwikPen. Grey-market powder vials sold online are not approved.',
@@ -112,8 +115,8 @@ export const METABOLIC: Peptide[] = [
       'Hair loss',
     ],
     redFlags: [
-      'Severe belly pain that will not go away, sometimes spreading to your back (possible pancreatitis)',
-      'Pain in the upper right belly, fever, or yellow skin or eyes (possible gallbladder disease)',
+      'Severe belly pain that will not go away, sometimes spreading to your back (possible pancreatitis), or upper right belly pain with fever or yellow skin or eyes (possible gallbladder disease)',
+      'Sudden, painless vision loss in one eye, often noticed on waking, or new blind spots, tunnel vision, dull colors or blurry central vision (possible NAION, an optic nerve problem)',
       'Vomiting or diarrhea so bad you cannot keep fluids down, or urinating much less than usual (dehydration can cause kidney injury)',
       'Swelling of the face, lips or throat, or trouble breathing (serious allergic reaction)',
       'A lump or swelling in your neck, trouble swallowing, or hoarseness. The boxed warning notes thyroid C-cell tumors in rats; whether this applies to people is not known.',
@@ -124,6 +127,7 @@ export const METABOLIC: Peptide[] = [
       'You have had a serious allergic reaction to tirzepatide or any ingredient in the product',
       'You are pregnant. Weight loss is not recommended during pregnancy, and the label says to stop Zepbound when pregnancy is recognized.',
       'You have type 2 diabetes with eye disease (retinopathy). The label warns of complications, so report any new vision changes.',
+      'You have had NAION, a sudden vision loss from the optic nerve. FDA says it is more likely to recur, so ask your doctor first.',
       'You have a severe stomach or bowel condition. The label warns of severe gut side effects.',
     ],
     interactions: [
@@ -144,7 +148,7 @@ export const METABOLIC: Peptide[] = [
       { t: 'Zepbound prescribing information (Lilly, rev. 08/2026)', u: 'https://uspl.lilly.com/zepbound/zepbound.html' },
       { t: 'Mounjaro prescribing information (FDA, 08/2026)', u: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2026/215866s044s045lbl.pdf' },
       { t: 'FDA: concerns with unapproved GLP-1 drugs', u: 'https://www.fda.gov/drugs/drug-alerts-and-statements/fdas-concerns-unapproved-glp-1-drugs-used-weight-loss' },
-      { t: 'FDA: policies as GLP-1 supply stabilizes', u: 'https://www.fda.gov/drugs/drug-alerts-and-statements/fda-clarifies-policies-compounders-national-glp-1-supply-begins-stabilize' },
+      { t: 'FDA Drug Safety Communication: NAION warning for GLP-1 drugs (Nov 9, 2026)', u: 'https://www.fda.gov/drugs/drug-safety-communications/fda-requires-safety-labeling-changes-glucagon-peptide-1-receptor-agonists-glp-1-ras-due-potential' },
       { t: 'Fifth Circuit, No. 25-10600 (Aug 27, 2026)', u: 'https://www.ca5.uscourts.gov/opinions/unpub/25/25-10600.0.pdf' },
       { t: 'Clinical Trials Arena: REDEFINE 4 results', u: 'https://www.clinicaltrialsarena.com/news/novo-nordisks-cagrisema-bested-by-lillys-zepbound-in-head-to-head-trial/' },
       { t: 'Mendias & Awan preprint (Apr 2026)', u: 'https://www.preprints.org/manuscript/202604.1748' },
@@ -251,6 +255,7 @@ export const METABOLIC: Peptide[] = [
     redFlags: [
       'Severe belly pain that will not go away, sometimes spreading to your back (pancreatitis is a semaglutide warning)',
       'Pain in the upper right belly, fever, or yellow skin or eyes (gallbladder disease is a semaglutide warning)',
+      'Sudden, painless vision loss in one eye, or new blind spots or blurry central vision (FDA required a NAION warning for semaglutide in Nov 2026)',
       'Vomiting or diarrhea so bad you cannot keep fluids down, or urinating much less than usual (dehydration can injure the kidneys)',
       'Swelling of the face, lips or throat, or trouble breathing (serious allergic reaction)',
       'Fever, chills or feeling very unwell within hours of an injection, or redness spreading from the site (possible contamination of an unregulated product)',
@@ -279,6 +284,7 @@ export const METABOLIC: Peptide[] = [
       { t: 'FDA: concerns with unapproved GLP-1 drugs', u: 'https://www.fda.gov/drugs/drug-alerts-and-statements/fdas-concerns-unapproved-glp-1-drugs-used-weight-loss' },
       { t: 'Drug Topics: how amylin agonists work', u: 'https://www.drugtopics.com/view/eloratzp-shows-greater-weight-loss-a1c-reduction-than-tirzepatide' },
       { t: 'Wegovy prescribing information (FDA, rev. 05/2026)', u: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2026/215256s031lbl218316s003lbl.pdf' },
+      { t: 'FDA Drug Safety Communication: NAION warning for GLP-1 drugs (Nov 9, 2026)', u: 'https://www.fda.gov/drugs/drug-safety-communications/fda-requires-safety-labeling-changes-glucagon-peptide-1-receptor-agonists-glp-1-ras-due-potential' },
       { t: 'WADA 2026 Prohibited List', u: 'https://www.segas.gr/wp-content/uploads/2025/11/2026list_en_final_clean_september_2025.pdf' },
     ],
   },
@@ -313,6 +319,7 @@ export const METABOLIC: Peptide[] = [
     redFlags: [
       'Vomiting or diarrhea so bad you cannot keep fluids down, or urinating much less than usual (dehydration can injure the kidneys; a tirzepatide warning)',
       'Severe belly pain that will not go away, sometimes spreading to your back (pancreatitis is a tirzepatide warning)',
+      'Sudden, painless vision loss in one eye, or new blind spots or blurry central vision (FDA required a NAION warning for tirzepatide in Nov 2026)',
       'Swelling of the face, lips or throat, or trouble breathing (serious allergic reaction)',
       'Fever, chills or feeling very unwell within hours of an injection, or redness spreading from the site (possible contamination of an unregulated product)',
     ],
@@ -339,6 +346,7 @@ export const METABOLIC: Peptide[] = [
       { t: 'Drug Topics: EloraTZP vs tirzepatide', u: 'https://www.drugtopics.com/view/eloratzp-shows-greater-weight-loss-a1c-reduction-than-tirzepatide' },
       { t: 'FDA: concerns with unapproved GLP-1 drugs', u: 'https://www.fda.gov/drugs/drug-alerts-and-statements/fdas-concerns-unapproved-glp-1-drugs-used-weight-loss' },
       { t: 'Zepbound prescribing information (Lilly, rev. 08/2026)', u: 'https://uspl.lilly.com/zepbound/zepbound.html' },
+      { t: 'FDA Drug Safety Communication: NAION warning for GLP-1 drugs (Nov 9, 2026)', u: 'https://www.fda.gov/drugs/drug-safety-communications/fda-requires-safety-labeling-changes-glucagon-peptide-1-receptor-agonists-glp-1-ras-due-potential' },
       { t: 'WADA 2026 Prohibited List', u: 'https://www.segas.gr/wp-content/uploads/2025/11/2026list_en_final_clean_september_2025.pdf' },
     ],
   },

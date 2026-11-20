@@ -1,6 +1,6 @@
 import type { Peptide } from '../../lib/types';
 
-// Skin, hair, tan and sexual-health compounds. US status as of October 28, 2026.
+// Skin, hair, tan and sexual-health compounds. US status as of November 20, 2026.
 // Source notes: research_notes/Trending peptides evidence and safety/skin_tan_sexual_peptides.md
 // and regulation_and_safety.md. No forum or vendor dosing.
 
@@ -430,6 +430,7 @@ export const SKIN_SEXUAL: Peptide[] = [
       'The number of satisfying sexual events did not differ from placebo.',
       'More people quit early on the drug (40% vs 13% and 39% vs 25%); 18% stopped for side effects vs 2% on placebo.',
       'A nasal form was tested in phase II for female sexual dysfunction and erectile dysfunction; FDA halted those trials in 2007 over raised blood pressure.',
+      'Label lactation study (added Oct 2026): after one 1.75 mg dose in 10 breastfeeding women, about 0.13% of the mother\'s weight-adjusted dose reached the milk; none was measurable at 24 hours.',
     ],
     halfLife: 'About 2.7 hours (range 1.9 to 4.0; label)',
     routes: 'Label: autoinjector under the skin of the abdomen or thigh. Grey-market "PT-141" vials sold online are not Vyleesi.',
@@ -460,7 +461,7 @@ export const SKIN_SEXUAL: Peptide[] = [
     ],
     unknowns: [
       'Whether it helps men or postmenopausal women; it is not approved for either.',
-      'Pregnancy safety: trials recorded 7 pregnancies (no major anomalies), and FDA required a pregnancy registry.',
+      'Pregnancy safety: trials recorded 7 pregnancies (no major anomalies), and FDA required a pregnancy registry. Effects on breastfed babies have not been studied.',
       'Long-term liver safety: FDA required 3 years of quarterly reports on liver-injury events after approval.',
       'What grey-market "PT-141" vials actually contain.',
     ],
@@ -470,6 +471,8 @@ export const SKIN_SEXUAL: Peptide[] = [
     sources: [
       { t: 'VYLEESI (bremelanotide) FDA label (FDALabel, revised Jan 2025)', u: VYLEESI_LABEL },
       { t: 'FDA approval letter, NDA 210557 (Jun 21, 2019)', u: 'https://www.accessdata.fda.gov/drugsatfda_docs/nda/2019/210557Orig1s000Approv.pdf' },
+      { t: 'FDA approval letter: Vyleesi label change S-005, Section 8 (Oct 22, 2026)', u: 'https://www.accessdata.fda.gov/drugsatfda_docs/appletter/2026/210557Orig1s005ltr.pdf' },
+      { t: 'Vyleesi prescribing information with the Oct 2026 lactation update (Drugs.com)', u: 'https://www.drugs.com/pro/vyleesi-injection.html' },
       { t: 'Wikipedia, Vyleesi (history and mechanism)', u: 'https://en.wikipedia.org/wiki/Vyleesi' },
       { t: 'FDA, 503A bulk drug substance categories list (updated May 14, 2026)', u: FDA_503A_LIST },
       { t: 'WADA 2026 Prohibited List', u: WADA_2026 },

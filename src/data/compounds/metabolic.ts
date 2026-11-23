@@ -1,7 +1,7 @@
 import type { Peptide } from '../../lib/types';
 
 /**
- * Weight and metabolic compounds, plus lipotropic shots. US status as of Nov 15, 2026.
+ * Weight and metabolic compounds, plus lipotropic shots. US status as of Nov 23, 2026.
  * Built from research_notes/metabolic_peptides.md and regulation_and_safety.md. See AUTHORING.md.
  */
 export const METABOLIC: Peptide[] = [
@@ -171,7 +171,7 @@ export const METABOLIC: Peptide[] = [
     evidence: [
       'Phase 2 (NEJM 2023): 338 adults with obesity, 48 weeks. 12 mg gave 24.2% weight loss vs 2.1% on placebo.',
       'TRIUMPH-1 (company topline, May 2026): 2,339 adults without diabetes, 80 weeks. 12 mg: 28.3% vs 2.2% on placebo assuming people stayed on treatment; 25.0% vs 3.9% regardless of stopping.',
-      'TRIUMPH-4 (company topline, Dec 2025): 445 adults with obesity and knee arthritis, 68 weeks. 12 mg: 28.7% weight loss (23.7% regardless of stopping) vs 2.1%. 18.2% quit for side effects.',
+      'TRIUMPH-4 and TRIUMPH-1-OA (NEJM, Nov 2026): 1,019 adults with obesity and knee arthritis, 68 to 80 weeks. 12 mg: 23.7 to 24.8% weight loss vs 4 to 5% and less knee pain. Serious side effects were more common.',
       'TRIUMPH-2 and 3 (company toplines, Jul 2026): 1,152 adults with type 2 diabetes and 1,949 with heart disease. Up to 20.8% and 22.6% weight loss. Heart-event differences were not significant.',
       'TRIUMPH-1-OSA and 2-OSA (NEJM, Oct 2026): 691 adults with moderate to severe sleep apnea, 80 weeks. 9 mg cut breathing events by 25 to 34 an hour vs about 10 on placebo. Weight loss: up to 22% vs 5 to 6%.',
       'Phase 2: heart rate rose with dose, peaking at 24 weeks. Heart rhythm events: 11% on 12 mg vs 3% on placebo.',
@@ -218,7 +218,7 @@ export const METABOLIC: Peptide[] = [
     sources: [
       { t: 'Jastreboff et al., NEJM 2023 (Phase 2)', u: 'https://www.nejm.org/doi/full/10.1056/NEJMoa2301972' },
       { t: 'Lilly: TRIUMPH-1 topline (May 21, 2026)', u: 'https://investor.lilly.com/news-releases/news-release-details/lillys-triple-agonist-retatrutide-delivered-powerful-weight-loss' },
-      { t: 'Lilly: TRIUMPH-4 topline (Dec 11, 2025)', u: 'https://investor.lilly.com/node/53536/pdf' },
+      { t: 'Schnitzer et al., retatrutide for knee osteoarthritis pain and obesity (TRIUMPH-4, TRIUMPH-1-OA), NEJM 2026', u: 'https://www.nejm.org/doi/full/10.1056/NEJMoa2610676' },
       { t: 'Lilly: TRIUMPH-2 and TRIUMPH-3 toplines (Jul 23, 2026)', u: 'https://www.prnewswire.com/news-releases/lillys-triple-agonist-retatrutide-successful-in-two-additional-phase-3-obesity-trials-delivering-significant-improvements-in-weight-and-a1c-302832674.html' },
       { t: 'FDA: concerns with unapproved GLP-1 drugs', u: 'https://www.fda.gov/drugs/drug-alerts-and-statements/fdas-concerns-unapproved-glp-1-drugs-used-weight-loss' },
       { t: 'Grunstein et al., retatrutide for obstructive sleep apnea, NEJM 2026', u: 'https://www.nejm.org/doi/full/10.1056/NEJMoa2611477' },
@@ -243,10 +243,11 @@ export const METABOLIC: Peptide[] = [
       'REDEFINE 1: 68 weeks, 3,417 participants. CagriSema gave 20.4% weight loss vs 3.0% on placebo. 91.9% lost at least 5% vs 31.5% on placebo.',
       'REDEFINE 4 (reported Feb 2026): 84 weeks, 809 participants, open-label. CagriSema 23.0% vs tirzepatide 15 mg 25.5%. It failed to show it was as good as tirzepatide.',
       'Cagrilintide alone, Phase 2 (Lancet 2021): 706 participants, 26 weeks. About 10.8% weight loss at 4.5 mg weekly.',
+      'REDEFINE 9 (Lancet Diabetes Endocrinol, Nov 2026): 309 adults, 68 weeks. Lower doses (1.7 mg or 1.0 mg of each drug) gave about 21% weight loss vs 2% on placebo if taken as planned, 19% vs 5% counting everyone.',
       'Side effects in REDEFINE 4 were mainly stomach and gut symptoms, mostly mild to moderate.',
     ],
     routes: "Weekly injection under the skin in trials, alone or combined with semaglutide (CagriSema). Cagrilintide sold online as a 'research' peptide is not the trial product.",
-    studied: 'CagriSema in REDEFINE trials: cagrilintide 2.4 mg plus semaglutide 2.4 mg once weekly. Cagrilintide alone: up to 4.5 mg once weekly in a 26-week Phase 2 trial.',
+    studied: 'CagriSema in REDEFINE trials: cagrilintide 2.4 mg plus semaglutide 2.4 mg once weekly; REDEFINE 9 also tested 1.7 mg or 1.0 mg of each. Cagrilintide alone: up to 4.5 mg once weekly in a 26-week Phase 2 trial.',
     sideEffects: [
       'Stomach and gut symptoms were the most common, mostly mild to moderate',
       'Gut symptoms tended to ease over time',
@@ -281,6 +282,7 @@ export const METABOLIC: Peptide[] = [
     sources: [
       { t: 'PharmExec: Novo Nordisk submits CagriSema NDA', u: 'https://www.pharmexec.com/view/novo-nordisk-submits-nda-fda-cagrisema' },
       { t: 'Clinical Trials Arena: REDEFINE 4 results', u: 'https://www.clinicaltrialsarena.com/news/novo-nordisks-cagrisema-bested-by-lillys-zepbound-in-head-to-head-trial/' },
+      { t: 'Healio: lower-dose CagriSema in REDEFINE 9 (Nov 17, 2026)', u: 'https://www.healio.com/news/endocrinology/20261117/lowerdose-cagrisema-reduces-body-weight-vs-placebo' },
       { t: 'FDA: concerns with unapproved GLP-1 drugs', u: 'https://www.fda.gov/drugs/drug-alerts-and-statements/fdas-concerns-unapproved-glp-1-drugs-used-weight-loss' },
       { t: 'Drug Topics: how amylin agonists work', u: 'https://www.drugtopics.com/view/eloratzp-shows-greater-weight-loss-a1c-reduction-than-tirzepatide' },
       { t: 'Wegovy prescribing information (FDA, rev. 05/2026)', u: 'https://www.accessdata.fda.gov/drugsatfda_docs/label/2026/215256s031lbl218316s003lbl.pdf' },

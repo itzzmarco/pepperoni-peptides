@@ -1,7 +1,7 @@
 import type { Peptide } from '../../lib/types';
 
 /*
- * Growth hormone axis compounds. US status as of October 26, 2026.
+ * Growth hormone axis compounds. US status as of November 25, 2026.
  * Built only from the research notes in "Trending peptides evidence and safety"
  * (growth_hormone_peptides.md, regulation_and_safety.md). See AUTHORING.md.
  * Sequences are omitted: the notes do not give them.
@@ -99,6 +99,7 @@ export const GROWTH_HORMONE: Peptide[] = [
       'HbA1c of 6.5% or higher in 5% on tesamorelin vs 1% on placebo.',
       'Antibodies to the drug in 50% at 26 weeks and 47% at 52 weeks; about 60% of these also reacted with the body\'s own GHRH; neutralizing antibodies in 10%.',
       'Egrifta WR (approved March 25, 2025) is injected daily but mixed only weekly, and is not interchangeable with Egrifta SV.',
+      'Meta-analysis (2026, 4 RCTs, 909 adults with HIV lipodystrophy): visceral fat fell about 21 cm2 more than on placebo, and lean mass rose. Quitting was about twice as common on the drug, but that may be chance.',
     ],
     halfLife: 'About 11 minutes for Egrifta WR in healthy adults (label); 26 to 38 minutes for older versions',
     routes: 'Injection under the skin of the abdomen, once daily (label).',
@@ -144,6 +145,7 @@ export const GROWTH_HORMONE: Peptide[] = [
       { t: 'Egrifta WR professional prescribing information, Drugs.com', u: 'https://www.drugs.com/pro/egrifta-wr.html' },
       { t: 'Theratechnologies press release on Egrifta WR approval (SEC filing, 2025)', u: 'https://www.sec.gov/Archives/edgar/data/0001512717/000119312525063760/d944896dex991.htm' },
       { t: 'Wikipedia: Tesamorelin', u: 'https://en.wikipedia.org/wiki/Tesamorelin' },
+      { t: 'Meta-analysis: tesamorelin in people with HIV and lipodystrophy (J Int Assoc Provid AIDS Care, Jul 2026)', u: 'https://journals.sagepub.com/doi/full/10.1177/23259582261475549' },
       WADA_LIST,
       PEPTIDE_TESTING_PREPRINT,
     ],

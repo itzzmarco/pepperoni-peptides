@@ -19,6 +19,18 @@ describe('normalize', () => {
     expect(l.doses.map(d => d.id)).toEqual(['2', '1']);
     expect(l.checkins[0]).toMatchObject({ effects: [], flags: [] });
   });
+
+  it('drops doses and check-ins whose date cannot be read, and keeps the rest', () => {
+    const l = normalize({
+      regimens: [reg('a')],
+      doses: [dose('1', '2026-10-01T09:00:00Z'), dose('2', 'not a date'), dose('3', ''), dose('4', '2026-10-20T09:00')],
+      checkins: [check('c1', 'yesterday'), check('c2', '2026-10-02T09:00:00Z'), { id: 'c3', at: 1760000000000 }],
+    })!;
+    expect(l.regimens.map(r => r.id)).toEqual(['a']);
+    expect(l.doses.map(d => d.id)).toEqual(['4', '1']);
+    expect(l.checkins.map(c => c.id)).toEqual(['c2']);
+    for (const e of [...l.doses, ...l.checkins]) expect(Number.isNaN(new Date(e.at).getTime())).toBe(false);
+  });
 });
 
 describe('merge', () => {

@@ -1,6 +1,6 @@
 import type { FamilyKey, LegalKey, SafetyCard, Source, Tier, TimelineEvent } from '../lib/types';
 
-export const AS_OF = 'November 7, 2026';
+export const AS_OF = 'November 23, 2026';
 export const AS_OF_SHORT = 'Nov 2026';
 
 export const TIERS: Record<Tier, { label: string; long: string }> = {
@@ -63,6 +63,7 @@ const S = {
   hhsPolicy: { t: 'HHS: interim peptide compounding policy (Oct 28, 2026)', u: 'https://www.hhs.gov/sites/default/files/hhs-503a-peptide-enforcement-discretion-policy.pdf' },
   hhsRoutes: { t: 'HHS policy appendices: peptides, forms and routes', u: 'https://www.hhs.gov/sites/default/files/hhs-503a-peptide-enforcement-discretion-policy-appendix-b.pdf' },
   raps: { t: 'RAPS (Oct 29, 2026)', u: 'https://www.raps.org/resource/hhs-will-permit-compounding-of-six-peptides-ahead-of-formal-rulemaking.html' },
+  fdaNaion: { t: 'FDA Drug Safety Communication: NAION warning for GLP-1 drugs (Nov 9, 2026)', u: 'https://www.fda.gov/drugs/drug-safety-communications/fda-requires-safety-labeling-changes-glucagon-peptide-1-receptor-agonists-glp-1-ras-due-potential' },
   arnold: { t: 'Arnold & Porter: HHS draft peptide policy (Nov 2, 2026)', u: 'https://www.arnoldporter.com/en/perspectives/advisories/2026/11/hhs-announces-draft-enforcement-discretion-policy-paving-way-for-pharmacies' },
   pcacPage: { t: 'FDA PCAC meeting page', u: 'https://www.fda.gov/advisory-committees/pharmacy-compounding-advisory-committee/meeting-pharmacy-compounding-advisory-committee' },
   wada: { t: 'WADA 2026 Prohibited List', u: 'https://www.segas.gr/wp-content/uploads/2025/11/2026list_en_final_clean_september_2025.pdf' },
@@ -99,12 +100,13 @@ export const TIMELINE: TimelineEvent[] = [
   { date: 'Aug 27, 2026', k: 'tighten', title: 'Endotoxin reactions from compounded IV glutathione', body: 'FDA reported at least 30 patients with fever, chills, dizziness and shock-like symptoms after glutathione made from a supplement-grade ingredient. Two Texas pharmacies recalled product. The same day, a federal appeals court upheld FDA\'s GLP-1 shortage decisions.' },
   { date: 'Oct 14, 2026', k: '', title: 'Interim peptide access policy goes to the White House', body: 'HHS sent an "Interim Access Policy for Compounding Using Certain Peptides" for White House review. Its text was not public until it was issued two weeks later.' },
   { date: 'Oct 28, 2026', k: 'loosen', title: 'HHS lets pharmacies compound six peptides for now', body: 'In a draft policy, HHS said it will not act against licensed pharmacies or doctors who compound BPC-157, TB-500, KPV, MOTS-c, Semax or Epitalon for one patient\'s prescription. The ingredient must come from an FDA-registered maker with a test certificate, each product may contain only one of these peptides, and only listed routes are allowed (for example, KPV only as a cream or by mouth, Semax only in the nose). It is not FDA approval, does not cover "research" products sold online, and lasts until FDA decides on its 503A list. It does not bind state pharmacy boards. FDA staff had opposed all six.' },
-  { date: 'Nov 13, 2026', k: 'next', title: 'Comments close on the HHS peptide policy', body: 'The public can comment on the draft policy until two weeks after its Oct 30 Federal Register notice. HHS can change it afterward, or at any time if a safety or quality problem appears.' },
+  { date: 'Nov 9, 2026', k: 'tighten', title: 'FDA adds an eye warning to all GLP-1 drugs', body: 'Labels for semaglutide, tirzepatide and other GLP-1 drugs must now warn about NAION, a rare, sudden loss of vision in one eye. In 126 trials it occurred at 6.4 vs 3.8 cases per 100,000 person-years.' },
+  { date: 'Nov 13, 2026', k: '', title: 'Comments closed on the HHS peptide policy', body: 'The public comment period on the draft policy ended two weeks after its Oct 30 Federal Register notice. HHS can still change the policy, or withdraw it at any time if a safety or quality problem appears.' },
   { date: 'Jan 1, 2027', k: 'next', title: 'WADA 2027 Prohibited List takes effect', body: 'Peptides stay banned at all times for tested athletes. The status of GLP-1 drugs is unchanged.' },
   { date: 'By end of Feb 2027', k: 'next', title: 'Second advisory committee meeting', body: 'Scheduled to review LL-37, injectable GHK-Cu, dihexa, Melanotan II and PEG-MGF. No date set yet.' },
 ];
 
-export const TIMELINE_SOURCES: Source[] = [S.cat2, S.reed, S.pcacOct24, S.pcacDec24, S.glp1Policy, S.greenList, S.npr, S.wlMileHigh, S.orrick, S.fedReg, S.ex503b, S.noms, S.ajmc, S.doj, S.glut, S.ca5, S.becker, S.hhsPolicy, S.hhsRoutes, S.raps, S.arnold, S.pcacPage, S.wada27];
+export const TIMELINE_SOURCES: Source[] = [S.cat2, S.reed, S.pcacOct24, S.pcacDec24, S.glp1Policy, S.greenList, S.npr, S.wlMileHigh, S.orrick, S.fedReg, S.ex503b, S.noms, S.ajmc, S.doj, S.glut, S.ca5, S.becker, S.hhsPolicy, S.hhsRoutes, S.raps, S.arnold, S.fdaNaion, S.pcacPage, S.wada27];
 
 export const SAFETY: { cards: SafetyCard[]; legalIntro: string; questions: string[]; about: string } = {
   cards: [
@@ -196,5 +198,5 @@ export const SAFETY: { cards: SafetyCard[]; legalIntro: string; questions: strin
     'Does the clinic sell this product, and what are my other options?',
     "I'm a drug-tested athlete or in the military. Is this banned for me?",
   ],
-  about: `Peptide Ledger is an education and record-keeping tool, not medical advice. Each library entry summarizes published studies, FDA documents, product labels, court records and news reports checked as of ${AS_OF}, with links to its sources. Evidence tiers describe how good the human evidence is, not whether something is safe. US rules are changing quickly: an HHS interim policy opened compounding for six peptides in October 2026 and another advisory meeting is due by February 2027, so check the linked sources for anything newer. The app never suggests doses. Where doses appear, they are from an approved label or a published trial. Your log stays in this browser on this device unless you sign in, which syncs it to your own private account.`,
+  about: `Peptidal is an education and record-keeping tool, not medical advice. Each library entry summarizes published studies, FDA documents, product labels, court records and news reports checked as of ${AS_OF}, with links to its sources. Evidence tiers describe how good the human evidence is, not whether something is safe. US rules are changing quickly: an HHS interim policy opened compounding for six peptides in October 2026 and another advisory meeting is due by February 2027, so check the linked sources for anything newer. The app never suggests doses. Where doses appear, they are from an approved label or a published trial. Your log stays in this browser on this device unless you sign in, which syncs it to your own private account.`,
 };

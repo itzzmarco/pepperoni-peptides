@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { fmtShort } from '../lib/format';
 
 export interface Pt {
@@ -8,11 +8,9 @@ export interface Pt {
 }
 
 /**
- * Line with area wash, end label, and a tooltip for the picked point. The panel title names the series.
+ * A level over time, drawn like the tide: water under the line, a bead at each reading, the latest one largest,
+ * with an end label and a hover tooltip per point. The panel title names the series.
  * An optional second series (`points2`) draws as a second line in another color, without the wash.
- * Pointer: touching or hovering the chart and sliding along it snaps the tip to the nearest point (vertical drags still scroll).
- * Keyboard: the chart is one tab stop; arrow keys (and Home/End) step through every point in time order and
- * show the same tip, which a live region reads out. A visually hidden list carries every plotted value.
  */
 export function LineChart({ points, points2 = [], y0, y1, ticks, x0, x1, label, fmt = String }: {
   points: Pt[];
@@ -25,6 +23,7 @@ export function LineChart({ points, points2 = [], y0, y1, ticks, x0, x1, label, 
   label: string;
   fmt?: (v: number) => string;
 }) {
+  const [hover, setHover] = useState<{ left: number; top: number; text: string } | null>(null);
   // Draw at the container's real pixel width so labels stay at text size instead of scaling with the SVG.
   const wrap = useRef<HTMLDivElement>(null);
   const [W, setW] = useState(520);
@@ -50,39 +49,15 @@ export function LineChart({ points, points2 = [], y0, y1, ticks, x0, x1, label, 
   const last = pts[pts.length - 1];
   const lx = sx(last.x.getTime());
   const last2 = pts2[pts2.length - 1];
-  // Every point of both series in time order: the keyboard walks this list, the hidden list reads it out.
-  const all = [...pts, ...pts2].sort(byX);
-  const [sel, setSel] = useState<number | null>(null);
-  const picked = sel != null ? all[Math.min(sel, all.length - 1)] : undefined;
-  // The tip wraps inside the chart and is kept whole by its measured width, so a long readout never leaves the screen.
-  const tipRef = useRef<HTMLDivElement>(null);
-  const [tipW, setTipW] = useState(0);
-  useLayoutEffect(() => { setTipW(tipRef.current?.offsetWidth ?? 0); }, [picked?.tip, W]);
-  const fromPointer = (e: PointerEvent<HTMLDivElement>) => {
-    const b = e.currentTarget.getBoundingClientRect();
-    if (!b.width) return;
-    const px = ((e.clientX - b.left) / b.width) * W, py = ((e.clientY - b.top) / b.height) * H;
-    // Nearest in time first; where both series share a day, the one nearer the finger.
-    let best = 0, bestD = Infinity;
-    all.forEach((p, i) => {
-      const d = (sx(p.x.getTime()) - px) ** 2 + ((sy(p.y) - py) / 2) ** 2;
-      if (d < bestD) { bestD = d; best = i; }
-    });
-    setSel(best);
-  };
-  const onKey = (e: KeyboardEvent) => {
-    const n = all.length;
-    const i = sel ?? n;
-    const next = e.key === 'ArrowRight' || e.key === 'ArrowUp' ? Math.min(n - 1, sel == null ? n - 1 : i + 1)
-      : e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? Math.max(0, i - 1)
-      : e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : null;
-    if (next == null) return;
-    e.preventDefault();
-    setSel(next);
-  };
   const dots = (ps: Pt[], cls: string) => ps.map((p, i) => {
+    const cx = sx(p.x.getTime()), cy = sy(p.y);
     const isLast = i === ps.length - 1;
-    return (isLast || ps.length < 12) && <circle key={`${cls}${i}`} className={`pt ${cls}`} cx={sx(p.x.getTime())} cy={sy(p.y)} r={isLast ? 5 : 4} />;
+    return (
+      <g key={`${cls}${i}`}>
+        {(isLast || ps.length < 12) && <circle className={`pt pop ${cls}${isLast ? ' last' : ''}`} cx={cx} cy={cy} r={isLast ? 6 : 4} style={{ ['--i' as string]: i * 2 }} />}
+        <circle cx={cx} cy={cy} r={11} fill="transparent" onMouseEnter={() => setHover({ left: (cx / W) * 100, top: (cy / H) * 100, text: p.tip })} />
+      </g>
+    );
   });
   const endLabel = (p: Pt, cls: string, nudge: number) => {
     const x = sx(p.x.getTime());
@@ -96,9 +71,7 @@ export function LineChart({ points, points2 = [], y0, y1, ticks, x0, x1, label, 
   const close = last2 && Math.abs(sy(last2.y) - sy(last.y)) < 16;
   const above = !last2 || sy(last.y) <= sy(last2.y);
   return (
-    <div className="chart-wrap" ref={wrap} tabIndex={0} role="group"
-      aria-label={`${label}. Arrow keys step through the points.`} onKeyDown={onKey} onBlur={() => setSel(null)}
-      onPointerDown={fromPointer} onPointerMove={fromPointer} onPointerLeave={e => { if (e.pointerType === 'mouse') setSel(null); }}>
+    <div className="chart-wrap" ref={wrap} onMouseLeave={() => setHover(null)}>
       <svg className="chart" width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
         {ticks.map(t => (
           <g key={t}>
@@ -119,16 +92,12 @@ export function LineChart({ points, points2 = [], y0, y1, ticks, x0, x1, label, 
         {dots(pts, '')}
         {endLabel(last, '', above || !close ? -8 : 18)}
         {last2 && endLabel(last2, 'two', above && close ? 18 : -8)}
-        {picked && <circle className="pt-focus" cx={sx(picked.x.getTime())} cy={sy(picked.y)} r={8} />}
       </svg>
-      {picked && (
-        <div className="tip" ref={tipRef} aria-hidden="true"
-          style={{ left: `clamp(${tipW / 2}px, ${(sx(picked.x.getTime()) / W) * 100}%, calc(100% - ${tipW / 2}px))`, top: `${(sy(picked.y) / H) * 100}%` }}>
-          {picked.tip}
+      {hover && (
+        <div className="tip" style={{ left: `clamp(60px, ${hover.left}%, calc(100% - 60px))`, top: `${hover.top}%` }}>
+          {hover.text}
         </div>
       )}
-      <span className="sr-only" aria-live="polite">{picked?.tip ?? ''}</span>
-      <ul className="sr-only">{all.map((p, i) => <li key={i}>{p.tip}</li>)}</ul>
     </div>
   );
 }

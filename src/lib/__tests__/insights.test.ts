@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { DoseEntry, Regimen } from '../types';
-import { adherence, bucketDays, doseDays, effectsNearDoses, glp1Overlap, patternWeeks } from '../insights';
+import type { Checkin, DoseEntry, Regimen } from '../types';
+import { adherence, doseDays, effectDays, effectsNearDoses, glp1Overlap, patternWeeks, siteCounts, topEffects, usualMinutes } from '../insights';
 import { lastBellyHour, nextBellyHour } from '../sites';
 
 const reg = (id: string, freq: string, extra: Partial<Regimen> = {}): Regimen => ({
@@ -9,6 +9,7 @@ const reg = (id: string, freq: string, extra: Partial<Regimen> = {}): Regimen =>
 });
 const dose = (rid: string, at: Date, site = ''): DoseEntry => ({ id: rid + at.getTime(), rid, name: rid, at: at.toISOString(), amount: '1', unit: 'mg', route: '', site, notes: '' });
 const day = (d: number, h = 9) => new Date(2026, 9, d, h); // October 2026
+const check = (at: Date, effects: string[]): Checkin => ({ id: 'c' + at.getTime(), at: at.toISOString(), effects, flags: [], notes: '' });
 
 describe('adherence', () => {
   const now = day(27, 10); // Tue Oct 27, 10 AM
@@ -58,6 +59,45 @@ describe('side-effect pattern', () => {
   });
 });
 
+describe('Trends counts', () => {
+  const since = day(20, 0).getTime(); // midnight starting Oct 20
+
+  it('ranks side effects since the cutoff, counting a repeat within one check-in once and breaking ties by name', () => {
+    const checkins = [
+      check(day(26), ['Nausea', 'Nausea', 'Headache']),
+      check(day(24), ['Nausea', 'Fatigue']),
+      check(day(22), []),
+      check(day(20, 0), ['Fatigue']), // exactly at the cutoff: counted
+      check(day(19, 23), ['Headache', 'Dizziness']), // an hour before it: left out
+    ];
+    expect(topEffects(checkins, since)).toEqual([['Fatigue', 2], ['Nausea', 2], ['Headache', 1]]);
+    expect(topEffects(checkins, day(27, 0).getTime())).toEqual([]);
+  });
+
+  it('counts injections per site since the cutoff, most used first, ties by site key, skipping doses with no site', () => {
+    const doses = [
+      dose('w', day(26), 'thigh-r'), dose('w', day(24), 'thigh-r'), dose('w', day(22), 'thigh-r'),
+      dose('w', day(25), 'abd-ur'), dose('w', day(23), 'abd-ur'),
+      dose('w', day(19, 23), 'abd-ur'), // before the cutoff: a third here would put abd-ur first
+      dose('w', day(21), 'abd-ll'), dose('w', day(20, 0), 'abd-ll'),
+      dose('w', day(21, 12)),
+    ];
+    expect(siteCounts(doses, since)).toEqual([['thigh-r', 3], ['abd-ll', 2], ['abd-ur', 2]]);
+  });
+
+  it('lists each day whose check-in had a side effect, once', () => {
+    const checkins = [check(day(26), ['Nausea']), check(day(26, 21), ['Headache']), check(day(25), []), check(day(24, 23), ['Fatigue'])];
+    expect(effectDays(checkins)).toEqual(new Set(['2026-10-26', '2026-10-24']));
+  });
+
+  it("takes a regimen's usual time from its most recent dose", () => {
+    const doses = [dose('w', new Date(2026, 9, 26, 7, 45)), dose('x', day(25, 21)), dose('w', day(19, 20))];
+    expect(usualMinutes('w', doses)).toBe(7 * 60 + 45);
+    expect(usualMinutes('x', doses)).toBe(21 * 60);
+    expect(usualMinutes('none', doses)).toBeNull();
+  });
+});
+
 describe('belly clock', () => {
   it('moves one hour clockwise from the regimen’s last belly dose, wrapping 12 to 1', () => {
     const doses = [dose('w', day(26), 'belly-12'), dose('x', day(25), 'belly-3'), dose('w', day(19), 'belly-11')];
@@ -78,20 +118,4 @@ it('flags two different GLP-1 medicines tracked at once', () => {
   expect(glp1Overlap([sema, tirz])).toHaveLength(2);
   expect(glp1Overlap([sema, { ...tirz, paused: true }])).toHaveLength(0);
   expect(glp1Overlap([sema, { ...sema, id: 'c' }])).toHaveLength(0);
-});
-
-describe('bucketDays', () => {
-  it('keeps one bucket per day at size 1', () => {
-    expect(bucketDays([0, 2, 1], 1)).toEqual([{ start: 0, n: 0 }, { start: 1, n: 2 }, { start: 2, n: 1 }]);
-  });
-
-  it('groups 90 days into 13 weeks ending today, the oldest one short', () => {
-    const counts = Array.from({ length: 90 }, (_, i) => (i === 0 || i === 89 ? 1 : 0));
-    const b = bucketDays(counts, 7);
-    expect(b).toHaveLength(13);
-    expect(b[0]).toEqual({ start: 0, n: 1 }); // days 0 to 5
-    expect(b[1].start).toBe(6);
-    expect(b[12]).toEqual({ start: 83, n: 1 }); // the last 7 days
-    expect(b.reduce((a, x) => a + x.n, 0)).toBe(2);
-  });
 });

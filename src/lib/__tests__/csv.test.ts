@@ -52,4 +52,29 @@ describe('ledgerToCsv', () => {
     expect(lines[2]).toContain('"mild, itchy"');
     expect(lines[3]).toContain('Nausea; Headache');
   });
+
+  it('puts an apostrophe before text a spreadsheet would run as a formula, and leaves numbers and dates alone', () => {
+    const risky: Ledger = {
+      version: 1,
+      regimens: [{ ...ledger.regimens[0], compoundId: '', name: '@SUM(A1)', prescriber: '', source: '+cmd', notes: '-2+3' }],
+      doses: [{ ...ledger.doses[0], amount: '-2.5', notes: '=HYPERLINK("http://x.test","open")' }],
+      checkins: [{ ...ledger.checkins[0], weight: -1.5, effects: ['=1+1', 'Nausea'] }],
+    };
+    const out = ledgerToCsv(risky, () => undefined).split('\n');
+    const [, r, c, d] = out.map(parseRow);
+    const col = (row: string[], name: string) => row[CSV_HEADER.indexOf(name)];
+
+    expect(col(d, 'notes')).toBe(`'=HYPERLINK("http://x.test","open")`);
+    expect(out[3]).toContain(`"'=HYPERLINK(""http://x.test"",""open"")"`);
+    expect(col(r, 'name')).toBe("'@SUM(A1)");
+    expect(col(r, 'emergency_symptoms_or_source')).toBe("'+cmd");
+    expect(col(r, 'notes')).toBe("'-2+3");
+    expect(col(c, 'side_effects_or_frequency')).toBe("'=1+1; Nausea");
+
+    expect(col(d, 'amount')).toBe('-2.5');
+    expect(col(c, 'weight')).toBe('-1.5');
+    expect(col(r, 'date_time')).toBe('2026-10-01');
+    expect(col(d, 'date_time')).toBe('2026-10-01T09:00:00.000Z');
+    out.forEach(l => expect(parseRow(l)).toHaveLength(CSV_HEADER.length));
+  });
 });

@@ -3,11 +3,13 @@ import type { Checkin, DoseEntry, Ledger } from '../lib/types';
 import { useLedger } from '../lib/store';
 import { useAccount } from '../lib/account';
 import { firstName, refreshPartners, usePartners, weighIns, weightChange } from '../lib/partner';
-import { adherenceDays, freqText, regimenStatus } from '../lib/schedule';
+import { freqText, intervalDays, regimenStatus } from '../lib/schedule';
+import { tideOf, tideText } from '../lib/tide';
 import { adherence } from '../lib/insights';
 import { DAY, dayKey, fmtDay, fmtNum, fmtShort, fmtTime, startOfDay } from '../lib/format';
 import { LineChart } from '../components/LineChart';
-import { IlloPartner } from '../components/Illustration';
+import { Kinetic, Mast } from '../components/Mast';
+import { Level, TideChart } from '../components/Tidal';
 import { regName } from './PeptidesView';
 
 const RANGES = [[30, 'Month'], [90, '3 months'], [0, 'Since start']] as const;
@@ -34,7 +36,7 @@ function Recent({ log, name }: { log: Ledger; name: string }) {
             return (
               <div key={`${it.kind}${it.e.id}`}>
                 {head}
-                <div className="tl-item two">
+                <div className="tl-item" style={{ gridTemplateColumns: '64px minmax(0, 1fr)' }}>
                   <time>{fmtTime(d)}</time>
                   {it.kind === 'dose' ? (
                     <div className="what"><b>{it.e.name}</b> {fmtNum(Number(it.e.amount), 3)} {it.e.unit}<small>{[it.e.route, it.e.notes].filter(Boolean).join(' · ')}</small></div>
@@ -68,29 +70,16 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
   const now = new Date();
 
   if (!acct.configured || !acct.user || !partners.length) {
-    // First fetch, before anything has loaded: either page could follow, so show neither page's words yet.
-    const first = loading && !!acct.user && !fetchedAt;
     return (
       <section className="view">
-        <p className="sr-only" aria-live="polite">{first ? 'Checking for a linked partner…' : ''}</p>
-        {first ? (
-          /* The loaded card's order (eyebrow, heading, art, a line, one control), so each block resolves in place when it lands. */
-          <div className="skel-page empty" aria-hidden="true">
-            <span className="eyebrow">Partner</span>
-            <div className="skel skel-title" />
-            <div className="skel skel-art" />
-            <div className="skel skel-line" />
-            <div className="skel skel-btn" />
+        <Mast>
+          <Kinetic a="Track progress together." />
+          <p className="rise" style={rise(4)}>Link accounts with your partner and you'll each see the other's weight and shots next to your own. Neither of you can change the other's log.</p>
+          <div className="head-actions rise" style={rise(5)}>
+            {loading && acct.user ? <span className="small">Checking for a linked partner…</span>
+              : <button className="btn" onClick={onAccount}>{acct.user ? 'Link your partner' : 'Sign in to link'}</button>}
           </div>
-        ) : (
-          <header className="empty rise">
-            <span className="eyebrow">Partner</span>
-            <h1>Track progress together.</h1>
-            <IlloPartner />
-            <p className="small muted">Link accounts with your partner and you'll each see the other's weight and shots next to your own. Neither of you can change the other's log.</p>
-            <button className="btn" onClick={onAccount}>{acct.user ? 'Link your partner' : 'Sign in to link'}</button>
-          </header>
-        )}
+        </Mast>
         {error && <p className="alert warn"><b>Couldn't load your partner.</b><span>{error}</span></p>}
       </section>
     );
@@ -118,87 +107,107 @@ export function PartnerView({ onAccount }: { onAccount: () => void }) {
   const startDay = theirs ? fmtShort(theirs.first.at) : '';
 
   const active = log.regimens.filter(r => !r.paused);
+  // Their scheduled peptides and yours, as tides one above the other: whose water is out is who is due.
+  const tideRows = [
+    ...active.map(r => ({ who: name, r, doses: log.doses })),
+    ...mine.regimens.filter(r => !r.paused).map(r => ({ who: 'You', r, doses: mine.doses })),
+  ].filter(x => intervalDays(x.r) && x.doses.some(d => d.rid === x.r.id));
   const line2 = theirs && theirs.count > 1
     ? `${theirs.change < 0 ? 'Down' : theirs.change > 0 ? 'Up' : 'Even'}${theirs.change ? ` ${Math.abs(theirs.change).toFixed(1)} ${unit}` : ''} since ${startDay}.`
     : 'No weight trend yet.';
 
   return (
     <section className="view">
-      <header className="head rise">
-        <span className="eyebrow">Partner · view only</span>
-        <h1>{name}'s progress.<br /><span className="soft">{line2}</span></h1>
-      </header>
+      <Mast>
+        <p className="when rise"><b>Partner</b><span>View only</span></p>
+        <Kinetic a={`${name}'s progress.`} b={line2} />
+        <div className="seg rise" role="group" aria-label="Time range" style={rise(2)}>
+          {RANGES.map(([d, l]) => <button key={d} type="button" aria-pressed={days === d} onClick={() => setDays(d)}>{l}</button>)}
+        </div>
+      </Mast>
 
       {partners.length > 1 && (
-        <div className="pick flush rise" role="group" aria-label="Partner">
+        <div className="pick rise" role="group" aria-label="Partner" style={{ margin: 0, padding: 0 }}>
           {partners.map(x => <button key={x.id} type="button" className="fchip" aria-pressed={x.id === p.id} onClick={() => setPick(x.id)}>{firstName(x.name)}</button>)}
         </div>
       )}
 
-      <div className="seg rise" role="group" aria-label="Time range" style={rise(1)}>
-        {RANGES.map(([d, l]) => <button key={d} type="button" aria-pressed={days === d} onClick={() => setDays(d)}>{l}</button>)}
-      </div>
-
-      <div className="cols">
       <section className="tile lilac rise" aria-labelledby="p-wt-h" style={rise(2)}>
         <div className="spread"><h2 id="p-wt-h" className="label">Weight change, together</h2><span className="count">{unit}</span></div>
         <div className="together">
-          <div className="inset">
-            <div className="xsmall muted">{name}</div>
-            <b className="num tone-peach">{theirs && theirs.count > 1 ? signed(theirs.change, unit) : '–'}</b>
-            <div className="xsmall muted">{theirs ? `${fmtNum(theirs.last.w, 1)} ${unit} now` : 'No weigh-ins'}</div>
+          <div>
+            <span className="sub">{name}</span>
+            <span className="mid" style={{ color: 'var(--peach-ink)' }}>{theirs && theirs.count > 1 ? signed(theirs.change, '') : '–'}</span>
+            <span className="sub">{theirs ? `${fmtNum(theirs.last.w, 1)} ${unit} now` : 'No weigh-ins'}</span>
           </div>
-          <div className="inset">
-            <div className="xsmall muted">You</div>
-            <b className="num tone-lilac">{yours && yours.count > 1 ? signed(yours.change, unit) : '–'}</b>
-            <div className="xsmall muted">{yours ? `${fmtNum(yours.last.w, 1)} ${unit} now` : 'No weigh-ins'}</div>
+          <div>
+            <span className="sub">You</span>
+            <span className="mid">{yours && yours.count > 1 ? signed(yours.change, '') : '–'}</span>
+            <span className="sub">{yours ? `${fmtNum(yours.last.w, 1)} ${unit} now` : 'No weigh-ins'}</span>
           </div>
         </div>
         {sT.length + sY.length >= 2 && (sY.length || sT.length) ? (
           <>
             <LineChart points={sY.length ? sY : sT} points2={sY.length ? sT : []} y0={lo} y1={hi} ticks={ticks}
               x0={x0} x1={now.getTime()} label={`Weight change since the start of the range: you and ${name}`} fmt={v => (v > 0 ? `+${fmtNum(v, 1)}` : fmtNum(v, 1))} />
-            <div className="legend tone-ink">
-              {sY.length > 0 && <span><i style={{ background: 'var(--chart-line)' }} />You</span>}
-              {sT.length > 0 && <span><i className={sY.length ? 'two' : ''} style={sY.length ? undefined : { background: 'var(--chart-line)' }} />{name}</span>}
+            <div className="legend">
+              {sY.length > 0 && <span><i className="bead" style={{ background: 'var(--chart-line)' }} />You</span>}
+              {sT.length > 0 && <span><i className={`bead${sY.length ? ' two' : ''}`} style={sY.length ? undefined : { background: 'var(--chart-line)' }} />{name}</span>}
             </div>
           </>
-        ) : <p className="small muted">Weigh-ins from either of you show up here as a line, starting from zero so you can compare.</p>}
+        ) : <p className="sub">Weigh-ins from either of you show up here as a line, starting from zero so you can compare.</p>}
       </section>
+
+      {tideRows.length > 0 && (
+        <section className="tile mint rise" aria-labelledby="p-tide-h" style={rise(3)}>
+          <div className="spread"><h2 id="p-tide-h" className="label">Tides, together</h2><span className="count">Last 4 weeks</span></div>
+          {tideRows.map(({ who, r, doses }) => {
+            const st = regimenStatus(r, doses, now);
+            const text = tideText(tideOf(r, st, now), st);
+            return (
+              <div key={who + r.id} className="stack" style={{ gap: 6 }}>
+                <div className="spread">
+                  <b>{who} · {regName(r)}</b>
+                  <span className="small" style={{ fontWeight: 600, color: st.s === 'late' ? 'var(--danger)' : 'var(--mint-ink)' }}>{text}</span>
+                </div>
+                <TideChart times={doses.filter(d => d.rid === r.id).map(d => new Date(d.at).getTime())} every={intervalDays(r)!} days={28} now={now}
+                  label={`${who === 'You' ? 'Your' : `${who}'s`} ${regName(r)} over the last 4 weeks, ${text.toLowerCase()}. The water is high after each dose and lies flat while one is overdue.`} />
+              </div>
+            );
+          })}
+          <p className="sub">High water after each dose, ebbing until the next is due. Flat water means a dose is overdue.</p>
+        </section>
+      )}
 
       <section className="tile mint rise" aria-labelledby="p-shots-h" style={rise(3)}>
         <h2 id="p-shots-h" className="label">{name}'s shots</h2>
         {active.length ? active.map(r => {
           const st = regimenStatus(r, log.doses, now);
           const adh = adherence([r], log.doses, now, 28);
-          const strip = adherenceDays(r.id, log.doses, 28, now);
           return (
-            <div key={r.id} className="stack gap-2">
+            <div key={r.id} className="stack" style={{ gap: 8 }}>
               <div className="spread">
-                <b>{regName(r)} · {fmtNum(Number(r.dose), 3)} {r.unit}</b>
-                <span className="sub tone-mint">{freqText(r)}</span>
+                <span className="lead">{regName(r)} <span className="sub">{fmtNum(Number(r.dose), 3)} {r.unit}</span></span>
+                <span className="sub">{freqText(r)}</span>
               </div>
-              <div className="spread tone-mint">
-                <span className="small">{st.last ? `Last ${fmtDay(st.last)}` : 'Not logged yet'}</span>
-                <span className={`sub em ${st.s === 'late' ? 'tone-danger' : 'tone-mint'}`}>{st.text}</span>
+              <div className="spread">
+                <span className="sub">{st.last ? `Last ${fmtDay(st.last)}` : 'Not logged yet'}</span>
+                <span className="small" style={{ fontWeight: 600, color: st.s === 'late' ? 'var(--danger)' : 'var(--mint-ink)' }}>{st.text}</span>
               </div>
-              <span className="strip28" role="img" aria-label={`Last 4 weeks: ${name} logged ${r.name || regName(r)} on ${strip.filter(d => d.on).length} days`}>
-                {strip.map((d, i) => <i key={i} className={`${d.on ? 'on' : ''}${d.today ? ' today' : ''}`} />)}
-              </span>
-              {adh.expected > 0 && <span className="xsmall tone-mint">{adh.logged} of {adh.expected} due doses logged in 4 weeks</span>}
+              {adh.expected > 0 && <Level f={adh.logged / adh.expected} />}
+              {adh.expected > 0 && <span className="sub">{adh.logged} of {adh.expected} due doses logged in 4 weeks</span>}
             </div>
           );
-        }) : <p className="small tone-mint">{name} isn't tracking a peptide yet.</p>}
+        }) : <p className="sub">{name} isn't tracking a peptide yet.</p>}
       </section>
-      </div>
 
       <Recent log={log} name={name} />
 
-      <div className="spread mid px-1">
+      <div className="spread" style={{ alignItems: 'center', padding: '0 4px' }}>
         <span className="xsmall muted">{loading ? 'Updating…' : fetchedAt ? `Updated ${fmtTime(new Date(fetchedAt))}` : ''}{error ? ` · ${error}` : ''}</span>
         <button className="btn quiet sm" onClick={() => void refreshPartners(true)} disabled={loading}>Refresh</button>
       </div>
-      <p className="xsmall muted px-1">You can see {name}'s log but can't change it. To stop sharing, unlink in your account.</p>
+      <p className="xsmall muted" style={{ padding: '0 4px' }}>You can see {name}'s log but can't change it. To stop sharing, unlink in your account.</p>
     </section>
   );
 }

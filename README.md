@@ -1,8 +1,8 @@
-# Peptide Ledger
+# Peptidal
 
 Learn what the evidence actually says about trending peptides, and keep a private log of what your clinician prescribed.
 
-Peptide Ledger is a static web app (React + TypeScript + Vite), laid out like a phone health app: a floating tab bar with **Today**, **Trends**, a center **Log** button, **Learn** and **Peptides**.
+Peptidal is a static web app (React + TypeScript + Vite), laid out like a phone health app: a floating tab bar with **Today**, **Trends**, a center **Log** button, **Learn** and **Peptides**.
 
 - **Today**: what's due next with a timeline of today's doses, adherence over the last 4 weeks, weight, recent side effects, where to inject next, and a daily check-in. Emergency symptoms in a check-in trigger a "get care now" message.
 - **Log** (center button): log a dose of whatever is due first, with the draw in syringe units when vial details are saved, and the injection site on a body map or a **belly clock** (12 spots around the navel; move one hour clockwise each dose). Each peptide keeps its own site rotation: the next spot for that peptide is already picked when the sheet opens, and Today and Peptides show each injected peptide's next day, amount and spot on a small figure.
@@ -13,7 +13,7 @@ Peptide Ledger is a static web app (React + TypeScript + Vite), laid out like a 
   - **Dose math**: reconstitution arithmetic for a dose a prescriber gave you (vial mg, water mL, U-100 syringe units), with a to-scale syringe and checks for common mistakes such as mcg/mg mix-ups and draws that don't fit the syringe.
   - **Safety & law**: emergency signs and hotlines, vial and needle safety, contamination findings, a plain-language guide to how FDA sorts compounding ingredients, and a timeline of US peptide rules from 2023 to 2027.
 
-The visual style ("Soft Bento") uses tinted tiles with one job per color: mint for adherence and evidence, lilac for weight and dose math, peach for side effects and warnings, sky for sites and schedule, lemon for learning. Light and dark themes follow the device or the toggle.
+The visual style ("In Solution") puts a cobalt field at the top of every screen, with a slow wave along its lower edge and one live graphic: a chain of beads that is the last 28 days on Today and the amino-acid sequence on a peptide page. Changing screens drains and refills the field. Below it, white cells use one accent color per job: mint for adherence and evidence, lilac for weight and dose math, peach for side effects, sky for sites and schedule, lemon for learning. The drop in the top bar opens the look panel: a theme (Auto follows the device, or Light, or Dark) and the color of the field, from seven ready-made colors or any color of the person's own. A picked color is darkened until white text on it is readable, the rest of the app takes its hue, and the choice is saved on the device. All motion is off when the device asks for reduced motion.
 
 ## What this app will not do
 
@@ -64,9 +64,9 @@ To set it up from scratch:
 
 1. Create a Supabase project.
 2. In the SQL editor, run [`supabase/migrations/20261030000000_ledger_items.sql`](supabase/migrations/20261030000000_ledger_items.sql). It creates the `ledger_items` table and its row-level security policies. Then run [`supabase/migrations/20261101000000_partners.sql`](supabase/migrations/20261101000000_partners.sql), which adds partner linking (the invite codes, the links, and the read-only policy that lets a linked partner see the log). Until it's run, the partner section in the account sheet says it isn't set up yet, and nothing else changes.
-3. In Authentication > URL Configuration, set **Site URL** to the app's address (for example `https://pepperoni-peptides.vercel.app`). To try sign-in on Vercel preview links too, add `https://pepperoni-peptides-*-itzzmarcos-projects.vercel.app/**` under **Redirect URLs**.
+3. In Authentication > URL Configuration, set **Site URL** to the app's address (`https://peptidal.pro`). Under **Redirect URLs**, add `https://peptidal.pro/**` and, while the old address still serves the app, `https://pepperoni-peptides.vercel.app/**`. To try sign-in on Vercel preview links too, also add `https://pepperoni-peptides-*-itzzmarcos-projects.vercel.app/**`.
 4. **Google sign-in** (recommended; no passwords or emails to manage). The "Continue with Google" button appears once this is on:
-   1. In [Google Cloud Console](https://console.cloud.google.com/), create a project, open **Google Auth Platform**, and click **Get started**: app name "Peptide Ledger", your email, audience **External**.
+   1. In [Google Cloud Console](https://console.cloud.google.com/), create a project, open **Google Auth Platform**, and click **Get started**: app name "Peptidal", your email, audience **External**.
    2. Under **Audience**, add each person's Gmail address as a test user (or click **Publish app**; the app only asks for name and email, so Google doesn't need to review it).
    3. Under **Clients**, create a **Web application** client. Authorized JavaScript origins: the app's address. Authorized redirect URIs: `https://<project-ref>.supabase.co/auth/v1/callback`. Copy the client ID and client secret.
    4. In Supabase, Authentication > Sign In / Providers > **Google**: turn it on, paste the client ID and secret, and save.
@@ -109,8 +109,8 @@ src/
   App.tsx              tab bar, routing (#today, #trends, #partner, #learn, #peptides, #calculator, #safety, #<peptide-id>), sheets
   views/               Today, Trends, Partner, Peptides, Learn (library), dose math, safety, and the peptide detail page
   sheets/              add/edit regimen, log a dose, daily check-in, account
-  components/          tab bar, chips, charts, syringe, body map, belly clock, sheet, toast, theme toggle
-  lib/                 types, storage, accounts and sync, dose math, schedules, insights (adherence, side-effect pattern), CSV, formatting
+  components/          tab bar, chips, charts, syringe, body map, belly clock, sheet, toast, look panel (theme and color)
+  lib/                 types, storage, accounts and sync, dose math, schedules, insights (adherence, side-effect pattern), CSV, formatting, field colors
   data/                library, reference content, form options
 public/                icons, web manifest, service worker
 supabase/migrations/   the accounts table, partner links, and their row-level security
@@ -118,4 +118,4 @@ supabase/migrations/   the accounts table, partner links, and their row-level se
 
 ## Disclaimer
 
-Peptide Ledger is for education and personal record-keeping. It is not medical advice, diagnosis or treatment, and it does not recommend any product or dose. Many compounds in the library are not approved for human use and are not legal to compound in the US. Talk to a licensed clinician before starting, changing or stopping anything. In an emergency call 911. Poison Control (US): 1-800-222-1222. Suicide & Crisis Lifeline: 988.
+Peptidal is for education and personal record-keeping. It is not medical advice, diagnosis or treatment, and it does not recommend any product or dose. Many compounds in the library are not approved for human use and are not legal to compound in the US. Talk to a licensed clinician before starting, changing or stopping anything. In an emergency call 911. Poison Control (US): 1-800-222-1222. Suicide & Crisis Lifeline: 988.

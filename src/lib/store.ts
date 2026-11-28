@@ -38,7 +38,11 @@ export function normalize(raw: unknown): Ledger | null {
   const o = raw as Partial<Ledger>;
   if (!Array.isArray(o.regimens) && !Array.isArray(o.doses) && !Array.isArray(o.checkins)) return null;
   const okId = (x: unknown): x is { id: string } => !!x && typeof x === 'object' && typeof (x as { id: unknown }).id === 'string';
-  const okEntry = (x: unknown): x is { id: string; at: string } => okId(x) && typeof (x as unknown as { at: unknown }).at === 'string';
+  // A date that can't be read would turn "due N days ago" and the adherence figure into NaN, so the entry is dropped.
+  const okEntry = (x: unknown): x is { id: string; at: string } => {
+    const at = okId(x) && (x as unknown as { at: unknown }).at;
+    return typeof at === 'string' && !isNaN(Date.parse(at));
+  };
   return {
     version: 1,
     regimens: (o.regimens ?? []).filter(okId) as Regimen[],

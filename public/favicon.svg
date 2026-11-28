@@ -1,7 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="7" fill="#1E2230"/>
-  <rect x="10" y="4" width="12" height="5" rx="1.5" fill="#C93D87"/>
-  <rect x="11.5" y="9" width="9" height="2.5" fill="#B8BECC"/>
-  <path d="M9 13.5 Q9 12 10.5 12 H21.5 Q23 12 23 13.5 V25 Q23 28 20 28 H12 Q9 28 9 25 Z" fill="#FFFFFF"/>
-  <path d="M10.3 21 H21.7 V25 Q21.7 26.7 20 26.7 H12 Q10.3 26.7 10.3 25 Z" fill="#B8BECC"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <clipPath id="c"><rect width="100" height="100" rx="25"/></clipPath>
+  <g clip-path="url(#c)">
+    <rect width="100" height="100" fill="#2430E8"/>
+    <path d="M-40 61Q-20 51 0 61T40 61T80 61T120 61V110H-40Z" fill="#fff" opacity=".12"/>
+    <path d="M-14 54Q2 72 18 54T50 54T82 54T114 54V110H-14Z" fill="#fff" opacity=".2"/>
+    <path d="M-14 54Q2 72 18 54T50 54T82 54T114 54" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" opacity=".78"/>
+    <circle cx="18" cy="54" r="8.5" fill="#8AF5CB"/>
+    <circle cx="50" cy="54" r="8.5" fill="#fff"/>
+    <circle cx="82" cy="54" r="8.5" fill="#fff"/>
+  </g>
 </svg>

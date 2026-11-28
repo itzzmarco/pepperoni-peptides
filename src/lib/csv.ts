@@ -3,7 +3,10 @@ import { freqText } from './schedule';
 import { SITE_LABEL } from './sites';
 
 const cell = (v: unknown) => {
-  const s = v == null ? '' : String(v);
+  let s = v == null ? '' : String(v);
+  // Excel and Sheets run text that starts with = + - or @ as a formula. A leading apostrophe keeps it as text.
+  // Numbers, including negative ones typed as text, are left as they are; dates start with a digit.
+  if (typeof v === 'string' && /^[=+\-@]/.test(s) && !/^[+-]?\d*\.?\d+$/.test(s)) s = `'${s}`;
   return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 

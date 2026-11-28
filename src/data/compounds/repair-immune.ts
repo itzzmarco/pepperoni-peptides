@@ -1,6 +1,6 @@
 import type { Peptide } from '../../lib/types';
 
-// Repair and immune peptides. US status as of Oct 28, 2026.
+// Repair and immune peptides. US status as of Nov 10, 2026.
 // Sources: research notes "repair_immune_peptides.md" and "regulation_and_safety.md".
 
 const WADA_LIST = {
@@ -420,6 +420,7 @@ export const REPAIR_IMMUNE: Peptide[] = [
       'TESTS Phase 3 RCT (1,106 adults with sepsis, 22 centers in China, BMJ 2025): 28-day death rate 23.4% vs 24.1% on placebo. No meaningful difference.',
       'TESTS subgroups (exploratory): people under 60 did worse (HR 1.67). People 60 and older showed no significant benefit (HR 0.81).',
       'TESTS safety: any side effect 66.4% vs 67.6%, and serious events 26.8% vs 29.3%, similar to placebo.',
+      'Cochrane review (Sept 2026, 10 trials, 1,349 adults with chronic hepatitis B): deaths 3.0% vs 5.8% and serious side effects 10.1% vs 13.4%, but the evidence was low to very low certainty, so any benefit is unsure.',
       'Ex-US label: over 2,000 people treated with no clinically significant drug-related reactions. Most effects were mild injection-site discomfort.',
     ],
     halfLife: 'About 2 hours (ex-US label)',
@@ -465,6 +466,10 @@ export const REPAIR_IMMUNE: Peptide[] = [
       {
         t: 'RxList: Zadaxin (thymalfasin) label information',
         u: 'https://rxlist.com/zadaxin-drug.htm',
+      },
+      {
+        t: 'Cochrane: thymosin-alpha 1 for chronic hepatitis B (Naing et al., Sept 2026)',
+        u: 'https://cochrane.org/evidence/CD014610_treatment-called-thymosin-alpha-1-effective-people-chronic-hepatitis-b-and-does-it-cause-unwanted',
       },
       FDA_BULKS_RISK_PAGE,
       {

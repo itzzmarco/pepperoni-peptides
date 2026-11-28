@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SITES, nextSite, siteLabel, sitePlan, suggestSite } from '../sites';
+import { SITES, lastUsedBySite, nextSite, siteLabel, sitePlan, suggestSite } from '../sites';
 import { PEP } from '../../data/peptides';
 
 const SC = 'Subcutaneous injection', IM = 'Intramuscular injection';
@@ -53,6 +53,23 @@ describe('suggestSite and siteLabel', () => {
     expect(siteLabel('arm-l', IM)).toBe('Left upper arm (deltoid)');
     expect(siteLabel('thigh-r', IM)).toBe('Right outer thigh');
     expect(siteLabel('abd-ll', SC)).toBe('Abdomen, lower left');
+  });
+});
+
+describe('lastUsedBySite', () => {
+  it('keeps the most recent use of each site, whatever order the doses come in, and skips doses with no site', () => {
+    const last = lastUsedBySite([
+      { site: 'abd-ur', at: '2026-10-01T09:00:00Z' },
+      { site: 'abd-ur', at: '2026-10-15T09:00:00Z' },
+      { site: 'abd-ur', at: '2026-10-08T09:00:00Z' },
+      { site: 'thigh-l', at: '2026-10-03T09:00:00Z' },
+      { site: '', at: '2026-10-20T09:00:00Z' },
+    ]);
+    expect(Object.keys(last).sort()).toEqual(['abd-ur', 'thigh-l']);
+    expect(last['abd-ur'].toISOString()).toBe('2026-10-15T09:00:00.000Z');
+    expect(last['thigh-l'].toISOString()).toBe('2026-10-03T09:00:00.000Z');
+    // Fed to the suggestion: sites never used come before used ones, in the order given.
+    expect(suggestSite(last, ['abd-ur', 'thigh-l', 'arm-r', 'arm-l'])).toBe('arm-r');
   });
 });
 
